@@ -1,0 +1,8 @@
+wireflow
+  ref HomeScreen
+    @onNewShow --> CreateShowScreen
+  end
+
+  screen CreateShowScreen mobile
+  end
+end

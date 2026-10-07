@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@hello10/diagrams Examples</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: ui-sans-serif, system-ui, sans-serif; margin: 0; padding: 0; background: #f9f9f9; display: flex; flex-direction: column; height: 100vh; }
+        header { background: #333; color: white; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+        header h1 { margin: 0; font-size: 16px; font-weight: 500; }
+        select { padding: 6px 12px; border-radius: 4px; border: none; font-size: 14px; }
+        .columns { display: flex; flex: 1; overflow: hidden; }
+        .col { display: flex; flex-direction: column; min-width: 0; }
+        .col-source { width: 33%; min-width: 200px; }
+        .col-preview { flex: 1; min-width: 0; }
+        .col-header { padding: 8px 14px; background: #f1f1f1; border-bottom: 1px solid #ddd; font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+        textarea { flex: 1; border: none; resize: none; padding: 16px; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.5; outline: none; background: #fafafa; }
+        .preview { flex: 1; padding: 24px; overflow: auto; background: #fff; display: flex; justify-content: center; align-items: flex-start; }
+        .preview svg { max-width: 100%; height: auto; border: 1px solid #eaeaea; background: white; }
+        .error { color: #d32f2f; background: #ffebee; padding: 12px; margin: 12px; border-radius: 4px; font-size: 12px; font-family: monospace; white-space: pre-wrap; }
+        .resizer { width: 6px; cursor: col-resize; background: transparent; flex: 0 0 6px; position: relative; }
+        .resizer:hover, .resizer.dragging { background: #c0c4cc; }
+        .resizer::before { content: ""; position: absolute; left: 2px; right: 2px; top: 0; bottom: 0; background: #ddd; }
+        body.resizing { cursor: col-resize; user-select: none; }
+        body.resizing textarea { pointer-events: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>@hello10/diagrams</h1>
+        <select id="example-selector">
+            <option value="wireframe">Wireframe</option>
+            <option value="wireflow">Wireflow</option>
+            <option value="flowchart">Flowchart</option>
+            <option value="sequence">Sequence Diagram</option>
+            <option value="state">State Diagram</option>
+            <option value="class">Class Diagram</option>
+        </select>
+    </header>
+    <div class="columns" id="columns">
+        <div class="col col-source" id="col-source">
+            <div class="col-header">Source</div>
+            <textarea id="editor" spellcheck="false" placeholder="Type diagram syntax here..."></textarea>
+        </div>
+        <div class="resizer" id="resizer" aria-hidden="true"></div>
+        <div class="col col-preview">
+            <div class="col-header">Preview</div>
+            <div class="preview" id="preview"></div>
+            <div id="error" class="error" style="display: none;"></div>
+        </div>
+    </div>
+    <script type="module" src="./main.ts"></script>
+</body>
+</html>

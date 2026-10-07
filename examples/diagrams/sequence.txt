@@ -1,0 +1,49 @@
+sequenceDiagram
+  title User sign-in flow
+
+  participant U as User
+  actor B as Browser
+  participant A as Auth Service
+  participant DB as Database
+
+  autonumber
+
+  U ->> B: Click "Sign in"
+  B ->>+ A: POST /auth/login
+  A ->> DB: lookup user
+  DB -->> A: user record
+
+  alt Credentials valid
+    A -->> B: 200 OK + token
+    B ->> U: Redirect home
+  else Credentials invalid
+    A -->> B: 401 Unauthorized
+    B ->> U: Show error message
+  end
+  deactivate A
+
+  loop Every 5 minutes
+    B ->> A: refresh token
+    A -->> B: new token
+  end
+
+  par Audit
+    A ->> DB: log sign-in event
+  and Notify
+    A ->>+ B: push welcome banner
+    B -->>- A: ack
+  end
+
+  note over A, DB: Audit trail written
+
+  rect rgb(240, 248, 255)
+    A ->> DB: cache invalidate
+    DB -->> A: ok
+  end
+
+  break Server unavailable
+    B ->> U: Show offline banner
+  end
+
+  note left of U: User waits at screen
+  note right of DB: Persistent storage

@@ -1,0 +1,162 @@
+classDiagram
+  direction TB
+  accTitle: Order processing domain model
+
+  %% --- Namespaced classes ---
+  %% A namespace groups related classes into a visual cluster (compound
+  %% container in the renderer). Classes inside a namespace can still
+  %% participate in cross-namespace relationships.
+
+  namespace Catalog {
+    class Product {
+      +String sku
+      +String name
+      +decimal price
+      +int stock
+      +reserve(int quantity) bool
+    }
+
+    class Category {
+      +String name
+      +List~Product~ products
+      +classify(Product item) void
+    }
+  }
+
+  namespace Ordering {
+    class Order {
+      <<aggregate root>>
+      +UUID id
+      +OrderStatus status
+      -List~LineItem~ items
+      -Customer customer
+      +addItem(Product product, int quantity) void
+      +submit() Result~Confirmation~
+      +cancel(String reason) void
+    }
+
+    class LineItem {
+      +Product product
+      +int quantity
+      +decimal unitPrice
+      #log(String event) void
+      +subtotal() decimal
+    }
+
+    class OrderStatus {
+      <<enumeration>>
+      Pending
+      Confirmed
+      Shipped
+      Delivered
+      Cancelled
+    }
+  }
+
+  %% --- Top-level classes ---
+
+  class Customer {
+    +UUID id
+    +String email
+    +Address address
+    -List~Order~ orderHistory
+    +placeOrder(Cart cart) Order
+  }
+
+  class Address {
+    +String street
+    +String city
+    +String postalCode
+    ~normalize() void
+  }
+
+  %% --- Interface + implementations ---
+
+  class PaymentMethod {
+    <<interface>>
+    +charge(decimal amount) Receipt
+    +refund(Receipt receipt) bool
+  }
+
+  class CreditCard {
+    -String last4
+    -int expiryYear
+    +charge(decimal amount) Receipt
+    +refund(Receipt receipt) bool
+  }
+
+  class StoredCredit {
+    +decimal balance
+    +charge(decimal amount) Receipt
+    +refund(Receipt receipt) bool
+  }
+
+  %% --- Generic interface + concrete impl ---
+
+  class Repository~T~ {
+    <<interface>>
+    +find(UUID id) Optional~T~
+    +save(T entity) T
+    +delete(UUID id) void
+  }
+
+  class OrderRepository {
+    +find(UUID id) Optional~Order~
+    +save(Order entity) Order
+    +delete(UUID id) void
+    +findByCustomer(UUID customerId) List~Order~
+  }
+
+  %% --- Subclass declared via shorthand member syntax ---
+  %% `ClassName : +member` adds members to a class without a body block.
+
+  class SubscriptionOrder
+  SubscriptionOrder : +RecurrenceRule recurrence
+  SubscriptionOrder : +DateTime nextRenewal
+  SubscriptionOrder : +renew() Confirmation
+
+  %% --- Relationships ---
+
+  %% Composition: Order owns its LineItems (lifetime is bound).
+  Order "1" *-- "1..*" LineItem : contains
+
+  %% Aggregation: Customer references Orders (independent lifetime).
+  Customer "1" o-- "*" Order : places
+
+  %% Association: LineItem references Product.
+  LineItem "*" --> "1" Product : references
+
+  %% Bidirectional association with cardinalities + label.
+  Category "1" -- "*" Product : groups
+
+  %% Plain composition without cardinalities.
+  Customer "1" *-- "1" Address
+
+  %% Realization (interface implementation).
+  PaymentMethod <|.. CreditCard
+  CreditCard ..|> PaymentMethod
+  PaymentMethod <|.. StoredCredit
+
+  %% Inheritance.
+  Order <|-- SubscriptionOrder
+
+  %% Dependency: Order uses PaymentMethod at submit time.
+  Order ..> PaymentMethod : uses
+
+  %% Generic realization (parameterized interface).
+  Repository~Order~ <|.. OrderRepository
+
+  %% Reverse-arrow forms (each diagram should round-trip both directions).
+  Address --* Customer
+  Product <-- LineItem
+
+  %% Dashed undirected link (associates without direction or strength).
+  OrderStatus .. Order
+
+  %% --- Notes ---
+
+  %% Class-attached note: rendered next to its target class.
+  note for Order "Aggregate root: only the Order may mutate its own LineItems."
+
+  %% Diagram-level note: standalone, no class anchor.
+  note "Domain model lives in @app/domain; entities are persistence-agnostic."

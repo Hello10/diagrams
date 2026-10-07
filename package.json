@@ -1,0 +1,69 @@
+{
+	"name": "@hello10/diagrams",
+	"version": "0.1.0",
+	"description": "Plaintext diagram grammar, parser, and SVG renderer — sequence, state, flowchart, class, wireframe, wireflow",
+	"license": "MIT",
+	"type": "module",
+	"author": {
+		"name": "Stephen Handley",
+		"email": "stephen@hello10.com",
+		"url": "https://hello10.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Hello10/diagrams.git"
+	},
+	"keywords": [
+		"diagram",
+		"diagrams",
+		"svg",
+		"sequence-diagram",
+		"state-diagram",
+		"flowchart",
+		"class-diagram",
+		"wireframe",
+		"wireflow",
+		"plaintext",
+		"parser"
+	],
+	"sideEffects": false,
+	"files": [
+		"dist"
+	],
+	"exports": {
+		".": {
+			"types": "./dist/index.d.ts",
+			"import": "./dist/index.js"
+		}
+	},
+	"main": "./dist/index.js",
+	"module": "./dist/index.js",
+	"types": "./dist/index.d.ts",
+	"scripts": {
+		"build": "tsup",
+		"dev": "tsup --watch",
+		"test": "vitest run",
+		"typecheck": "tsc --noEmit",
+		"lint": "biome check .",
+		"format": "biome format --write .",
+		"fix": "biome check --write .",
+		"verify": "pnpm run build && pnpm run typecheck && pnpm run test && pnpm run lint",
+		"examples": "vite examples",
+		"prepublishOnly": "pnpm run build",
+		"clean": "rm -rf dist node_modules"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.5.7",
+		"@hello10/config-biome": "^1.0.0",
+		"@hello10/config-typescript": "^1.0.0",
+		"@types/node": "^26.2.0",
+		"tsup": "^8.5.0",
+		"typescript": "^6.0.3",
+		"vite": "^8.0.8",
+		"vitest": "^4.1.10"
+	},
+	"packageManager": "pnpm@11.20.0"
+}

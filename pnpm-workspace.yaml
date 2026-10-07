@@ -1,0 +1,7 @@
+allowBuilds:
+  esbuild: true
+overrides:
+  # tsup vendors rollup-plugin-dts@6.1.1 which supports TS 4.5–6.x directly
+  # but breaks against TS 7's native compiler API (egoist/tsup#1405, #1408).
+  # Stay on TS 6 until tsup ships TS 7 support.
+  typescript: "^6.0.3"

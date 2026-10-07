@@ -1,0 +1,49 @@
+wireframe
+  use @jump/ui as UI
+  use @jump/ui Button, Table
+  use @app/components as App
+
+  define ShowCard
+    UI.Card
+      UI.Image
+      Button "Open" -->|call| onOpen
+    end
+  end
+
+  define PaymentDialog
+    UI.Dialog
+      UI.Text "Confirm purchase"
+      Button "Pay" -->|call| onPay
+    end
+  end
+
+  screen HomeScreen mobile
+    App.Chrome id
+      App.Nav id
+        Button "Create" id=createButton -->|state| paymentDialogOpen
+      end
+
+      App.ShowFeed id=showFeed -->|call| onShowFeedVisible
+        repeat ShowCard id=shows -->|call| onOpenShow
+      end
+
+      Table id=showsTable
+    end
+  end
+
+  screen HomeScreen mobile [paymentDialogOpen]
+    App.Chrome id
+      App.Nav id
+        Button "Create" id=createButton -->|state| paymentDialogOpen
+      end
+
+      App.ShowFeed id=showFeed -->|call| onShowFeedVisible
+        repeat ShowCard id=shows -->|call| onOpenShow
+      end
+
+      Table id=showsTable
+    end
+
+    modal PaymentDialog id=paymentDialog
+  end
+end

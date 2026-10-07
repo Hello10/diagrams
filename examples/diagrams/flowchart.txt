@@ -1,0 +1,25 @@
+flowchart TD
+  %% HTTP request handler pipeline
+
+  Start([Incoming request]) --> Auth{Has auth header?}
+  Auth -->|no| Reject[/Return 401 Unauthorized/]
+  Auth -->|yes| Validate
+
+  subgraph Validate[Validation]
+    direction TB
+    V1[Parse JSON body] --> V2{Schema valid?}
+    V2 -->|no| ValidErr[/Return 400 Bad Request/]
+    V2 -->|yes| V3[Resolve referenced entities]
+  end
+
+  Validate --> Cache[(Cache lookup)]
+  Cache -->|hit| Cached([Return cached response])
+  Cache -->|miss| DB[(Query database)]
+  DB --> Process[[Process result]]
+  Process --> Store[(Write cache)]
+  Store --> Respond([Return response])
+
+  Reject --> Done([End])
+  ValidErr --> Done
+  Cached --> Done
+  Respond --> Done

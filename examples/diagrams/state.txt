@@ -1,0 +1,39 @@
+stateDiagram-v2
+  accTitle: Order processing lifecycle
+
+  %% Start/end markers + labeled transitions
+  [*] --> Pending
+  Pending --> Active: payment received
+  Pending --> Cancelled: cancelled by user
+  Active --> Done
+  Done --> [*]
+  Cancelled --> [*]
+
+  %% State with display label
+  state "Awaiting Approval" as Pending
+
+  %% Composite state with internal transitions
+  state Active {
+    [*] --> Idle
+    Idle --> Working: start work
+    Working --> Idle: done
+    Working --> Failed: error
+    Failed --> [*]
+
+    %% Nested composite state: Working has its own substates
+    state Working {
+      [*] --> Loading
+      Loading --> Processing: data ready
+      Processing --> Saving: result computed
+      Saving --> [*]: persisted
+    }
+  }
+
+  %% Single-line note
+  note right of Pending: Initial state for all orders
+
+  %% Multi-line note
+  note left of Done
+    Final state.
+    All resources released.
+  end note
