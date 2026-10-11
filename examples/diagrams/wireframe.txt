@@ -1,49 +1,54 @@
 wireframe
-  use @jump/ui as UI
-  use @jump/ui Button, Table
+  use @hello10/diagrams/ui Stack, Text, Button, Input, Image, Table, Checkbox, Dialog
   use @app/components as App
 
+  viewport mobile
+  viewport desktop width=1024
+
   define ShowCard
-    UI.Card
-      UI.Image
+    Stack gap=sm
+      Image aspect=16:9
+      Text $title weight=bold
+      Text $venue size=sm muted
       Button "Open" -->|call| onOpen
     end
   end
 
   define PaymentDialog
-    UI.Dialog
-      UI.Text "Confirm purchase"
-      Button "Pay" -->|call| onPay
+    Dialog "Confirm purchase"
+      Text "Two tickets for Hamilton, Saturday 8pm."
+      Checkbox "Email me the receipt" checked
+      Stack direction=row gap=sm justify=end
+        Button "Cancel" -->|state| default
+        Button "Pay $84" primary -->|call| onPay
+      end
     end
   end
 
-  screen HomeScreen mobile
-    App.Chrome id
-      App.Nav id
-        Button "Create" id=createButton -->|state| paymentDialogOpen
+  screen Home
+    Stack id=layout gap=lg
+      App.Nav id=nav
+        Stack direction=row align=center justify=between
+          Text "Shows" size=lg weight=bold
+          Button "Create" id=create -->|state| paying
+        end
       end
-
-      App.ShowFeed id=showFeed -->|call| onShowFeedVisible
-        repeat ShowCard id=shows -->|call| onOpenShow
+      Stack id=content gap=lg
+        Input id=search placeholder="Search shows"
+        repeat ShowCard id=shows data=Show count=2 -->|call| onOpenShow
+        Table id=showsTable data=Show columns="Title, Venue, Date" rows=3
       end
-
-      Table id=showsTable
-    end
-  end
-
-  screen HomeScreen mobile [paymentDialogOpen]
-    App.Chrome id
-      App.Nav id
-        Button "Create" id=createButton -->|state| paymentDialogOpen
-      end
-
-      App.ShowFeed id=showFeed -->|call| onShowFeedVisible
-        repeat ShowCard id=shows -->|call| onOpenShow
-      end
-
-      Table id=showsTable
     end
 
-    modal PaymentDialog id=paymentDialog
+    state paying
+      create disabled
+      modal PaymentDialog id=payment
+    end
+
+    viewport desktop
+      layout direction=row gap=xl
+      nav width=240
+      shows direction=row gap=lg
+    end
   end
 end

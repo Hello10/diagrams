@@ -1,4 +1,9 @@
 import { parse, render } from "../src/api.ts";
+import type {
+	WireflowAST,
+	WireframeAST,
+} from "../src/diagrams/wireframe/index.ts";
+import type { DiagramAST } from "../src/types.ts";
 import classSource from "./diagrams/class.txt?raw";
 import flowchartSource from "./diagrams/flowchart.txt?raw";
 import sequenceSource from "./diagrams/sequence.txt?raw";
@@ -16,6 +21,22 @@ const EXAMPLES: Record<string, string> = {
 };
 
 const SOURCE_WIDTH_KEY = "diagrams-examples:source-width";
+
+/** Wireframes the wireflow example can draw thumbnails from: every screen
+ * in the wireframe example, keyed by screen name. */
+function attachWireframes(ast: DiagramAST): DiagramAST {
+	if (ast.type !== "wireflow") return ast;
+	const result = parse<WireframeAST>(EXAMPLES.wireframe ?? "");
+	if (!result.ok) return ast;
+	const wireframes: Record<string, WireframeAST> = {};
+	const root = result.ast.elements[result.ast.root];
+	for (const id of root?.children ?? []) {
+		const screen = result.ast.elements[id];
+		if (screen?.screenName) wireframes[screen.screenName] = result.ast;
+	}
+	(ast as WireflowAST).wireframes = wireframes;
+	return ast;
+}
 
 const editor = document.getElementById("editor") as HTMLTextAreaElement;
 const preview = document.getElementById("preview") as HTMLDivElement;
@@ -112,7 +133,7 @@ function updatePreview() {
 	try {
 		const result = parse(text);
 		if (result.ok) {
-			preview.innerHTML = render(result.ast);
+			preview.innerHTML = render(attachWireframes(result.ast));
 			preview.style.opacity = "1";
 			clearError();
 			return;
@@ -124,7 +145,7 @@ function updatePreview() {
 		preview.innerHTML = "";
 		if (result.partialAst) {
 			try {
-				preview.innerHTML = render(result.partialAst);
+				preview.innerHTML = render(attachWireframes(result.partialAst));
 				preview.style.opacity = "0.5";
 			} catch {
 				preview.innerHTML = "";

@@ -1,8 +1,18 @@
 wireflow
-  ref HomeScreen
-    @onNewShow --> CreateShowScreen
-  end
+  title Ticketing flow
 
-  screen CreateShowScreen mobile
-  end
+  decision paymentOk "Payment accepted?"
+
+  [*] --> Login
+  Login -->|call onSignIn| Home
+  Login -->|goto signupLink| Signup
+  Signup -->|call onSignUp| Home
+  Home -->|state create| Home.paying
+  Home -->|call onOpenShow| ShowDetail
+  Home.paying -->|state cancel| Home
+  Home.paying -->|call onPay| paymentOk
+  paymentOk -->|yes| ShowDetail
+  paymentOk -->|no| Home.paying
+  ShowDetail -->|goto back| Home
+  Home -->|call onLogout| [*]
 end

@@ -6,6 +6,10 @@ import { parse, render, toPlaintext } from "./api.ts";
 import type { FlowchartAST } from "./diagrams/flowchart/flowchartTypes.ts";
 import type { SequenceDiagramAST } from "./diagrams/sequence/sequenceTypes.ts";
 import type { StateDiagramAST } from "./diagrams/state/stateTypes.ts";
+import type {
+	WireflowAST,
+	WireframeAST,
+} from "./diagrams/wireframe/wireframeTypes.ts";
 import { assertOk } from "./testUtils.ts";
 
 const fixturesDir = resolve(
@@ -68,6 +72,7 @@ describe("canonical example fixtures", () => {
 		["flowchart", "flowchart"],
 		["sequence", "sequenceDiagram"],
 		["state", "stateDiagram"],
+		["class", "classDiagram"],
 	];
 
 	for (const [fixtureName, expectedType] of cases) {
@@ -296,6 +301,114 @@ describe("rendered SVG content sanity (catches half-empty regressions)", () => {
 			"Process result",
 			"Write cache",
 			"Return response",
+		]) {
+			expect(svg).toContain(label);
+		}
+	});
+});
+
+describe("wireframe.txt structural assertions", () => {
+	const ast = assertOk<WireframeAST>(parse(readFixture("wireframe")));
+	const root = ast.elements[ast.root];
+	const home = ast.elements[root?.children?.[0] ?? ""];
+	const byId = (id: string) =>
+		Object.values(ast.elements).find((n) => n.declaredId === id);
+
+	test("declares two viewports, two imports, and two defines", () => {
+		expect(ast.viewports.map((v) => v.name)).toEqual(["mobile", "desktop"]);
+		expect(ast.uses).toHaveLength(2);
+		expect(Object.keys(ast.defines)).toEqual(["ShowCard", "PaymentDialog"]);
+	});
+
+	test("Home has one state and one viewport block", () => {
+		expect(home?.screenName).toBe("Home");
+		expect(home?.states?.map((s) => s.name)).toEqual(["paying"]);
+		expect(home?.viewportOverrides?.map((v) => v.viewport)).toEqual([
+			"desktop",
+		]);
+	});
+
+	test("every construct appears: Stack, repeat, modal, data, overrides, interactions", () => {
+		expect(byId("layout")?.component).toEqual({
+			kind: "named-import",
+			module: "@hello10/diagrams/ui",
+			name: "Stack",
+		});
+		expect(byId("shows")?.nodeKind).toBe("repeat");
+		expect(byId("shows")?.data).toBe("Show");
+		expect(byId("payment")?.nodeKind).toBe("modal");
+		expect(byId("create")?.targetKind).toBe("state");
+		expect(byId("create")?.target).toBe("paying");
+		expect(home?.states?.[0]?.overrides.map((o) => o.id)).toEqual(["create"]);
+		expect(home?.viewportOverrides?.[0]?.overrides.map((o) => o.id)).toEqual([
+			"layout",
+			"nav",
+			"shows",
+		]);
+		expect(home?.hooks).toEqual(
+			expect.arrayContaining(["onOpenShow", "onOpen", "onPay"]),
+		);
+	});
+
+	test("SVG contains a frame per state per viewport and every label", () => {
+		const svg = render(ast);
+		expect((svg.match(/data-screen="Home"/g) ?? []).length).toBe(4);
+		for (const label of [
+			"Shows",
+			"Create",
+			"Search shows",
+			"Confirm purchase",
+			"Email me the receipt",
+			"Pay $84",
+		]) {
+			expect(svg).toContain(label);
+		}
+	});
+});
+
+describe("wireflow.txt structural assertions", () => {
+	const ast = assertOk<WireflowAST>(parse(readFixture("wireflow")));
+
+	test("captures title, entry, exit, and the decision", () => {
+		expect(ast.title).toBe("Ticketing flow");
+		expect(ast.entries).toEqual(["Login"]);
+		expect(ast.exits).toEqual(["Home"]);
+		expect(ast.nodes.paymentOk).toEqual({
+			kind: "decision",
+			id: "paymentOk",
+			question: "Payment accepted?",
+		});
+	});
+
+	test("addresses a screen state as a node", () => {
+		expect(ast.nodes["Home.paying"]).toEqual({
+			kind: "screen",
+			id: "Home.paying",
+			ref: { screen: "Home", state: "paying" },
+		});
+	});
+
+	test("edges use all three interaction kinds plus decision branches", () => {
+		const kinds = new Set(ast.edges.map((e) => e.interaction).filter(Boolean));
+		expect([...kinds].sort()).toEqual(["call", "goto", "state"]);
+		const branches = ast.edges
+			.filter((e) => e.from === "paymentOk")
+			.map((e) => e.branch);
+		expect(branches).toEqual(["yes", "no"]);
+	});
+
+	test("SVG contains every node and every edge label", () => {
+		const svg = render(ast);
+		for (const label of [
+			"Login",
+			"Signup",
+			"ShowDetail",
+			"Payment accepted?",
+			"call onSignIn",
+			"goto signupLink",
+			"state create",
+			"state cancel",
+			"call onLogout",
 		]) {
 			expect(svg).toContain(label);
 		}
