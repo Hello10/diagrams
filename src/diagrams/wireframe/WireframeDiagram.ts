@@ -10,33 +10,11 @@ export class WireframeDiagram extends Diagram<WireframeAST> {
 	readonly name = "Wireframe";
 
 	detect(firstLine: string): boolean {
-		return firstLine.toLowerCase().startsWith("wireframe");
+		return /^wireframe\b/i.test(firstLine);
 	}
 
 	parse(tokens: Token[]): ParseResult<WireframeAST> {
-		const parser = new WireframeParser(tokens);
-		const result = parser.parse();
-		if (result.ok && result.ast.type === "wireframe") {
-			return { ok: true, ast: result.ast as WireframeAST };
-		}
-		if (!result.ok) {
-			const partialAst =
-				result.partialAst?.type === "wireframe"
-					? (result.partialAst as WireframeAST)
-					: undefined;
-			return { ok: false, errors: result.errors, partialAst };
-		}
-		return {
-			ok: false,
-			errors: [
-				{
-					message: "Expected wireframe AST",
-					line: 1,
-					col: 1,
-					severity: "error",
-				},
-			],
-		};
+		return new WireframeParser(tokens).parse();
 	}
 
 	render(ast: WireframeAST): string {

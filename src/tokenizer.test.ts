@@ -46,9 +46,9 @@ describe("tokenize", () => {
 	});
 
 	test("treats @scope/module paths as identifiers for use declarations", () => {
-		const tokens = tokenize("use @jump/ui as UI");
+		const tokens = tokenize("use @acme/ui as UI");
 		const moduleRef = tokens.find(
-			(t) => t.type === "identifier" && t.value === "@jump/ui",
+			(t) => t.type === "identifier" && t.value === "@acme/ui",
 		);
 		expect(moduleRef).toBeDefined();
 	});

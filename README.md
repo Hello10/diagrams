@@ -46,7 +46,41 @@ if (result.ok) {
 | Wireframe | `wireframe` | — |
 | Wireflow | `wireflow` | — |
 
-Wireframe and wireflow are additive types with no Mermaid analog: a wireframe describes a single screen's layout; a wireflow links wireframes into a navigation graph. Both are under active rework — see [spec/spec.md](spec/spec.md) §5.4–5.5 for current syntax and known issues.
+Wireframe and wireflow are additive types with no Mermaid analog. A wireframe describes a screen as a tree of components, with named states, target viewports, and typed interactions; it renders one frame per state per viewport. A wireflow is the navigation graph: screens (optionally in a state) and decisions as nodes, interactions as edges, rendered as screen thumbnails. See [spec/spec.md](spec/spec.md) §5.4–5.5 for the grammar.
+
+```
+wireframe
+  use @hello10/diagrams/ui Stack, Text, Button, Input
+  viewport mobile
+
+  screen Home
+    Stack gap=lg
+      Text "Shows" size=lg weight=bold
+      Input id=search placeholder="Search shows"
+      Button "Create" id=create -->|state| creating
+    end
+
+    state creating
+      create disabled
+      modal
+        Text "New show"
+      end
+    end
+  end
+end
+```
+
+To draw a wireflow with real screen thumbnails, attach the parsed wireframes before rendering:
+
+```ts
+const flow = parse(wireflowSource);
+if (flow.ok) {
+  flow.ast.wireframes = { Home: homeWireframe.ast };
+  const svg = render(flow.ast);
+}
+```
+
+`renderWireframeAscii(ast)` gives the same expanded tree as text, for terminals and agents.
 
 ## Grammar
 

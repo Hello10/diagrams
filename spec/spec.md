@@ -2,7 +2,7 @@
 
 `@hello10/diagrams` is a plaintext diagram library: parse Mermaid-flavored syntax into a JSON AST, render the AST to SVG, round-trip the AST back to canonical plaintext.
 
-This document is the source of truth for the package as a whole — its public API, extension contract, current diagram types, and the phasing of additional types we plan to support. Wireframe and wireflow have known issues that are tracked here as the next major work; they are documented at the level the current implementation supports, not the level we want them to reach.
+This document is the source of truth for the package as a whole — its public API, extension contract, current diagram types, and the phasing of additional types we plan to support. Six types are implemented. Wireframe and wireflow (§5.4, §5.5) are specified prescriptively: the grammar there is the grammar, and the implementation is held to it.
 
 ## 1. Goals
 
@@ -29,7 +29,7 @@ filename, in addition to the Mermaid-canonical type keyword:
 | Flowchart | `flowchart` (and `graph`) | `flowchart` (same) |
 | Wireframe | `wireframe` | `wireframe` (same) |
 | Wireflow | `wireflow` | `wireflow` (same) |
-| Class | `classDiagram` | `class` (planned) |
+| Class | `classDiagram` | `class` |
 | ER | `erDiagram` | `entity` (planned) |
 
 Short forms are additive — the canonical Mermaid keyword always works. New
@@ -51,18 +51,18 @@ source's first-line keyword.
 These are extensions for diagram families Mermaid doesn't have, all introduced in Mermaid's stylistic mold (lowercase keywords, `end`-closed blocks, JS-style imports for module references):
 
 - `wireframe` / `wireflow` keywords introducing the new diagram families.
-- `define Name ... end` for reusable component subtrees.
 - `use @module as Alias` and `use @module Name1, Name2` JS-style imports for component vocabularies.
-- `screen Name viewport [stateName]` declaration with optional viewport and state-variant brackets.
-- `repeat Component`, `modal Component` single-line constructs.
-- `@hookName` references in wireflow for binding declared hook callbacks to outcomes.
+- `define Name ... end` for reusable component subtrees, with `$param` content slots bound at the use site.
+- `viewport name [width=n]` declarations and `viewport name ... end` override blocks.
+- `screen Name ... end` with `state name ... end` blocks declaring what differs from the default state.
+- `@hello10/diagrams/ui`, the module that ships the canonical vocabulary (`Stack` and the form-and-media set).
+- `repeat` and `modal` wrappers, with `repeat Card` shorthand for a single child.
+- `-->|goto|`, `-->|state|`, `-->|call|` typed interactions on components, and the matching `-->|kind trigger|` edge labels in wireflow.
+- `[*]` entry/exit edges in wireflow, borrowed from the state diagram.
 
 #### Lexical constraint on `@`
 
-Mermaid v11 introduced shape-decorator syntax for flowchart nodes: `A@{ shape: rect, label: "Hello" }`. To prevent collision when phase 3 lands flowchart support, the tokenizer matches `@` as a `hook` token **only when followed by an identifier-start character**. Sequences like `@{...}` fall through and remain available for the flowchart parser to interpret as shape decorators. The `@` prefix therefore carries one meaning per diagram-type context:
-
-- `@identifier` → wireflow hook reference.
-- `@{...}` → flowchart shape decorator (planned).
+Mermaid v11 introduced shape-decorator syntax for flowchart nodes: `A@{ shape: rect, label: "Hello" }`. The tokenizer matches `@` as a `hook` token **only when followed by an identifier-start character**, so `@{...}` stays available for the flowchart parser. Module names (`@acme/ui`) contain a `/` and are emitted as identifiers. No current grammar consumes a bare `@identifier`: the wireframe and wireflow parsers reject it with a pointer to the `-->|call| hook` form it replaced.
 
 ### 2.3 Deliberate divergences
 
@@ -80,19 +80,19 @@ The library's purpose is to support **living specifications** — documentation 
 
 | Phase | Diagram | Type key | Status |
 |-------|---------|----------|--------|
-| 1 | Wireframe | `wireframe` | Implemented; **major rework pending** (syntax + renderer) |
-| 1 | Wireflow | `wireflow` | Partially implemented; **deferred** until wireframe stabilizes |
-| 2 | Sequence | `sequenceDiagram` | Implemented; basic Mermaid coverage; rendering bugs |
-| 2 | State | `stateDiagram` (alias `stateDiagram-v2`) | Implemented; basic Mermaid coverage; rendering bugs |
+| 1 | Wireframe | `wireframe` | Implemented to the §5.4 grammar; layout renderer with states and viewports |
+| 1 | Wireflow | `wireflow` | Implemented to the §5.5 grammar; graph renderer with screen thumbnails |
+| 2 | Sequence | `sequenceDiagram` | Implemented; basic Mermaid coverage; renderer limits fixed as Jump diagrams hit them |
+| 2 | State | `stateDiagram` (alias `stateDiagram-v2`) | Implemented; basic Mermaid coverage; renderer limits fixed as Jump diagrams hit them |
 | 3 | Flowchart | `flowchart` (alias `graph`) | Implemented; basic Mermaid coverage; enhancements tracked in §5.3 |
+| 3 | Class | `classDiagram` (alias `class`) | Implemented; namespaces, stereotypes, generics, all relationship forms, notes |
 
 ### Tier A — core spec coverage (Phase 3 priorities)
 
-The remaining diagrams to implement. Each maps to a different layer of a living spec — domain model, data model — and together with flowchart they cover the most universal spec surfaces.
+The remaining diagram to implement. It maps to the persistence layer of a living spec; with class and flowchart it completes the most universal spec surfaces.
 
 | Diagram | Type key | Spec role |
 |---------|----------|-----------|
-| Class diagram | `classDiagram` | Domain types, UML class relationships |
 | ER diagram | `erDiagram` | Persistence layer, entity relationships |
 
 ### Tier B — secondary spec coverage
@@ -133,10 +133,9 @@ These Mermaid types exist but don't serve the living-spec goal. Documenting them
 
 ### Active priorities
 
-1. Solidify wireframe syntax (per §5.4) and overhaul its renderer for legibility.
-2. Fix known bugs and expand example coverage in `state` and `sequence`.
-3. Realign wireflow against the new wireframe syntax (`-->|kind|` typed targets, `@hook` references).
-4. Continue Phase 3 — Tier A. Flowchart is implemented (see §5.3). Remaining order: **class → ER**. Architecture and user journey follow as the first Tier B work but aren't scheduled into Phase 3.
+1. Wireframe and wireflow in use by Jump specs; renderer gaps fixed as real screens expose them.
+2. Fix known renderer bugs in `state` and `sequence` when a Jump diagram hits them.
+3. Phase 3 — Tier A: **ER**. Architecture and user journey follow as the first Tier B work but aren't scheduled into Phase 3.
 
 ## 4. Architecture
 
@@ -171,7 +170,7 @@ Token types:
 | Type | Examples |
 |------|----------|
 | `identifier` | `Alice`, `loginScreen`, `$param`, `UI.Button`, `:`, `{`, `}`, `-` (single-char punctuation is emitted as identifiers for parser convenience) |
-| `hook` | `@onSignIn` (an `@`-prefixed identifier; the `@` must be followed by an identifier-start char per §2.2; identifiers containing `/` are emitted as `identifier`, not `hook`) |
+| `hook` | `@onSignIn` (an `@`-prefixed identifier; the `@` must be followed by an identifier-start char per §2.2; identifiers containing `/` are emitted as `identifier`, not `hook`; no current grammar accepts a hook token) |
 | `string` | `"double-quoted text"` (unclosed strings consume to end of line) |
 | `attribute` | `key=value` or `key="value with spaces"` |
 | `arrow` | `-->`, `->>`, `-->>`, `--x`, `-x`, `--)`, `-)`, `->` (longest-match) |
@@ -182,9 +181,9 @@ Token types:
 | `indent`, `dedent` | Synthetic tokens emitted when indent level changes |
 | `newline` | Line boundary |
 
-Indentation is two spaces or one tab per level. Mixed indentation rounds down. Blank lines do not change indent. Indentation is presentational for `screen` / `define` blocks (which close on `end`); component subtrees use indent presence as a soft signal for "do you have a body."
+Indentation is two spaces or one tab per level. Mixed indentation rounds down. Blank lines do not change indent. Indentation is presentational for every wireframe block (all close on `end`); a component line uses indent presence as the signal for "do you have a body."
 
-The tokenizer is **shared but not neutral.** Some lexemes are biased toward existing diagram types (`@hook` originates with wireflow; `[*]` brackets come from state; flowchart shape openers `((...))`, `(((...)))`, `{{...}}`, `[/.../\\]`, `[\\...\\]`, `>...]`, etc. landed with phase 3). As phase 3 continues, more will be added: the `@{...}` shape-decorator form for flowchart; relationship arrows `<|--`, `*--`, `o--` for class; cardinality lexemes `||--o{`, `}o--||` for ER. Extending the longest-match lists is the standard way to grow the tokenizer.
+The tokenizer is **shared but not neutral.** Some lexemes are biased toward existing diagram types (`[*]` brackets come from state and are reused by wireflow; flowchart shape openers `((...))`, `(((...)))`, `{{...}}`, `[/.../\\]`, `[\\...\\]`, `>...]`, etc. landed with phase 3; relationship arrows `<|--`, `*--`, `o--` with class). Still to come: the `@{...}` shape-decorator form for flowchart; cardinality lexemes `||--o{`, `}o--||` for ER. Extending the longest-match lists is the standard way to grow the tokenizer. One consequence for wireframe: a `-flag` override whose flag starts with `x` or `)` would lex as the `-x` / `-)` sequence arrow, so such flags cannot be cleared with the shorthand.
 
 If lexical pressure ever makes the shared tokenizer ugly, the escape hatch is letting `Diagram` provide an optional `tokenize()` override. We do not do that today.
 
@@ -246,6 +245,8 @@ type BaseElementNode = {
 
 Diagram types extend `DiagramAST` with their own fields. `BaseElementNode` is the recommended shape for contained nodes that flow through component-like grammars (currently used by wireframe). Diagram-type-specific fields are declared on the concrete subtype, never added to `BaseElementNode`.
 
+Every parser accepts `title`, `accTitle`, and `accDescr` lines (with or without a `:`); wireframe and wireflow included.
+
 ### 4.6 Error model
 
 ```ts
@@ -271,7 +272,11 @@ type ParseResult<T> =
 
 ### 4.8 Library adapters (extension point)
 
-For diagram types that render in terms of an external component vocabulary (currently only wireframe), adapters map `{ module, componentName }` pairs to canonical render types and/or custom SVG/ASCII renderers. See §7.5.
+For diagram types that render in terms of an external component vocabulary (currently only wireframe), adapters map `{ module, componentName }` pairs to canonical render types and/or custom SVG/ASCII renderers. See §7.
+
+### 4.9 Attached data
+
+A wireflow is rendered from its own AST, but its screen nodes are more useful as thumbnails of the real screens. The caller may set `ast.wireframes` (a map from screen name to a parsed `WireframeAST`) before calling `render()`; the renderer then draws each screen node from that wireframe, in the addressed state, at its first declared viewport. The field is never produced by the parser and does not survive `toPlaintext`. This is the one place a diagram's render depends on data outside its own source.
 
 ## 5. Diagram Types
 
@@ -605,137 +610,211 @@ Tracked here rather than in §9 because none of them block the next Tier A diagr
 **Type key:** `wireframe`
 **Detection:** first line starts with `wireframe` (case-insensitive)
 
-> **Status: significant rework pending.** The current implementation captures the design we converged on for namespaced imports, typed interactions, and the local-define / repeat / modal model. It also has known bugs, syntax decisions slated for change, and renderer-quality issues that the next major work item will address. This section documents what currently works and flags what is changing; consider it descriptive of the implementation rather than prescriptive of the target.
+A wireframe describes a screen as a tree of components, with enough fidelity that an agent builds the right screen from it and a person can review the screen before it is built. Scenarios say what the screen does; the wireframe says what it is. The rendered wireframe is the design.
 
-#### Grammar (current)
+#### Grammar
 
 ```
 wireframe
-  use @jump/ui as UI
-  use @jump/ui Button, Table
+  use @hello10/diagrams/ui Stack, Text, Button, Input, Image, Table, Checkbox, Dialog
   use @app/components as App
 
+  viewport mobile
+  viewport desktop width=1024
+
   define ShowCard
-    UI.Card
-      UI.Image
-      Button "Open" => call onOpen
+    Stack gap=sm
+      Image aspect=16:9
+      Text $title weight=bold
+      Text $venue size=sm muted
+      Button "Open" -->|call| onOpen
     end
   end
 
   define PaymentDialog
-    UI.Dialog
-      UI.Text "Confirm purchase"
-      Button "Pay" => call onPay
+    Dialog "Confirm purchase"
+      Text "Two tickets for Hamilton, Saturday 8pm."
+      Checkbox "Email me the receipt" checked
+      Stack direction=row gap=sm justify=end
+        Button "Cancel" -->|state| default
+        Button "Pay $84" primary -->|call| onPay
+      end
     end
   end
 
-  screen HomeScreen mobile
-    App.Chrome id
-      App.Nav id
-        Button "Create" id=createButton => state paymentDialogOpen
+  screen Home
+    Stack id=layout gap=lg
+      App.Nav id=nav
+        Stack direction=row align=center justify=between
+          Text "Shows" size=lg weight=bold
+          Button "Create" id=create -->|state| paying
+        end
       end
-      App.ShowFeed id=showFeed => call onShowFeedVisible
-        repeat ShowCard id=shows => call onOpenShow
+      Stack id=content gap=lg
+        Input id=search placeholder="Search shows"
+        repeat ShowCard id=shows data=Show count=2 -->|call| onOpenShow
+        Table id=showsTable data=Show columns="Title, Venue, Date" rows=3
       end
-      Table id=showsTable
-    end
-  end
-
-  screen HomeScreen mobile [paymentDialogOpen]
-    App.Chrome id
-      App.Nav id
-        Button "Create" id=createButton => state paymentDialogOpen
-      end
-      App.ShowFeed id=showFeed => call onShowFeedVisible
-        repeat ShowCard id=shows => call onOpenShow
-      end
-      Table id=showsTable
     end
 
-    modal PaymentDialog id=paymentDialog
+    state paying
+      create disabled
+      modal PaymentDialog id=payment
+    end
+
+    viewport desktop
+      layout direction=row gap=xl
+      nav width=240
+      shows direction=row gap=lg
+    end
   end
 end
 ```
 
-Reserved keywords (lowercase): `wireframe`, `use`, `define`, `screen`, `modal`, `repeat`, `end`. PascalCase identifiers refer to components — local `define`s, named imports, or namespace-qualified imports.
+Keywords (lowercase): `wireframe`, `use`, `viewport`, `define`, `screen`, `state`, `repeat`, `modal`, `end`, plus `title` / `accTitle` / `accDescr`. PascalCase identifiers are component references, and every one resolves to a `define` or an import; nothing is ambient. Lowercase identifiers inside a `state` or `viewport` block are component ids. Every block closes on `end`; indentation is presentational.
+
+#### Core
+
+```
+structure     screen · state · viewport · repeat · modal · define · use
+vocabulary    use @hello10/diagrams/ui Stack, Text, Button, Input, Select, Checkbox, Radio, Image, Audio, Video, Table, Dialog
+layout        Stack — direction, gap, align, justify, padding; width / height on any node
+canonical     text  button  input  select  checkbox  radio  image  audio  video  table  dialog
+interaction   -->|goto| Screen · -->|state| name · -->|call| hook
+data          data=Ref on any node
+```
+
+The canonical set is the HTML form-and-media set: types with distinct semantics, not distinct looks. Variants are props or adapters, not new types — a toggle is a checkbox, a heading is text, a link is a button that navigates, a toast is a dialog. Everything above the core is composition: `define` builds a Card, a Nav, a Tabs from the core and reuses it. A component with no mapping and no definition renders as a labeled box; that is a component that has not been mapped yet, not a gap in the language.
 
 #### Constructs
 
-- **`use`** — namespace (`use @jump/ui as UI`) or named (`use @jump/ui Button, Table`) imports. Only valid at the top level.
-- **`define Name ... end`** — declares a reusable local component. Top-level only. The body is structural and is expanded at render time.
-- **`screen Name [viewport] [[state]] ... end`** — declares a UI surface. Optional viewport identifier, optional `[stateName]` variant.
-- **`repeat Component`** — single-line; declares a repeated region backed by a concrete component symbol. May carry `id=` / bare `id`, attributes, and a typed interaction target.
-- **`modal Component`** — single-line; declares a nested overlay surface. Valid only inside a `screen`. Same modifiers as `repeat`.
-- **Typed interactions.** Current syntax is `=> goto|state|call <Target>`. **This is changing** — see §2.3. Target syntax post-rework: `-->|goto| ScreenName`, `-->|state| stateName`, `-->|call| onCallback`.
-- **`id` shorthand** — bare `id` derives an ID from the unqualified component name (`App.Chrome id` → `id=chrome`). `id=value` is the explicit form.
+- **`use`** — `use @module as Alias` (namespace) or `use @module A, B` (named). Top level only. The canonical set lives in `@hello10/diagrams/ui` and is imported like anything else: `use @hello10/diagrams/ui Stack, Text, Button`. A project's own vocabulary is another module (`use @acme/ui as App`). Resolution is `define`, then named import, then namespace; to use a different `Button`, import it from somewhere else. A canonical name used without its import gets an error that quotes the `use` line to add.
+- **`viewport name [width=n]`** — top level. Declares a viewport the wireframe targets. `mobile` (390), `tablet` (768), and `desktop` (1280) have default widths; any other name needs `width=`. With no declaration the wireframe renders at one unnamed 390px viewport.
+- **`define Name … end`** — top level. A reusable subtree. `$param` as a component's content declares a slot; a use site binds it with an attribute of the same name (`ShowCard title="Hamilton"`). Unbound slots render as italic placeholders. Hooks (`-->|call|`) inside a define surface on every screen that uses it. Use-site attributes that are not params, plus flags, `data=`, and an interaction, apply to the expanded root.
+- **`screen Name … end`** — top level. The default state's component tree, followed by any `state` and `viewport` blocks.
+- **Component line** — `Ref ["content" | $param] [id=name] [data=Ref] [key=value …] [flag …] [-->|kind| target]`, with an optional indented body closed by `end`. `id` values are camelCase and unique within their screen (states included); the same id may appear in different screens. Content must come directly after the reference.
+- **`Stack`** — the one layout primitive, from `@hello10/diagrams/ui`. `direction=column|row` (column default), `gap` and `padding` (`none xs sm md lg xl xxl` or a pixel number), `align=start|center|end|stretch` (stretch default), `justify=start|center|end|between`. Any component with children lays them out as a column; `Stack` is how you say otherwise.
+- **Sizing** — `width` and `height` on any node: `fill`, `hug`, or a pixel number. Unset width is `fill` in a column (unless the column's `align` is not `stretch`) and, in a row, `fill` for containers and fields (`Stack`, boxes, `table`, `dialog`, `input`, `select`) but `hug` for controls and media. Unset height is `hug`; a row with `align=stretch` stretches its children.
+- **`repeat`** — a repeated region. `repeat Card [props]` is shorthand for `repeat [props]` with a body of one bare `Card`; both normalize to the same AST (a `repeat` node with children). `count=n` is the number of copies drawn (default 3); `direction=row` lays them side by side. `data=` names the collection.
+- **`modal`** — an overlay. Same two forms as `repeat`. Valid anywhere inside a screen, almost always inside a `state`. Drawn over a dimmed frame with a shadow; never part of the flow.
+- **`state name … end`** — inside a screen. Declares what differs from `default`. Two kinds of line: an **override** (`id [content] [data=] [key=value …] [flag …] [-flag …] [-->|kind| target]`) changes an existing component's props, flags, content, data, or interaction, with `-flag` clearing a flag; an **addition** (a component, `repeat`, or `modal`) is appended after the default tree. `default` is the implicit base state and cannot be declared; `-->|state| default` returns to it. Overrides must match an id in the default tree or in the same state's additions.
+- **`viewport name … end`** — inside a screen. Overrides only, for a declared viewport. Layout props may vary per viewport; the tree does not, so components, content, and interactions are rejected here. A `hidden` flag is a prop and is allowed.
+- **Interactions** — one per component. `goto` targets a screen (`Detail`) or a screen state (`Detail.open`); `state` targets a state of the enclosing screen and is validated (except inside a `define`); `call` names a hook the screen raises. Plain `-->` and bare `@hook` are rejected with a pointer to the typed form.
+- **`data=Ref`** — a spec reference for the collection or entity a component shows. Promoted to `node.data`; the value is opaque to the library.
+- **Flags the renderer honors** — `primary` and `selected`/`active` on buttons; `checked`/`selected` on checkbox and radio; `disabled` on anything (dimmed); `hidden` (not drawn); `muted` and `bold` on text.
+- **Attributes the renderer honors** — `size` (`xs sm md lg xl xxl` or px) and `weight` (`bold medium semibold` or a number) and `align` on text; `placeholder` and `label` on input and select; `aspect` (`16:9`, `1:1`, …) on image and video; `columns="A, B"` and `rows=n` on table. All other attributes pass through to adapters and the AST untouched.
 
 #### AST
 
 ```ts
 type WireframeAST = DiagramAST & {
   type: 'wireframe';
-  root: string;                                  // synthetic root element id
-  elements: Record<string, WireframeElementNode>;
+  root: string;
+  elements: Record<string, WireframeElementNode>;   // keyed by element id
   defines: Record<string, DefineNode>;
   uses: WireframeUseImport[];
+  viewports: WireframeViewport[];                   // { name, width }
 };
 
 type WireframeElementNode = BaseElementNode & {
   nodeKind: 'root' | 'screen' | 'component' | 'repeat' | 'modal';
-  declaredId?: string;
-  componentName?: string;
-  component?: WireframeComponentRef;             // resolved import / local define
-  screenName?: string;
-  viewport?: string;
-  state?: string;
+  declaredId?: string;              // the id= the author wrote
+  componentName?: string;           // as written: Button, UI.Card, Stack
+  component?: WireframeComponentRef;// local | named-import | namespace-import
+  data?: string;
   targetKind?: 'goto' | 'state' | 'call';
   target?: string;
-  hooks?: string[];                              // collected on screen nodes
+  // screen only
+  screenName?: string;
+  states?: { name: string; overrides: WireframeOverride[]; children: string[] }[];
+  viewportOverrides?: { viewport: string; overrides: WireframeOverride[] }[];
+  hooks?: string[];
+};
+
+type WireframeOverride = {
+  id: string; content?: string; data?: string;
+  attributes: Record<string, string>; flags: string[]; clearFlags: string[];
+  targetKind?: 'goto' | 'state' | 'call'; target?: string;
 };
 ```
 
+Element keys are the declared id when one was given (suffixed `~2`, `~3`, … when another screen already used it) and a generated `kind-stem-n` otherwise. Generated ids are not serialized. A state's additions are in `elements` and listed in `states[].children`, not in the screen's `children`.
+
 #### Validation
 
-- Duplicate namespace aliases / named imports
-- Duplicate `define`s
-- Unresolved component references
-- `repeat` / `modal` referencing a non-component
-- Duplicate IDs within a screen/state scope
-- Wireflow-only constructs (`ref`, `decision`) used inside `wireframe`
-- Plain `-->` without a `|kind|` label
-- Bare `@hook` references (use `-->|call| HookName` instead)
-- Legacy keywords (`list`, `grid`, `table`, `external`)
+Errors, all with a pointer to the right form: unknown keyword; bare `id`; `[state]` or a viewport on the screen line; duplicate imports, defines, viewports, states, or viewport blocks; undeclared viewport; `default` declared as a state; unresolved component (with the `use` line to add when it is a canonical name) or unknown namespace; duplicate id within a screen; override matching no id; component or interaction inside a viewport block; unknown `state` target; plain `-->`; bare `@hook`; `repeat Card` combined with a body; `repeat`/`modal` with neither; invalid `Stack` direction/align/justify/gap/padding; invalid `width`/`height`; two interactions on one line; legacy keywords (`list`, `grid`, `table`, `external`, `ref`).
 
-#### Open questions
+#### Rendering
 
-The current implementation works but the syntax surface needs a second pass. The rework must resolve:
+The renderer expands the tree once per screen × state × viewport (defines expanded with bindings, overrides applied — state first, then viewport — repeats unrolled, modals lifted) into a layout tree, then runs a measure pass and a draw pass with Stack semantics. Both the SVG and the ASCII rendering (`renderWireframeAscii`) walk that same tree, so they stay in step by construction.
 
-- **Other syntax cleanup.** The bare `id` shorthand, the placement of the `[state]` bracket, the implicit screen-state variant model, and the interaction between `repeat`/`modal` and component imports all need a second pass. There is too much surface area for what each construct should mean.
-- **Renderer quality and legibility.** The current SVG output is functional but visually crude — fixed grid layout, weak typography hierarchy, no consistent spacing system, modals overlay screens with little visual treatment, generic-component fallback boxes look the same as adapter-rendered components.
-- **Layout primitives.** No horizontal layout primitives — children of a screen or component stack vertically only. Real wireframes need at least one horizontal stacking model.
-- **Adapter coverage.** Canonical render types cover form controls and media but not common containers (header, footer, sidebar, card body).
-- **Wireflow alignment.** After the wireframe rework lands, wireflow will be re-specified to use `-->|kind|` typed targets and the `@hook` reference syntax (kept per §2.2). The two diagram types share a consistent interaction vocabulary.
+- One frame per state per viewport, at the viewport's width; frames for a screen share a row per state. A caption carries screen, state, and viewport.
+- A spacing scale (`4 8 12 16 24 32`) and a type scale (`11 12 14 18 24 32`) applied consistently; grayscale palette; controls 36px tall.
+- Each canonical type is recognizable as itself: filled primary buttons, chevron on select, checked marks, image/video/audio placeholders, table header plus placeholder rows (or children as rows), dialog with title.
+- Modals drawn over a dimmed frame with a drop shadow; the frame grows to fit them.
+- Unmapped components: dashed box labeled `Name #id`. Adapter `renderSvg` receives the measured box and its children's SVG.
+- Each drawn component is wrapped in `<g data-id data-component data-ref data-goto|data-state|data-call>` so tooling can locate it; each frame in `<g data-screen data-state data-viewport>`.
+- A **Components** section renders every `define` on its own at 320px with its params.
 
-### 5.5 Wireflow (deferred)
+### 5.5 Wireflow
 
 **Type key:** `wireflow`
 **Detection:** first line starts with `wireflow` (case-insensitive)
-**Status:** Parser exists; renderer is a placeholder. Spec deferred until wireframe stabilizes.
 
-The current parser accepts:
+The navigation graph: wireframes as nodes, interactions as edges. An interaction declared on a wireframe component and an edge in a wireflow are one fact stated from two sides.
+
+#### Grammar
 
 ```
 wireflow
-  ref HomeScreen
-    @onSignIn --> CreateShowScreen
-  end
+  title Ticketing flow
 
-  screen CreateShowScreen mobile
-  end
+  decision paymentOk "Payment accepted?"
+
+  [*] --> Login
+  Login -->|call onSignIn| Home
+  Login -->|goto signupLink| Signup
+  Signup -->|call onSignUp| Home
+  Home -->|state create| Home.paying
+  Home -->|call onOpenShow| ShowDetail
+  Home.paying -->|state cancel| Home
+  Home.paying -->|call onPay| paymentOk
+  paymentOk -->|yes| ShowDetail
+  paymentOk -->|no| Home.paying
+  ShowDetail -->|goto back| Home
+  Home -->|call onLogout| [*]
 end
 ```
 
-The `@onSignIn` reference syntax is **kept** (per §2.2) with the lexical constraint that `@` must be followed by an identifier-start character to avoid colliding with Mermaid v11 flowchart shape decorators. The arrow form `@onSignIn --> CreateShowScreen` will be re-specified against the wireframe rework's `-->|kind|` vocabulary. **Do not treat the current parser as authoritative** for any other construct; it predates the wireframe decisions in §5.4.
+- **Nodes** — a screen is named by its wireframe screen name (`Home`); a screen state by `Screen.state` (`Home.paying`). Both are nodes and need no declaration; `screen Name` declares one that no edge mentions. `decision id "Question?"` declares a decision (lowercase id). Node order is first mention.
+- **Edges** — `From -->|label| To`, one per line, `-->` only. Leaving a screen, the label is `kind [trigger]`: the same `goto` / `state` / `call` vocabulary as wireframe, and the component id (for `goto` and `state`) or hook name (for `call`) that fires it. The trigger is optional; the kind is not. Leaving a decision, the label is the branch and is required.
+- **Entry and exit** — `[*] --> Screen` (no label) and `Screen --> [*]` or `Screen -->|call hook| [*]`, as in a state diagram.
+- **Validation** — untyped screen edges; unknown kind; decision edge without a branch; entry into a decision or with a label; `[*] --> [*]`; a `state` edge whose target is not a state of the same screen; `goto` into a decision; invalid node names; legacy `ref … end` blocks and wireframe keywords, each with a pointer to the current form.
+
+#### AST
+
+```ts
+type WireflowAST = DiagramAST & {
+  type: 'wireflow';
+  order: string[];
+  nodes: Record<string, { kind: 'screen'; id; ref: { screen; state? } } | { kind: 'decision'; id; question }>;
+  edges: { from; to; interaction?: 'goto' | 'state' | 'call'; trigger?; branch? }[];   // [*] appears as an endpoint
+  entries: string[];
+  exits: string[];
+  wireframes?: Record<string, WireframeAST>;   // attached by the caller, see §4.9
+};
+```
+
+#### Rendering
+
+A top-down layered graph using the shared layout pipeline (§4 of `src/layout.ts`): screens as 140px thumbnails (the real frame when a wireframe is attached, in the addressed state; a placeholder frame otherwise), decisions as diamonds, `[*]` as the state diagram's markers. Forward edges leave the bottom of their source and enter the top of their target, fanned across the thumbnail edge; every edge segment in a rank gap gets its own jog line so horizontals never overlap. Back edges run dashed up a channel to the right, with labels spread apart. Labels are `kind trigger` or the branch, on white pills. Sized to stay readable at twenty screens.
+
+### 5.6 Class diagram
+
+**Type key:** `classDiagram` (alias `class`)
+**Detection:** first line is `classDiagram` or `class` (case-insensitive)
+
+Mermaid class-diagram coverage: `class Name { … }` bodies and `Name : member` shorthand, visibility markers (`+ - # ~`), `<<stereotype>>`, generics (`List~Product~`, `class Repository~T~`), `namespace Name { … }` clusters, every relationship form in both arrow directions (`<|--`, `*--`, `o--`, `-->`, `--`, `..>`, `<|..`, `..`) with cardinalities and labels, `note for Class "…"` and standalone `note "…"`, `direction`, and `accTitle`. The fixture `examples/diagrams/class.txt` exercises each construct and is part of the round-trip corpus. The AST is in `src/diagrams/class/classTypes.ts`.
 
 ## 6. Examples viewer
 
@@ -768,9 +847,9 @@ type WireframeLibraryComponentAdapter = {
 
 ### 7.2 Canonical render types
 
-`text`, `button`, `input`, `select`, `checkbox`, `radio`, `image`, `audio`, `video`, `table`, `dialog`.
+`stack`, `text`, `button`, `input`, `select`, `checkbox`, `radio`, `image`, `audio`, `video`, `table`, `dialog`.
 
-These are **renderer-layer vocabulary**, not syntax keywords. They control how a mapped component is drawn, not what can appear in a wireframe source.
+These are **renderer-layer vocabulary**: what an adapter maps a component name onto. `@hello10/diagrams/ui` is the adapter that maps the canonical PascalCase names (`Stack`, `Text`, `Button`, …) one to one; a project adapter may map its own `HStack` to `stack` or `PrimaryButton` to `button` the same way.
 
 ### 7.3 Registration
 
@@ -786,15 +865,15 @@ registerWireframeLibraryAdapter({
 });
 ```
 
-### 7.4 Default adapter
+### 7.4 The canonical module
 
-`@jump/ui` is registered by default with mappings for `Button`, `Text`, `Input`, `Select`, `Checkbox`, `Radio`, `Image`, `Audio`, `Video`, `Table`, `Dialog`, `Modal`. Call `clearWireframeLibraryAdapters()` to reset (re-registers the defaults) or `registerDefaultWireframeLibraryAdapters()` to restore them after replacement.
+`@hello10/diagrams/ui` is always registered and cannot be replaced (`registerWireframeLibraryAdapter` throws). It is the only registration this library makes; it has no knowledge of any particular UI package. `clearWireframeLibraryAdapters()` removes every project adapter and keeps the canonical module. `WIREFRAME_UI_MODULE` and `WIREFRAME_UI_COMPONENTS` export the name and the mapping.
 
 ### 7.5 Resolution rules
 
-- Imported components without an adapter mapping fall back to a generic boxed renderer.
-- Local `define` components render by expanding their declared subtree.
-- A component-level `renderSvg` overrides canonical-type rendering.
+- Imported components without an adapter mapping fall back to a dashed labeled box.
+- Local `define` components render by expanding their declared subtree with the use site's bindings.
+- A component-level `renderSvg` overrides canonical-type rendering. It receives the measured box (`x`, `y`, `width`, `height`) and `childrenSvg`; height is the children's column height plus padding, at least 48px.
 - `renderAscii` mirrors `renderSvg` for the ASCII renderer.
 
 ## 8. Public API surface
@@ -806,16 +885,18 @@ Exported from `@hello10/diagrams`:
 parse, render, toJSON, fromJSON, toPlaintext
 registerDiagram
 
+// Diagram classes (for custom registries)
+Diagram, DiagramParser, DiagramRenderer
+FlowchartDiagram, SequenceDiagram, StateDiagram, ClassDiagram, WireframeDiagram, WireflowDiagram
+
 // Wireframe extension points
 registerWireframeLibraryAdapter
 clearWireframeLibraryAdapters
-registerDefaultWireframeLibraryAdapters
 getWireframeLibraryAdapter
-renderWireframe
 renderWireframeAscii
 
 // Types
-BaseElementNode, Diagram, DiagramAST, ParseError, ParseResult, Token, TokenType
+BaseElementNode, DiagramAST, ParseError, ParseResult, Token, TokenType
 ```
 
 Diagram-type-specific AST types (`WireframeAST`, `SequenceDiagramAST`, `StateDiagramAST`, etc.) are accessible through the corresponding subpath modules.
@@ -824,13 +905,10 @@ Diagram-type-specific AST types (`WireframeAST`, `SequenceDiagramAST`, `StateDia
 
 Tracked at the spec level so the gap between current implementation and target is explicit.
 
-1. **Wireframe syntax rework.** Resolve the open questions (id shorthand, state-variant model, modal/repeat positioning, layout primitives). Re-specify in this document.
-2. **Wireframe renderer overhaul.** Visual hierarchy, typography, layout system, container vocabulary, modal treatment.
-3. **State / sequence cleanup.** Fix the rendering bugs called out in §5.1 / §5.2. Expand example fixtures to cover every supported construct.
-4. **Wireflow alignment.** Re-specify wireflow grammar against the post-rework wireframe vocabulary (`-->|kind|` targets, `@hook` references, screen-state addressing).
-5. **Phase 3 — remaining Tier A diagrams.** Flowchart is implemented (see §5.3); future enhancements are tracked there. Remaining order: **class → ER**. Each will need its own parser, AST, renderer, and structural-assertion fixture, plus tokenizer additions for that type's specific lexemes:
-   - **Class**: visibility markers (`+`/`-`/`#`/`~`), relationship arrows (`<|--`, `*--`, `o--`, `..>`), generic-type brackets (`~T~`).
-   - **ER**: cardinality lexemes (`||--o{`, `}o--||`, `||..||`, etc.).
+1. **Wireframe in use.** The renderer's remaining limits surface only against real Jump screens: text metrics are estimated, not measured; `hug` width inside a hugging column is approximate; a row that overflows shrinks its hugging children rather than wrapping. Fix each as a Jump diagram hits it.
+2. **Wireflow at scale.** Twenty screens render; beyond that, edge crossings and back-edge channels will need a second pass (lane assignment per back edge, label placement away from crossings).
+3. **State / sequence cleanup.** Fix the rendering bugs called out in §5.1 / §5.2 when a Jump diagram hits them.
+4. **Phase 3 — ER.** Parser, AST, renderer, and structural-assertion fixture, plus cardinality lexemes (`||--o{`, `}o--||`, `||..||`, …) in the tokenizer.
 
    Tier B's Architecture (`architecture-beta`) and User Journey (`journey`) are the next planned additions after Tier A; tokenizer hooks for them will land when prioritized.
 
