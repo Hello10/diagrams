@@ -1,7 +1,7 @@
 import { FONT_MONO } from "../../style.ts";
 import { arrowMarker, svgEsc } from "../../svg.ts";
-import { interpolations, isDataPath, parseCall } from "./UiParser.ts";
 import { getUiLibraryAdapter } from "./uiAdapters.ts";
+import { interpolations, isDataPath, parseCall } from "./UiParser.ts";
 import {
 	badgeInk,
 	UI_DEFAULT_THEME,

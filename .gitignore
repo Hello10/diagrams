@@ -1,6 +1,12 @@
 .DS_Store
 node_modules
 dist
+*.log
 *.tsbuildinfo
 coverage
 .vitest
+
+# dotenv environment variable files
+.env
+.env.*
+!.env.example

@@ -116,16 +116,17 @@ Live editor with the rendered SVG beside it. Pick a diagram type from the dropdo
 ## Develop
 
 ```sh
-pnpm install
-pnpm build       # tsup → dist/ (ESM + .d.ts)
-pnpm test        # vitest
-pnpm typecheck   # tsc --noEmit
-pnpm lint        # biome check
-pnpm fix         # biome check --write
-pnpm verify      # build + typecheck + test + lint (the release gate)
+pnpm install     # also installs the pre-commit hook (vp staged)
+pnpm build       # vp pack: dist/ (ESM + .d.ts)
+pnpm test        # vp test
+pnpm check       # vp check: format, lint, and type checks
+pnpm fix         # vp check --fix
+pnpm verify      # build + check + test (the release gate)
 ```
 
 Tests are colocated with source (`src/**/*.test.ts`).
+
+The toolchain is [Vite+](https://viteplus.dev/guide/); all of its configuration is in `vite.config.ts`. Node and pnpm are pinned in `devEngines` in `package.json`.
 
 ## License
 
