@@ -35,7 +35,7 @@ describe("stateDiagram detect()", () => {
 
 	test("does not detect other types", () => {
 		expect(stateDiagram.detect("sequenceDiagram")).toBe(false);
-		expect(stateDiagram.detect("wireframe")).toBe(false);
+		expect(stateDiagram.detect("ui")).toBe(false);
 	});
 });
 

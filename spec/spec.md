@@ -38,9 +38,9 @@ source's first-line keyword.
 ### 2.1 Adopted verbatim
 
 - **Arrow vocabulary.** Sequence: `->`, `->>`, `-->`, `-->>`, `-x`, `--x`, `-)`, `--)`. State: `-->`. Labeled arrows: `-->|label|`, `-->|"label"|`.
-- **Block keywords closed by `end`.** `loop`/`end`, `alt`/`else`/`end`, `par`/`and`/`end`, `break`/`end`, `rect`/`end`. `subgraph`/`end` planned.
+- **Block keywords closed by `end`.** `loop`/`end`, `alt`/`else`/`end`, `par`/`and`/`end`, `break`/`end`, `rect`/`end`, `subgraph`/`end`.
 - **Comments.** `%% ...`.
-- **Directives.** `%%{...}%%` (tokenized; consumption deferred — see §4.7).
+- **Directives.** `%%{...}%%` (tokenized; the UI diagram consumes `theme`, the rest ignore them — see §4.7).
 - **Frontmatter.** `---` delimiters skipped during type detection (YAML extraction deferred — see §4.7).
 - **Title and accessibility.** `title`, `accTitle`, `accDescr`.
 - **Identifier conventions.** PascalCase for types/components, lowercase for keywords, `:` as label separator.
@@ -51,10 +51,11 @@ These are extensions for diagram families Mermaid doesn't have, all introduced i
 
 - `ui`, the keyword introducing the UI diagram (§5.4).
 - `use "@module" as Alias` and `use "@module" Name1, Name2` JS-style imports, including the standard library `@hello10/diagrams/ui`; `api "@module" name, …` for operations.
-- `screen Name route=… end`, `component Name(inputs) … end`, and `layout Name … end` blocks with an `Outlet`; `state name … end` blocks declaring what differs from the tree; `entry`.
-- `repeat Component data #data` lists and `modal` overlays.
-- `#id` handles, `emits event(payload)` on the element that fires it, and `#handle.event --> target` transitions.
-- Brace blocks with `;` for one-line bodies, after Ruby's convention; `end` otherwise.
+- `screen Name route=… layout=… end`, `layout Name(params) … end` with an `Outlet`, and `component Name(params) … end`, each with modes on its header (`@shows @albums`).
+- `in ~name(args)` and `out ~name(args)` operations with outcome blocks; `list data as item … end`; `modal … end`; `when … end` cases.
+- Sigils: `#id` handles, `@mode`, `$event`, `~operation`; handlers `$event => action` with the actions `@mode`, `$event(value)`, `~op`, and `go Screen(args)`.
+- `=>` as the ui arrow, distinct from the flowchart's `-->`.
+- Override blocks `{ #handle … ; #other … }` on one line, after Ruby's convention; `end` otherwise.
 
 #### Lexical constraint on `@`
 
@@ -164,11 +165,13 @@ Token types:
 
 | Type | Examples |
 |------|----------|
-| `identifier` | `Alice`, `loginScreen`, `$param`, `UI.Button`, `:`, `{`, `}`, `-` (single-char punctuation is emitted as identifiers for parser convenience) |
-| `hook` | `@onSignIn` (an `@`-prefixed identifier; the `@` must be followed by an identifier-start char per §2.2; identifiers containing `/` are emitted as `identifier`, not `hook`; no current grammar accepts a hook token) |
+| `identifier` | `Alice`, `loginScreen`, `UI.Button`, `:`, `{`, `}`, `;`, `-` (single-char punctuation is emitted as identifiers for parser convenience; `DiagramParser` drops `;` for every grammar but ui, where it separates overrides) |
+| `hash` | `#query` (a handle; the ui diagram's element ids) |
+| `hook` | `@shows` (an `@`-prefixed identifier; the `@` must be followed by an identifier-start char per §2.2; identifiers containing `/` are emitted as `identifier`, not `hook`; the ui diagram reads a hook as a mode) |
+| `tilde` | `~signIn`, `~band.loading` (an operation, with an optional mode path; ui only) |
 | `string` | `"double-quoted text"` (unclosed strings consume to end of line) |
-| `attribute` | `key=value` or `key="value with spaces"` |
-| `arrow` | `-->`, `->>`, `-->>`, `--x`, `-x`, `--)`, `-)`, `->` (longest-match) |
+| `attribute` | `key=value`, `key="value with spaces"`, or `key=Call(a=b, c)` (an unquoted value may carry one parenthesised call, spaces included) |
+| `arrow` | `-->`, `->>`, `-->>`, `--x`, `-x`, `--)`, `-)`, `->`, `=>` (longest-match) |
 | `labeled-arrow` | `-->\|label\|`, `-->\|"label"\|` |
 | `bracket` | `[loading]`, `[*]` (literal text including the brackets) |
 | `comment` | `%% comment text` |
@@ -238,7 +241,7 @@ type BaseElementNode = {
 };
 ```
 
-Diagram types extend `DiagramAST` with their own fields. `BaseElementNode` is the recommended shape for contained nodes that flow through component-like grammars (used by the UI diagram's tree nodes). Diagram-type-specific fields are declared on the concrete subtype, never added to `BaseElementNode`.
+Diagram types extend `DiagramAST` with their own fields; each type's AST is in its `*Types.ts` and exported from the package (`UiAST`, `FlowchartAST`, `StateDiagramAST`, `SequenceDiagramAST`, `ClassDiagramAST`). `BaseElementNode` is the recommended shape for contained nodes in a new component-like grammar; no current type uses it (the UI diagram's `UiNode` carries structured handlers, cases, and children instead). Diagram-type-specific fields are declared on the concrete subtype, never added to `BaseElementNode`.
 
 Every parser accepts `title`, `accTitle`, and `accDescr` lines (with or without a `:`).
 
@@ -259,7 +262,7 @@ type ParseResult<T> =
 
 - Hard errors fail the parse but a `partialAst` is still returned so consumers can render what was understood (the examples viewer renders partials at 50% opacity).
 - Warnings keep `ok: true`.
-- The base `DiagramParser` class (`src/parser.ts`) provides `error()`, `warn()`, token navigation (`peek`/`consume`/`consumeIf`), and trivia handling (`skipTrivia`, `skipToEndOfLine`). All registered parsers extend it.
+- The base `DiagramParser` class (`src/DiagramParser.ts`) provides `error()`, `warn()`, token navigation (`peek`/`consume`/`consumeIf`), and trivia handling (`skipTrivia`, `skipToEndOfLine`). All registered parsers extend it.
 
 ### 4.7 Frontmatter & directives
 
@@ -347,10 +350,8 @@ type StateNote = { position: 'left of' | 'right of'; state: string; text: string
 
 #### Known issues
 
-- Compound state children parse but the renderer lays them out flat — children are not visually nested.
-- The renderer assumes one column of vertically stacked states with curved backward arrows; complex graphs become unreadable quickly.
-- Self-loop and overlapping-edge stagger logic exists but breaks when more than two transitions share a node pair.
-- Examples (`examples/diagrams/state.txt`) cover only `[*] --> State1 --> [*]`. Phase-2 work needs richer fixtures driving compound states, notes, and multi-edge layouts.
+- Edges go through the shared router (`src/edgeRouter.ts`): twin arcs for a pair with both directions, fan lanes where several edges share a node, back edges up a channel beside the graph. Three or more transitions between one pair of states still overlap.
+- Choice, fork, join, and concurrent regions are parsed into the AST but not drawn.
 
 ### 5.2 Sequence diagram
 
@@ -467,8 +468,6 @@ type SequenceStatement =
 - Group rendering is a single horizontal band with the kind label, regardless of nesting. Nested groups overlap visually.
 - `note over A, B` parsing depends on the comma being glued to the second identifier (`,B`) — leading whitespace before the comma can drop the second actor.
 - The renderer reserves a fixed `STMT_HEIGHT` per statement; activations contribute zero height, which leaves visual gaps and can crop labels in dense diagrams.
-- `autonumber` is a placeholder — numbering is not actually drawn on messages.
-- Examples (`examples/diagrams/sequence.txt`) cover only two participants and two messages. Phase-2 work needs fixtures exercising every group construct, note variant, and arrow form.
 
 ### 5.3 Flowchart
 
@@ -600,7 +599,7 @@ Tracked here rather than in §9 because none of them block the next Tier A diagr
 
 **Type key:** `ui`
 **Detection:** first line is `ui` (case-insensitive)
-**Status:** implemented. Supersedes the former `wireframe` and `wireflow` types.
+**Status:** implemented.
 
 A `ui` document describes an app's user interface as components: what each is made of, what it shows, what data it reads and writes, what a person can do in it, and how it looks in each of its modes. The same document renders two ways: **frames** (each screen and component drawn in each of its views) and **flow** (screens as thumbnails, joined by the moves between them). It records composition, data dependencies, and interaction surfaces. It does not define execution: nothing in it says when, in what order, or how often anything happens.
 
@@ -781,7 +780,7 @@ type UiCase = { condition: UiCondition; nodes: UiNode[]; overrides: UiOverride[]
 
 #### 5.4.2 Standard library
 
-`@hello10/diagrams/ui` ships the elements. It is imported like any module; nothing is ambient. Each element follows its HTML5 counterpart: the attributes it takes, the events it fires, and the flags it owns are those of the HTML element, reduced to what a wireframe needs. `click` is an event of every element and is not listed.
+`@hello10/diagrams/ui` ships the elements. It is imported like any module; nothing is ambient. Each element follows its HTML5 counterpart: the attributes it takes, the events it fires, and the flags it owns are those of the HTML element, reduced to what a storyboard frame needs. `click` is an event of every element and is not listed.
 
 | Element | HTML5 | Attributes | Events | Flags |
 |---|---|---|---|---|
@@ -833,10 +832,10 @@ Mermaid class-diagram coverage: `class Name { … }` bodies and `Name : member` 
 `examples/` contains a Vite-based live preview app:
 
 ```
-npm run dev:viewer
+pnpm examples
 ```
 
-Split-pane editor with type-to-render. The example sources in `examples/diagrams/*.txt` are deliberately minimal today; expanding them is part of the phase-2 cleanup. Treat the viewer as a development tool, not a public API.
+A split-pane editor that renders as you type, with the example for each type in a dropdown, the selection tracked in the URL hash, zoom controls, and a draggable divider. A source with hard errors renders its partial AST at half opacity. The sources in `examples/diagrams/*.txt` double as the round-trip corpus and the snapshot fixtures (`src/__snapshots__/*.svg`, approved with `pnpm vitest run -u src/snapshots.test.ts`). Treat the viewer as a development tool, not a public API.
 
 ## 7. Library adapters
 
@@ -859,7 +858,7 @@ type UiElementAdapter = {
 
 ### 7.2 Render types
 
-One per standard element (§5.4.2): `stack`, `heading`, `text`, `link`, `button`, `input`, `select`, `checkbox`, `radio`, `image`, `audio`, `video`, `table`, `dialog`.
+One per standard element (§5.4.2): `stack`, `heading`, `text`, `link`, `button`, `input`, `select`, `checkbox`, `radio`, `image`, `audio`, `video`, `table`, `dialog`, `outlet`.
 
 These are **renderer-layer vocabulary**: what an adapter maps a project's element name onto. `@hello10/diagrams/ui` is the adapter that maps the standard names one to one; a project adapter may map its own `PrimaryButton` to `button` the same way.
 
@@ -909,17 +908,19 @@ getUiLibraryAdapter
 
 // Types
 BaseElementNode, DiagramAST, ParseError, ParseResult, Token, TokenType
+UiAST, UiComponent, UiNode, UiTheme
+FlowchartAST, StateDiagramAST, SequenceDiagramAST, ClassDiagramAST
 ```
 
-Diagram-type-specific AST types (`UiAST`, `SequenceDiagramAST`, `StateDiagramAST`, etc.) are accessible through the corresponding subpath modules.
+The package has one entry point; there are no subpath exports.
 
 ## 9. Next major work
 
 Tracked at the spec level so the gap between current implementation and target is explicit.
 
-1. **UI rendering limits.** Text metrics are estimated, not measured; the flow graph is readable to about twenty screens. Fix each as a Jump diagram hits it.
-3. **State / sequence cleanup.** Fix the rendering bugs called out in §5.1 / §5.2 when a Jump diagram hits them.
-4. **Phase 3 — ER.** Parser, AST, renderer, and structural-assertion fixture, plus cardinality lexemes (`||--o{`, `}o--||`, `||..||`, …) in the tokenizer.
+1. **UI rendering limits.** Text metrics are estimated per character class, not measured; the flow graph is readable to about twenty screens; the limits listed at the end of §5.4.1 (tabs as links with handlers, no `else if`, data-path conditions drawn false). Fix each as a Jump diagram hits it.
+2. **State / sequence cleanup.** Fix the rendering limits called out in §5.1 / §5.2 when a Jump diagram hits them.
+3. **Phase 3 — ER.** Parser, AST, renderer, and structural-assertion fixture, plus cardinality lexemes (`||--o{`, `}o--||`, `||..||`, …) in the tokenizer.
 
    Tier B's Architecture (`architecture-beta`) and User Journey (`journey`) are the next planned additions after Tier A; tokenizer hooks for them will land when prioritized.
 

@@ -88,13 +88,13 @@ describe("tokenize", () => {
 	// ─── Indent / dedent ───────────────────────────────────────────────────
 
 	test("emits indent token when indent level increases", () => {
-		const src = `wireframe\n  screen A mobile`;
+		const src = `ui\n  screen A route=/`;
 		const tokens = tokenize(src);
 		expect(tokens.some((t) => t.type === "indent")).toBe(true);
 	});
 
 	test("emits dedent token when indent level decreases", () => {
-		const src = `wireframe\n  screen A mobile\nend`;
+		const src = `ui\n  screen A route=/\nend`;
 		const tokens = tokenize(src);
 		expect(tokens.some((t) => t.type === "dedent")).toBe(true);
 	});
