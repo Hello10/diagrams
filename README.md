@@ -45,7 +45,7 @@ if (result.ok) {
 | Class | `classDiagram` | `class` |
 | UI | `ui` | — |
 
-The UI diagram has no Mermaid analog. It describes an app's interface as components: what each is made of, what it shows, what data it reads and writes, what a person can do in it, and how it looks in each of its modes. One document renders two ways: frames (every screen and component in each view) and flow (screens joined by the moves between them). See [spec/spec.md](spec/spec.md) §5.4 for the language and the standard library, and [examples/diagrams/ui.txt](examples/diagrams/ui.txt) for a worked example. A `%%{theme ink=… accent=…}%%` directive sets the interface color and the callout color; the defaults are neutral.
+The UI diagram has no Mermaid analog. It describes an app's interface as screens, layouts, and components: what each is made of, what it shows, what data it reads and writes, what a person can do in it, and how it looks in each of its modes. One document renders as a storyboard: the flow of screens, then each layout with its actions, each screen inside its layout, and each component in every view, with numbered callouts for what a person can do. The flow and a text rendering are also available on their own. See [spec/spec.md](spec/spec.md) §5.4 for the language and the standard library, and [examples/diagrams/ui.txt](examples/diagrams/ui.txt) for a worked example. A `%%{theme ink=… accent=…}%%` directive sets the interface color and the callout color; the defaults are neutral.
 
 ```
 ui
@@ -92,8 +92,8 @@ import { parse, render, renderUiFlow, renderUiAscii } from "@hello10/diagrams";
 
 const result = parse(source);
 if (result.ok) {
-  const frames = render(result.ast);       // frames view
-  const flow = renderUiFlow(result.ast);   // flow view
+  const storyboard = render(result.ast);   // flow, layouts, screens, components
+  const flow = renderUiFlow(result.ast);   // the flow alone
   const text = renderUiAscii(result.ast);  // the same expanded tree as text
 }
 ```

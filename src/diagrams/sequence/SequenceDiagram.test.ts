@@ -30,7 +30,7 @@ describe("sequenceDiagram detect()", () => {
 	});
 	test("does not detect other diagram types", () => {
 		expect(sequenceDiagram.detect("stateDiagram-v2")).toBe(false);
-		expect(sequenceDiagram.detect("wireframe")).toBe(false);
+		expect(sequenceDiagram.detect("ui")).toBe(false);
 	});
 });
 

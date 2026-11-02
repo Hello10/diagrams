@@ -1,70 +1,25 @@
 # Diagrams for Jump
 
-What `@hello10/diagrams` needs so that a Jump spec can describe UI with enough fidelity that an agent builds the right screen from it and a person can review the screen before it is built.
+What `@hello10/diagrams` gives a Jump spec, and what is left. A Jump spec describes an app in plaintext; the agent builds from it and a person reviews the rendering before anything is built. This package is the diagram engine under that. It has no dependency on Jump and knows nothing about any particular UI package.
 
-`state`, `sequence`, `flowchart`, `class` are usable now. Renderer limits in state and sequence are fixed when a Jump diagram hits them.
+`state`, `sequence`, `flowchart`, and `class` are usable now for the parts of a spec they fit. Renderer limits in them are fixed when a Jump diagram hits them.
 
-## Wireframe
+## The `ui` diagram
 
-A wireframe describes one screen as a tree of components. Scenarios say what the screen does; the wireframe says what it is. The agent reads it to build the screen; the renderer draws it for review.
+One `ui` document describes the interface: screens with routes, the layouts that wrap them, and the components they are made of, each with the data it reads and writes, the modes it can be in, what a person can do in it, and where that leads. The grammar is in `spec/spec.md` §5.4 and is prescriptive: the implementation is held to it. `examples/diagrams/ui.txt` is a complete app and the reference for how a spec reads.
 
-### Core
+What a Jump spec gets from it:
 
-What exists, kept:
+- **One source, three renderings.** `render()` draws the storyboard: the flow of screens, each layout once with its actions, each screen inside its layout, and each component in every view with numbered callouts. `renderUiFlow()` is the flow alone. `renderUiAscii()` is the same expanded tree as text, for an agent or a diff.
+- **Structural checks at parse time.** Every name is declared once and resolves; every handle, mode, event, operation, and data path is accounted for; a layout has exactly one `Outlet`; a screen says which layout wraps it when there is more than one. Errors are data with a line and column, and come with a hint when an old or wrong word is used.
+- **Labels in the document's own words.** A callout or an edge label is always a line from the source of the component it sits in, so a reader can find it.
+- **A project's own elements.** `registerUiLibraryAdapter()` maps a project's component names onto the standard render types, or supplies custom SVG and text renderers (spec §7). Nothing resolves without a `use` import.
+- **Theming.** `%%{theme ink=… accent=…}%%` sets the interface and callout colors.
 
-```
-structure     screen · component · repeat · modal · define · use
-canonical     text  button  input  select  checkbox  radio  image  audio  video  table  dialog
-interaction   goto · state · call
-mapping       adapter per module: component → canonical type, or custom renderSvg / renderAscii
-```
+## Known limits
 
-Added:
+Listed at the end of spec §5.4.1 and tracked in §9. The ones a spec author meets first: tabs are links with handlers and no `to=`; there is no `else if`; a `when` on a data path is drawn as false, so the `else` branch shows; the loading state of several reads is written against one of them; text widths are estimated, not measured.
 
-```
-layout        Stack — direction as a prop (column default, row); the one layout primitive
-```
+## Beyond the engine
 
-The canonical set is the HTML form-and-media set: types with distinct semantics, not distinct looks. Variants are props or adapters, not new types — a toggle is a checkbox, a heading is text, a link is a button that navigates, a toast is a dialog. Nothing is added to the canonical set because it is common; it is added only if it has semantics no existing type can carry.
-
-Everything above the core is composition: `define` builds a Card, a Nav, a Tabs from the core and reuses it. A standard set of definitions can ship with the library; they are not primitives.
-
-A component with no mapping and no definition renders as a labeled box. That is not a gap in the language; it is a component that has not been mapped yet. Its reference — a sketch, a prototype, a spec feature — is a prop on it, not a type.
-
-### Language work
-
-- Settle the `id` shorthand, `[state]` placement, and the screen-state model. One meaning per construct.
-- Resolve how `repeat` and `modal` interact with `use` imports.
-- Add `Stack` with direction, alignment, gap, sizing (fill, hug, fixed).
-- Screen states: named; a state declares what differs from default.
-- Viewports: a wireframe declares the viewports it targets; layout props may vary per viewport, the tree does not.
-- Data: a component that shows a collection or entity names it by spec reference.
-
-### Renderer
-
-High fidelity. The rendered wireframe is the design:
-
-- Layout honored: direction, alignment, gap, sizing; nested stacks composed correctly.
-- A spacing scale and typography hierarchy applied consistently.
-- Each canonical type recognizable as itself; component state (disabled, selected) visible.
-- Modal drawn over the screen with stacking and dimming.
-- Each declared viewport rendered at its size; each screen state renderable on its own.
-- Text rendering (`toPlaintext`) and SVG rendering stay in step: the same tree, the same mapping.
-
-## Wireflow
-
-The navigation graph: wireframes as nodes, interactions as edges. Currently deferred and partially implemented.
-
-- Nodes reference wireframes by name; a node may reference a screen state.
-- Edges are typed by the interaction that causes them — the same `goto` / `state` / `call` vocabulary as wireframe — and name the triggering component. An interaction declared on a wireframe and an edge in a wireflow are one fact stated from two sides.
-- Decisions, entry, and exit are declared.
-- Rendered as a graph of screen thumbnails with labeled edges; readable at twenty screens.
-
-## Fixtures and spec
-
-- Every type ships with fixtures covering its full construct set: the round-trip corpus and the docs-site examples.
-- Spec §3 updated to six implemented types; §5.4 and §5.5 rewritten from descriptive-of-current to prescriptive-of-target.
-
-## Order
-
-Wireframe language → wireframe renderer → wireflow language → wireflow renderer → fixtures and spec.
+Skill integration, the authoring workflow, and the AI-consumable spec format are the layer above this package and are not described here.
