@@ -14,11 +14,11 @@
         .col { display: flex; flex-direction: column; min-width: 0; }
         .col-source { width: 33%; min-width: 200px; }
         .col-preview { flex: 1; min-width: 0; }
-        .col-header { padding: 8px 14px; background: #f1f1f1; border-bottom: 1px solid #ddd; font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
+        .col-header { display: flex; align-items: center; height: 38px; flex: none; padding: 0 14px; background: #f1f1f1; border-bottom: 1px solid #ddd; font-size: 12px; font-weight: 600; color: #555; text-transform: uppercase; letter-spacing: 0.04em; }
         textarea { flex: 1; border: none; resize: none; padding: 16px; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.5; outline: none; background: #fafafa; }
         .preview { flex: 1; padding: 24px; overflow: auto; background: #fff; display: flex; flex-direction: column; align-items: flex-start; gap: 24px; }
         .preview svg { border: 1px solid #eaeaea; background: white; flex: none; }
-        .col-header.with-tools { display: flex; align-items: center; justify-content: space-between; }
+        .col-header.with-tools { justify-content: space-between; }
         .zoom { display: flex; align-items: center; gap: 4px; text-transform: none; letter-spacing: 0; font-weight: 500; }
         .zoom button { border: 1px solid #ccc; background: white; border-radius: 4px; padding: 2px 8px; font-size: 12px; cursor: pointer; color: #333; }
         .zoom button:hover { background: #f1f1f1; }
