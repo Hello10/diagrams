@@ -121,6 +121,8 @@ function lexContent(
 			"-)",
 			// Flowchart: thick + dotted-line + plain-line variants.
 			"==>",
+			// UI: `=>` joins an event or a condition to what follows.
+			"=>",
 			"-.-",
 			"---",
 			// Class diagram relationships (longer prefixes first; `--` and
@@ -265,6 +267,34 @@ function lexContent(
 			}
 		}
 
+		// Handle: #id — an instance handle in the UI diagram. `#` followed by
+		// anything else falls through (class-diagram members read `#` from the
+		// source line, not from tokens).
+		if (raw[pos] === "#" && isIdentStart(raw[pos + 1] ?? "")) {
+			const start = pos;
+			pos++;
+			while (pos < raw.length && isIdentChar(raw[pos] as string)) pos++;
+			emit(state, "hash", raw.slice(start + 1, pos), lineNum, col, indentLevel);
+			continue;
+		}
+
+		// Io operation: ~name, with dotted segments (`~signIn.error`) — the UI
+		// diagram's operation sigil.
+		if (raw[pos] === "~" && isIdentStart(raw[pos + 1] ?? "")) {
+			const start = pos;
+			pos++;
+			while (pos < raw.length && isIdentChar(raw[pos] as string)) pos++;
+			emit(
+				state,
+				"tilde",
+				raw.slice(start + 1, pos),
+				lineNum,
+				col,
+				indentLevel,
+			);
+			continue;
+		}
+
 		// Hook: @identifier, or module path-like identifier: @scope/pkg.
 		// `@` must be followed by an identifier-start char; sequences like
 		// `@{shape: rect}` (flowchart shape decorator) fall through.
@@ -276,7 +306,11 @@ function lexContent(
 				raw[pos] !== " " &&
 				raw[pos] !== "\t" &&
 				raw[pos] !== "," &&
-				raw[pos] !== ")"
+				raw[pos] !== ")" &&
+				raw[pos] !== "(" &&
+				raw[pos] !== "{" &&
+				raw[pos] !== "}" &&
+				raw[pos] !== ";"
 			) {
 				pos++;
 			}
@@ -311,8 +345,21 @@ function lexContent(
 						pos = raw.length;
 					}
 				} else {
+					// An unquoted value ends at whitespace or at a statement or
+					// block terminator, so `value=a.b;` and `{ k=v }` lex cleanly.
+					// Parentheses hold a call (`layout=AppShell(current=Search)`),
+					// so a space inside them does not end the value.
 					const valueStart = pos;
-					while (pos < raw.length && raw[pos] !== " " && raw[pos] !== "\t") {
+					let depth = 0;
+					while (pos < raw.length) {
+						const ch = raw[pos] as string;
+						if (ch === "(") depth++;
+						else if (ch === ")") depth--;
+						else if (
+							depth <= 0 &&
+							(ch === " " || ch === "\t" || ch === ";" || ch === "}")
+						)
+							break;
 						pos++;
 					}
 					value = raw.slice(valueStart, pos);
@@ -349,6 +396,7 @@ function lexContent(
 			raw[pos] === ":" ||
 			raw[pos] === "{" ||
 			raw[pos] === "}" ||
+			raw[pos] === ";" ||
 			raw[pos] === "-"
 		) {
 			const punctuation = raw[pos];

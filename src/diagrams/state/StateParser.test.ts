@@ -214,3 +214,15 @@ describe("compatibility — must parse without error", () => {
 		});
 	}
 });
+
+describe("statement terminators", () => {
+	test("a trailing ; ends a statement and is not a state", () => {
+		const ast = parse(`stateDiagram-v2
+  [*] --> A;
+  A --> B;`);
+		const ids = ast.states.map((s) => s.id);
+		expect(ids).toContain("A");
+		expect(ids).toContain("B");
+		expect(ids).not.toContain(";");
+	});
+});

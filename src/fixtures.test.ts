@@ -6,10 +6,8 @@ import { parse, render, toPlaintext } from "./api.ts";
 import type { FlowchartAST } from "./diagrams/flowchart/flowchartTypes.ts";
 import type { SequenceDiagramAST } from "./diagrams/sequence/sequenceTypes.ts";
 import type { StateDiagramAST } from "./diagrams/state/stateTypes.ts";
-import type {
-	WireflowAST,
-	WireframeAST,
-} from "./diagrams/wireframe/wireframeTypes.ts";
+import { renderUiFlow } from "./diagrams/ui/index.ts";
+import type { UiAST } from "./diagrams/ui/uiTypes.ts";
 import { assertOk } from "./testUtils.ts";
 
 const fixturesDir = resolve(
@@ -67,8 +65,7 @@ function tagImbalance(svg: string): string[] {
 
 describe("canonical example fixtures", () => {
 	const cases: ReadonlyArray<readonly [string, string]> = [
-		["wireframe", "wireframe"],
-		["wireflow", "wireflow"],
+		["ui", "ui"],
 		["flowchart", "flowchart"],
 		["sequence", "sequenceDiagram"],
 		["state", "stateDiagram"],
@@ -307,111 +304,195 @@ describe("rendered SVG content sanity (catches half-empty regressions)", () => {
 	});
 });
 
-describe("wireframe.txt structural assertions", () => {
-	const ast = assertOk<WireframeAST>(parse(readFixture("wireframe")));
-	const root = ast.elements[ast.root];
-	const home = ast.elements[root?.children?.[0] ?? ""];
-	const byId = (id: string) =>
-		Object.values(ast.elements).find((n) => n.declaredId === id);
+describe("ui.txt structural assertions", () => {
+	const ast = assertOk<UiAST>(parse(readFixture("ui")));
 
-	test("declares two viewports, two imports, and two defines", () => {
-		expect(ast.viewports.map((v) => v.name)).toEqual(["mobile", "desktop"]);
-		expect(ast.uses).toHaveLength(2);
-		expect(Object.keys(ast.defines)).toEqual(["ShowCard", "PaymentDialog"]);
-	});
-
-	test("Home has one state and one viewport block", () => {
-		expect(home?.screenName).toBe("Home");
-		expect(home?.states?.map((s) => s.name)).toEqual(["paying"]);
-		expect(home?.viewportOverrides?.map((v) => v.viewport)).toEqual([
-			"desktop",
-		]);
-	});
-
-	test("every construct appears: Stack, repeat, modal, data, overrides, interactions", () => {
-		expect(byId("layout")?.component).toEqual({
-			kind: "named-import",
-			module: "@hello10/diagrams/ui",
-			name: "Stack",
-		});
-		expect(byId("shows")?.nodeKind).toBe("repeat");
-		expect(byId("shows")?.data).toBe("Show");
-		expect(byId("payment")?.nodeKind).toBe("modal");
-		expect(byId("create")?.targetKind).toBe("state");
-		expect(byId("create")?.target).toBe("paying");
-		expect(home?.states?.[0]?.overrides.map((o) => o.id)).toEqual(["create"]);
-		expect(home?.viewportOverrides?.[0]?.overrides.map((o) => o.id)).toEqual([
-			"layout",
-			"nav",
-			"shows",
-		]);
-		expect(home?.hooks).toEqual(
-			expect.arrayContaining(["onOpenShow", "onOpen", "onPay"]),
+	test("the app opens at /, and declarations keep their order", () => {
+		expect(ast.entry).toBe("Search");
+		const screens = ast.order.filter(
+			(n) => ast.components[n]?.route !== undefined,
 		);
-	});
-
-	test("SVG contains a frame per state per viewport and every label", () => {
-		const svg = render(ast);
-		expect((svg.match(/data-screen="Home"/g) ?? []).length).toBe(4);
-		for (const label of [
-			"Shows",
-			"Create",
-			"Search shows",
-			"Confirm purchase",
-			"Email me the receipt",
-			"Pay $84",
-		]) {
-			expect(svg).toContain(label);
-		}
-	});
-});
-
-describe("wireflow.txt structural assertions", () => {
-	const ast = assertOk<WireflowAST>(parse(readFixture("wireflow")));
-
-	test("captures title, entry, exit, and the decision", () => {
-		expect(ast.title).toBe("Ticketing flow");
-		expect(ast.entries).toEqual(["Login"]);
-		expect(ast.exits).toEqual(["Home"]);
-		expect(ast.nodes.paymentOk).toEqual({
-			kind: "decision",
-			id: "paymentOk",
-			question: "Payment accepted?",
-		});
-	});
-
-	test("addresses a screen state as a node", () => {
-		expect(ast.nodes["Home.paying"]).toEqual({
-			kind: "screen",
-			id: "Home.paying",
-			ref: { screen: "Home", state: "paying" },
-		});
-	});
-
-	test("edges use all three interaction kinds plus decision branches", () => {
-		const kinds = new Set(ast.edges.map((e) => e.interaction).filter(Boolean));
-		expect([...kinds].sort()).toEqual(["call", "goto", "state"]);
-		const branches = ast.edges
-			.filter((e) => e.from === "paymentOk")
-			.map((e) => e.branch);
-		expect(branches).toEqual(["yes", "no"]);
-	});
-
-	test("SVG contains every node and every edge label", () => {
-		const svg = render(ast);
-		for (const label of [
+		expect(screens).toEqual([
 			"Login",
-			"Signup",
-			"ShowDetail",
-			"Payment accepted?",
-			"call onSignIn",
-			"goto signupLink",
-			"state create",
-			"state cancel",
-			"call onLogout",
-		]) {
-			expect(svg).toContain(label);
+			"Search",
+			"Band",
+			"Show",
+			"Ticket",
+			"Library",
+			"Account",
+		]);
+		expect(ast.order.slice(0, 3)).toEqual(["Bare", "AppShell", "Nav"]);
+		expect(ast.io.map((io) => io.name)).toEqual(["session"]);
+		expect(ast.apis).toHaveLength(2);
+	});
+
+	test("screens name their layout and pass it what the nav needs", () => {
+		for (const name of ["Search", "Band", "Show", "Library", "Account"]) {
+			expect(ast.components[name]?.usesLayout).toBe("AppShell");
 		}
+		expect(ast.components.Login?.usesLayout).toBe("Bare");
+		expect(ast.components.Search?.layoutArgs).toEqual({ current: "Search" });
+		expect(ast.components.Band?.layoutArgs).toEqual({});
+		const svg = render(ast);
+		const library = svg.slice(
+			svg.indexOf('data-frame="Library" data-view="@bands">'),
+			svg.indexOf('data-frame="Library" data-view="@tickets">'),
+		);
+		expect(library).toMatch(/font-weight="700"[^>]*>Library<\/text>/);
+		expect(library).toMatch(/text-decoration="underline">Search<\/text>/);
+		const band = svg.slice(
+			svg.indexOf('data-frame="Band" data-view="@shows">'),
+			svg.indexOf('data-frame="Band" data-view="@albums">'),
+		);
+		expect(band).toMatch(/text-decoration="underline">Library<\/text>/);
+	});
+
+	test("writes live in the components that own the button", () => {
+		expect(
+			ast.components.FollowButton?.io.map((io) => `${io.kind} ~${io.name}`),
+		).toEqual(["out ~follow"]);
+		expect(ast.components.TicketPicker?.io.map((io) => io.name)).toEqual([
+			"quote",
+			"order",
+		]);
+		expect(ast.components.Band?.modes.map((m) => m.name)).toEqual([
+			"shows",
+			"albums",
+			"about",
+		]);
+		expect(ast.components.AlbumPlayer?.modes).toEqual([
+			{ name: "stopped" },
+			{ name: "playing", param: "current" },
+		]);
+	});
+
+	test("io outcomes navigate: an out's ready goes somewhere", () => {
+		expect(ast.components.Login?.io[0]?.outcomes).toEqual([
+			{ mode: "ready", action: { kind: "go", screen: "Search", args: {} } },
+		]);
+		expect(
+			ast.components.TicketRow?.io[0]?.outcomes.map((o) => o.mode),
+		).toEqual(["ready", "error"]);
+	});
+
+	test("a busy button carries its progressive label and a spinner", () => {
+		const svg = render(ast);
+		const loading = svg.slice(
+			svg.indexOf('data-frame="FollowButton" data-view="~follow.loading"'),
+			svg.indexOf('data-frame="ShowRow">'),
+		);
+		expect(loading).toContain(">Following…</text>");
+		expect(loading).toContain('data-busy="true"');
+		const rest = svg.slice(
+			svg.indexOf('data-frame="FollowButton">'),
+			svg.indexOf('data-frame="FollowButton" data-view="~follow.ready"'),
+		);
+		expect(rest).not.toContain("data-busy");
+	});
+
+	test("the storyboard is tiered: flow, layouts, screens, then components", () => {
+		const svg = render(ast);
+		const at = (text: string) => svg.indexOf(`>${text}</text>`);
+		expect(at("Flow")).toBeGreaterThan(-1);
+		expect(at("Layouts")).toBeGreaterThan(at("Flow"));
+		expect(at("Screens")).toBeGreaterThan(at("Layouts"));
+		expect(at("Components")).toBeGreaterThan(at("Screens"));
+		// A layout's actions are listed once, under the layout; a screen
+		// draws its layout dimmed and lists only its own actions.
+		const shell = svg.slice(
+			svg.indexOf('data-frame="AppShell">'),
+			svg.indexOf('data-frame="Login">'),
+		);
+		expect(shell).toContain("click → go Search");
+		expect(shell).toContain("click → ~signOut");
+		const search = svg.slice(
+			svg.indexOf('data-frame="Search">'),
+			svg.indexOf('data-frame="Search" data-view='),
+		);
+		expect(search).not.toContain("click → go Library");
+		expect(search).not.toContain("click → ~signOut");
+		expect(search).toContain("open(picked) → go Band(id=picked.id)");
+		expect(search).toContain('data-chrome="true"');
+		const lastScreen = Math.max(
+			...["Search", "Band", "Show", "Library"].map((n) =>
+				svg.indexOf(`data-frame="${n}" data-view=`),
+			),
+		);
+		for (const name of ["FollowButton", "TicketPicker", "AlbumPlayer"]) {
+			expect(svg.indexOf(`data-frame="${name}"`)).toBeGreaterThan(lastScreen);
+		}
+		expect(svg).toContain("in AlbumCard @listening, modal");
+		expect(svg).toContain("in Band @albums");
+		expect(svg).toContain(">in AppShell</text>");
+	});
+
+	test("every component has a section; one frame when it has one appearance", () => {
+		const svg = render(ast);
+		for (const name of [
+			"Nav",
+			"BandResult",
+			"ShowRow",
+			"AlbumCard",
+			"AppShell",
+		]) {
+			expect(svg).toContain(`>${name}</text>`);
+		}
+		expect(svg).toContain('data-frame="Nav">');
+		expect(svg).toContain('data-frame="AlbumCard" data-view="@listening"');
+	});
+
+	test("a modal takes the callouts: nothing beneath it is badged", () => {
+		const svg = render(ast);
+		const confirming = svg.slice(
+			svg.indexOf('data-frame="TicketRow" data-view="@confirming">'),
+			svg.indexOf(
+				'data-frame="TicketRow" data-view="@holding ~cancelTicket.ready"',
+			),
+		);
+		expect(confirming).toContain("click → @holding");
+		expect(confirming).toContain("click → ~cancelTicket");
+		expect(confirming).not.toContain("click → @confirming");
+	});
+
+	test("the player owns its modes and only emits close", () => {
+		const player = ast.components.AlbumPlayer;
+		expect(player?.emits).toEqual({ close: false });
+		expect(ast.components.AlbumCard?.emits).toEqual({});
+		expect(ast.components.AlbumPlayer?.scope).toEqual([
+			"album",
+			"session",
+			"tracks",
+		]);
+	});
+
+	test("frames and flow render every screen and label", () => {
+		const frames = render(ast);
+		for (const label of [
+			"Search bands",
+			"Shows",
+			"Albums",
+			"Loading…",
+			"Loading tracks…",
+			"Close",
+			"Sign in",
+			"You're going!",
+		]) {
+			expect(frames).toContain(label);
+		}
+		expect(
+			(frames.match(/data-frame="AlbumPlayer" data-view=/g) ?? []).length,
+		).toBe(3);
+		const flow = renderUiFlow(ast);
+		expect(flow).toContain("open BandResult");
+		expect(flow).toContain("open ShowRow");
+		expect(flow).toContain("click {show.band.name}");
+		expect(flow).toContain("~signIn.ready");
+		// Seven screens and the two layouts that wrap them.
+		expect((flow.match(/<g data-node="/g) ?? []).length).toBe(9);
+		expect(flow).toContain('data-node="AppShell"');
+		// The layout's navigation leaves the layout node once, not every screen.
+		expect((flow.match(/Nav · click Search/g) ?? []).length).toBe(1);
+		expect((flow.match(/Nav · click Library/g) ?? []).length).toBe(1);
 	});
 });
 

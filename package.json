@@ -1,7 +1,7 @@
 {
 	"name": "@hello10/diagrams",
 	"version": "0.1.0",
-	"description": "Plaintext diagram grammar, parser, and SVG renderer — sequence, state, flowchart, class, wireframe, wireflow",
+	"description": "Plaintext diagram grammar, parser, and SVG renderer — sequence, state, flowchart, class, ui",
 	"license": "MIT",
 	"type": "module",
 	"author": {
@@ -21,8 +21,8 @@
 		"state-diagram",
 		"flowchart",
 		"class-diagram",
+		"ui",
 		"wireframe",
-		"wireflow",
 		"plaintext",
 		"parser"
 	],

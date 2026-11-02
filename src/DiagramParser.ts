@@ -15,8 +15,13 @@ export abstract class DiagramParser<AST extends DiagramAST> {
 	protected pos: number;
 	protected errors: ParseError[];
 
-	constructor(tokens: Token[]) {
-		this.tokens = tokens;
+	/** `;` is a statement terminator in Mermaid-style grammars and is
+	 * dropped, so `A --> B;` has no node named `;`. A grammar that gives it
+	 * meaning (ui separates overrides with it) keeps it. */
+	constructor(tokens: Token[], options: { semicolons?: boolean } = {}) {
+		this.tokens = options.semicolons
+			? tokens
+			: tokens.filter((t) => !(t.type === "identifier" && t.value === ";"));
 		this.pos = 0;
 		this.errors = [];
 	}

@@ -1,5 +1,11 @@
 import { DiagramRenderer } from "../../DiagramRenderer.ts";
-import { computeFanLanes } from "../../edges.ts";
+import {
+	type RoutedEdge,
+	type RouteEdge,
+	type RoutePlacement,
+	routeEdges,
+	translatePath,
+} from "../../edgeRouter.ts";
 import {
 	assignColumnPositions,
 	assignRanks,
@@ -108,20 +114,13 @@ interface InternalEdge {
 interface LayoutResult {
 	placements: Map<string, Placement>;
 	edges: InternalEdge[];
+	/** In-scope edges routed, paired with the AST edge they draw. */
+	routed: { edge: FlowEdge; route: RoutedEdge }[];
 	width: number;
 	height: number;
 }
 
 // ─── Edge rendering ──────────────────────────────────────────────────────────
-
-interface EdgeAnchor {
-	x: number;
-	y: number;
-	side: "top" | "bottom";
-	/** Center of the underlying box; useful for routing reference. */
-	refX: number;
-	refY: number;
-}
 
 // ─── Class entry point ──────────────────────────────────────────────────────
 
@@ -371,7 +370,113 @@ export class FlowchartRenderer extends DiagramRenderer<FlowchartAST> {
 		);
 		barycenterLoneRanks(placements, segmentEdges, sortedRanks, groups);
 
-		return { placements, edges: internalEdges, width, height };
+		const routes = this.routeScope(placements, internalEdges, width, height);
+		if (routes.shiftX > 0) {
+			for (const p of placements.values()) {
+				p.x += routes.shiftX;
+				p.cx += routes.shiftX;
+			}
+		}
+		return {
+			placements,
+			edges: internalEdges,
+			routed: routes.routed,
+			width: routes.width,
+			height: routes.height,
+		};
+	}
+
+	/** Route this scope's own edges (one per AST edge; phantoms only rank)
+	 * through the shared router, with sources and targets projected onto
+	 * diamond and cylinder outlines. Channels may spill past the nodes; the
+	 * scope grows to hold them, shifting right for a spill on the left. */
+	private routeScope(
+		placements: Map<string, Placement>,
+		internalEdges: InternalEdge[],
+		width: number,
+		height: number,
+	): {
+		routed: { edge: FlowEdge; route: RoutedEdge }[];
+		shiftX: number;
+		width: number;
+		height: number;
+	} {
+		const nodes = new Map<string, RoutePlacement>();
+		for (const p of placements.values()) {
+			nodes.set(p.node.id, {
+				id: p.node.id,
+				x: p.x,
+				y: p.y,
+				width: p.node.width,
+				height: p.node.height,
+				cx: p.cx,
+				cy: p.cy,
+				virtual: p.node.kind === "virtual",
+			});
+		}
+		const originals: FlowEdge[] = [];
+		const seen = new Set<FlowEdge>();
+		const edges: RouteEdge[] = [];
+		for (const e of internalEdges) {
+			if (e.phantom || seen.has(e.original)) continue;
+			seen.add(e.original);
+			originals.push(e.original);
+			edges.push({
+				key: String(originals.length - 1),
+				from: e.from,
+				to: e.to,
+				label: e.label,
+				isBack: e.isBack,
+				chain: e.chain,
+			});
+		}
+		const result = routeEdges(nodes, edges, {
+			anchor: (node, role, aimX) => {
+				const shape = placements.get(node.id)?.node.node?.shape;
+				if (shape === "diamond") {
+					return this.diamondEdgePoint(
+						node.cx,
+						node.y,
+						node.width,
+						node.height,
+						aimX,
+						role === "source" ? "bottom" : "top",
+					);
+				}
+				if (shape === "cylinder") {
+					return this.cylinderEdgePoint(
+						node.cx,
+						node.y,
+						node.width,
+						node.height,
+						aimX,
+						role === "source" ? "bottom" : "top",
+					);
+				}
+				return role === "source"
+					? { x: aimX, y: node.y + node.height }
+					: { x: aimX, y: node.y };
+			},
+		});
+		const shiftX = Math.max(0, -result.bounds.x1);
+		const routed = result.edges.map((route) => ({
+			edge: originals[Number(route.key)] as FlowEdge,
+			route: shiftX
+				? {
+						...route,
+						d: translatePath(route.d, shiftX, 0),
+						label: route.label
+							? { ...route.label, x: route.label.x + shiftX }
+							: undefined,
+					}
+				: route,
+		}));
+		return {
+			routed,
+			shiftX,
+			width: Math.max(width, result.bounds.x2) + shiftX,
+			height: Math.max(height, result.bounds.y2),
+		};
 	}
 
 	// ─── Recursive placement lookup ──────────────────────────────────────────
@@ -500,38 +605,27 @@ export class FlowchartRenderer extends DiagramRenderer<FlowchartAST> {
 				);
 			}
 		}
-		// Edges in this scope. One render call per AST edge. Phantoms are
-		// rank-only and rendered separately as cross-scope paths.
-		const seen = new Set<FlowEdge>();
-		const originals: FlowEdge[] = [];
-		for (const e of layout.edges) {
-			if (e.phantom) continue;
-			if (seen.has(e.original)) continue;
-			seen.add(e.original);
-			originals.push(e.original);
-		}
-		const fanExits = this.computeFanExits(originals, layout);
-		for (const orig of originals) {
-			const internal = layout.edges.find((x) => x.original === orig);
-			if (!internal) continue;
-			const fromAnchor = this.anchorFor(
-				orig.from,
-				"source",
-				layout,
-				offsetX,
-				offsetY,
-				fanExits.get(orig),
+		for (const { edge, route } of layout.routed) {
+			const stroke = edge.kind === "thick" ? COLOR_EDGE_THICK : COLOR_EDGE;
+			const strokeWidth = edge.kind === "thick" ? 2 : 1;
+			const dashAttr = edge.kind === "dotted" ? ' stroke-dasharray="2,3"' : "";
+			const marker =
+				edge.kind === "line"
+					? ""
+					: ` marker-end="url(#flow-arr${edge.kind === "thick" ? "-thick" : ""})"`;
+			out.push(
+				`<path d="${translatePath(route.d, offsetX, offsetY)}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr}${marker}/>`,
 			);
-			const toAnchor = this.anchorFor(
-				orig.to,
-				"target",
-				layout,
-				offsetX,
-				offsetY,
-				undefined,
-			);
-			if (!fromAnchor || !toAnchor) continue;
-			this.renderEdge(orig, internal, fromAnchor, toAnchor, out);
+			if (route.label) {
+				out.push(
+					edgeLabel(
+						route.label.x + offsetX,
+						route.label.y + offsetY,
+						route.label.text,
+						route.label.anchor,
+					),
+				);
+			}
 		}
 	}
 
@@ -706,116 +800,6 @@ export class FlowchartRenderer extends DiagramRenderer<FlowchartAST> {
 		return lanes;
 	}
 
-	/** For each source with multiple outgoing edges in this scope, distribute
-	 * exit X positions along the source's bottom edge so labels and jogs
-	 * don't pile up. X is returned in scope-local coordinates; callers add
-	 * their own offset. */
-	/** When a source has multiple outgoing edges, decide the X each edge
-	 * leaves the source at. Delegates to the shared `computeFanLanes`
-	 * helper — same algorithm class diagrams use for fan-in entry lanes. */
-	private computeFanExits(
-		originals: FlowEdge[],
-		layout: LayoutResult,
-	): Map<FlowEdge, number> {
-		return computeFanLanes<FlowEdge>({
-			edges: originals,
-			groupBy: (e) => e.from,
-			anchor: (sourceId) => {
-				const p = layout.placements.get(sourceId);
-				if (!p) return undefined;
-				return { x: p.x, width: p.node.width, cx: p.cx };
-			},
-			aimAt: (e) => layout.placements.get(e.to)?.cx,
-		});
-	}
-
-	/** Compute an edge endpoint anchor in root coordinates. Compound nodes
-	 * are first-class placements in this scope, so a single lookup handles
-	 * both leaf nodes and compounds — the boundary attachment falls out of
-	 * the compound's own width/height. */
-	private anchorFor(
-		id: string,
-		role: "source" | "target",
-		layout: LayoutResult,
-		offsetX: number,
-		offsetY: number,
-		fanX: number | undefined,
-	): EdgeAnchor | null {
-		const p = layout.placements.get(id);
-		if (!p) return null;
-		const topY = p.y + offsetY;
-		const acx = p.cx + offsetX;
-		const acy = p.cy + offsetY;
-		const shape = p.node.node?.shape;
-		const w = p.node.width;
-		const h = p.node.height;
-
-		if (role === "target") {
-			// Diamonds enter on the upper outline: target X is the source's
-			// fan-aimed center, projected onto the slanted upper edges.
-			if (shape === "diamond") {
-				const projected = this.diamondEdgePoint(acx, topY, w, h, acx, "top");
-				return {
-					x: projected.x,
-					y: projected.y,
-					side: "top",
-					refX: acx,
-					refY: acy,
-				};
-			}
-			// Cylinders enter on the top ellipse — the curve peaks above the
-			// bbox top at center and drops back to the body shoulders at the
-			// sides.
-			if (shape === "cylinder") {
-				const projected = this.cylinderEdgePoint(acx, topY, w, h, acx, "top");
-				return {
-					x: projected.x,
-					y: projected.y,
-					side: "top",
-					refX: acx,
-					refY: acy,
-				};
-			}
-			return { x: acx, y: topY, side: "top", refX: acx, refY: acy };
-		}
-
-		const exitX = fanX !== undefined ? fanX + offsetX : acx;
-		if (shape === "diamond") {
-			const projected = this.diamondEdgePoint(acx, topY, w, h, exitX, "bottom");
-			return {
-				x: projected.x,
-				y: projected.y,
-				side: "bottom",
-				refX: acx,
-				refY: acy,
-			};
-		}
-		if (shape === "cylinder") {
-			const projected = this.cylinderEdgePoint(
-				acx,
-				topY,
-				w,
-				h,
-				exitX,
-				"bottom",
-			);
-			return {
-				x: projected.x,
-				y: projected.y,
-				side: "bottom",
-				refX: acx,
-				refY: acy,
-			};
-		}
-		return {
-			x: exitX,
-			y: topY + h,
-			side: "bottom",
-			refX: acx,
-			refY: acy,
-		};
-	}
-
 	/** Project a desired X onto a cylinder's top or bottom ellipse. The
 	 * bezier-drawn ellipse peaks `0.1625 * ry` past the bbox edge at the
 	 * center and meets the body shoulders (`y + ry` / `y + h - ry`) at the
@@ -864,106 +848,6 @@ export class FlowchartRenderer extends DiagramRenderer<FlowchartAST> {
 		// Linear interpolation between peak (t=0) and side point (t=1).
 		const y = peakY + (cy - peakY) * t;
 		return { x: cx + dx, y };
-	}
-
-	private renderEdge(
-		orig: FlowEdge,
-		internal: InternalEdge,
-		from: EdgeAnchor,
-		to: EdgeAnchor,
-		out: string[],
-	): void {
-		const stroke = orig.kind === "thick" ? COLOR_EDGE_THICK : COLOR_EDGE;
-		const strokeWidth = orig.kind === "thick" ? 2 : 1;
-		const dashAttr = orig.kind === "dotted" ? ' stroke-dasharray="2,3"' : "";
-		const marker =
-			orig.kind === "line"
-				? ""
-				: ` marker-end="url(#flow-arr${orig.kind === "thick" ? "-thick" : ""})"`;
-
-		if (orig.from === orig.to) {
-			// Self-loop on right of source.
-			const sx = from.refX;
-			const sy = from.refY - 4;
-			const ex = from.refX;
-			const ey = from.refY + 4;
-			const bulge = 16;
-			out.push(
-				`<path d="M ${sx} ${sy} C ${sx + bulge * 2} ${sy - bulge}, ${ex + bulge * 2} ${ey + bulge}, ${ex} ${ey}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr}${marker}/>`,
-			);
-			if (orig.label) {
-				out.push(edgeLabel(sx + bulge * 2 + 6, from.refY + 4, orig.label));
-			}
-			return;
-		}
-
-		const sx = from.x;
-		const sy = from.y;
-		const ex = to.x;
-		const ey = to.y;
-
-		// Back-edge route on the right side.
-		if (internal.isBack) {
-			const r = 6;
-			const apex = Math.max(sx, ex, from.refX, to.refX) + 28;
-			const path = [
-				`M ${sx} ${sy}`,
-				`L ${apex - r} ${sy}`,
-				`Q ${apex} ${sy} ${apex} ${sy - r}`,
-				`L ${apex} ${ey + r}`,
-				`Q ${apex} ${ey} ${apex - r} ${ey}`,
-				`L ${ex} ${ey}`,
-			].join(" ");
-			out.push(
-				`<path d="${path}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr}${marker}/>`,
-			);
-			if (orig.label) {
-				out.push(
-					edgeLabel(apex + EDGE_LABEL_OFFSET, (sy + ey) / 2 + 4, orig.label),
-				);
-			}
-			return;
-		}
-
-		// Straight vertical.
-		if (Math.abs(sx - ex) < 1) {
-			out.push(
-				`<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr}${marker}/>`,
-			);
-			if (orig.label) {
-				// Anchor near the source instead of the midpoint so a long
-				// descent doesn't orphan the label far from the decision.
-				out.push(edgeLabel(sx + EDGE_LABEL_OFFSET, sy + 14, orig.label));
-			}
-			return;
-		}
-
-		// L-shape: vertical down from source, horizontal jog near the source,
-		// then long vertical descent to the target.
-		const jogY = sy + 16;
-		const r = 6;
-		const dir = ex > sx ? 1 : -1;
-		const path = [
-			`M ${sx} ${sy}`,
-			`L ${sx} ${jogY - r}`,
-			`Q ${sx} ${jogY} ${sx + dir * r} ${jogY}`,
-			`L ${ex - dir * r} ${jogY}`,
-			`Q ${ex} ${jogY} ${ex} ${jogY + r}`,
-			`L ${ex} ${ey}`,
-		].join(" ");
-		out.push(
-			`<path d="${path}" fill="none" stroke="${stroke}" stroke-width="${strokeWidth}"${dashAttr}${marker}/>`,
-		);
-		if (orig.label) {
-			// Label rides next to the descending segment near the top of the
-			// drop, on the source-facing side of the turn.
-			const labelY = jogY + 16;
-			if (dir > 0) {
-				out.push(edgeLabel(ex - EDGE_LABEL_OFFSET, labelY, orig.label, "end"));
-			} else {
-				out.push(edgeLabel(ex + EDGE_LABEL_OFFSET, labelY, orig.label));
-			}
-		}
 	}
 
 	// ─── Node rendering ──────────────────────────────────────────────────────────

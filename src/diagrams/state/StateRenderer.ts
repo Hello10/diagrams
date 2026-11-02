@@ -1,5 +1,12 @@
 import { DiagramRenderer } from "../../DiagramRenderer.ts";
 import {
+	type RoutedEdge,
+	type RouteEdge,
+	type RoutePlacement,
+	routeEdges,
+	translatePath,
+} from "../../edgeRouter.ts";
+import {
 	assignColumnPositions,
 	assignRanks,
 	barycenterLoneRanks,
@@ -46,11 +53,12 @@ const COMPOUND_SIDE_PAD = 50; // wide enough for twin-edge labels (e.g. "start w
 const COMPOUND_TOP_INNER_PAD = 14;
 
 const MARKER_RADIUS = 8;
+/** How far each arc of a twin pair bows from the straight line. */
+const TWIN_BOW = 14;
+const BACK_CHANNEL_OFFSET = 24;
 
 const NOTE_PAD = 12;
 const NOTE_GAP = 24;
-
-const EDGE_LABEL_OFFSET = 6;
 
 const ROOT_SCOPE = "__root__";
 // ─── Types ───────────────────────────────────────────────────────────────────
@@ -96,6 +104,7 @@ interface InternalTx {
 interface LayoutResult {
 	placements: Map<string, Placement>;
 	transitions: InternalTx[];
+	routed: RoutedEdge[];
 	width: number;
 	height: number;
 }
@@ -362,7 +371,13 @@ export class StateRenderer extends DiagramRenderer<StateDiagramAST> {
 		transitions: InternalTx[],
 	): LayoutResult {
 		if (nodes.length === 0) {
-			return { placements: new Map(), transitions: [], width: 0, height: 0 };
+			return {
+				placements: new Map(),
+				transitions: [],
+				routed: [],
+				width: 0,
+				height: 0,
+			};
 		}
 
 		const idSet = new Set(nodes.map((n) => n.id));
@@ -413,15 +428,34 @@ export class StateRenderer extends DiagramRenderer<StateDiagramAST> {
 			placements,
 			width: maxWidth,
 			height: totalHeight,
-		} = assignColumnPositions(groups, sortedRanks, RANK_GAP_Y, NODE_GAP_X);
+		} = assignColumnPositions(
+			groups,
+			sortedRanks,
+			RANK_GAP_Y,
+			Math.max(NODE_GAP_X, this.twinLabelRoom(annotatedTx)),
+		);
 
 		barycenterLoneRanks(placements, segmentEdges, sortedRanks, groups);
+
+		const { routed, shiftX, width, height } = this.routeScope(
+			placements,
+			annotatedTx,
+			maxWidth,
+			totalHeight,
+		);
+		if (shiftX > 0) {
+			for (const p of placements.values()) {
+				p.x += shiftX;
+				p.cx += shiftX;
+			}
+		}
 
 		return {
 			placements,
 			transitions: annotatedTx,
-			width: maxWidth,
-			height: totalHeight,
+			routed,
+			width,
+			height,
 		};
 	}
 
@@ -480,46 +514,77 @@ export class StateRenderer extends DiagramRenderer<StateDiagramAST> {
 		}
 	}
 
+	/** Route one scope's transitions. Channels beside the graph may spill
+	 * past the nodes; the scope grows to hold them, shifting the nodes
+	 * right when the spill is on the left. */
+	private routeScope(
+		placements: Map<string, Placement>,
+		transitions: InternalTx[],
+		width: number,
+		height: number,
+	): { routed: RoutedEdge[]; shiftX: number; width: number; height: number } {
+		const nodes = new Map<string, RoutePlacement>();
+		for (const p of placements.values()) {
+			nodes.set(p.node.id, {
+				id: p.node.id,
+				x: p.x,
+				y: p.y,
+				width: p.node.width,
+				height: p.node.height,
+				cx: p.cx,
+				cy: p.cy,
+				virtual: p.node.kind === "virtual",
+			});
+		}
+		const edges: RouteEdge[] = transitions.map((t, i) => ({
+			key: String(i),
+			from: t.from,
+			to: t.to,
+			label: t.label,
+			isBack: t.isBack,
+			chain: t.chain,
+		}));
+		const result = routeEdges(nodes, edges, {
+			twinBow: TWIN_BOW,
+			channelOffset: BACK_CHANNEL_OFFSET,
+		});
+		const shiftX = Math.max(0, -result.bounds.x1);
+		const routed = shiftX
+			? result.edges.map((e) => ({
+					...e,
+					d: translatePath(e.d, shiftX, 0),
+					label: e.label ? { ...e.label, x: e.label.x + shiftX } : undefined,
+				}))
+			: result.edges;
+		return {
+			routed,
+			shiftX,
+			width: Math.max(width, result.bounds.x2) + shiftX,
+			height: Math.max(height, result.bounds.y2),
+		};
+	}
+
 	private renderLayoutEdges(
 		layout: LayoutResult,
 		offsetX: number,
 		offsetY: number,
 		out: string[],
 	): void {
-		// Detect twin pairs (both A→B and B→A exist) so we can render them as two
-		// parallel offset lines instead of one going around the right side.
-		const pairKey = (a: string, b: string) =>
-			a < b ? `${a}|${b}` : `${b}|${a}`;
-		const pairCount = new Map<string, number>();
-		for (const t of layout.transitions) {
-			if (t.from === t.to) continue;
-			const key = pairKey(t.from, t.to);
-			pairCount.set(key, (pairCount.get(key) ?? 0) + 1);
-		}
-
-		// Fan-out: when a node has multiple forward edges leaving it, distribute
-		// their exit X positions along the bottom of the source so labels and
-		// horizontal jogs don't pile up.
-		const exitXs = this.computeFanOutExits(layout);
-
-		for (const t of layout.transitions) {
-			const fromP = layout.placements.get(t.from);
-			const toP = layout.placements.get(t.to);
-			if (!fromP || !toP) continue;
-			const isTwin =
-				t.from !== t.to && (pairCount.get(pairKey(t.from, t.to)) ?? 0) > 1;
-			const exitX = exitXs.get(t);
-			this.renderEdge(
-				t,
-				fromP,
-				toP,
-				offsetX,
-				offsetY,
-				out,
-				layout,
-				isTwin,
-				exitX,
+		const routed = layout.routed;
+		for (const e of routed) {
+			out.push(
+				`<path d="${translatePath(e.d, offsetX, offsetY)}" fill="none" stroke="${COLOR_EDGE}" stroke-width="1" marker-end="url(#state-arr)"/>`,
 			);
+			if (e.label) {
+				out.push(
+					edgeLabel(
+						e.label.x + offsetX,
+						e.label.y + offsetY,
+						e.label.text,
+						e.label.anchor,
+					),
+				);
+			}
 		}
 		for (const p of layout.placements.values()) {
 			const n = p.node;
@@ -536,268 +601,30 @@ export class StateRenderer extends DiagramRenderer<StateDiagramAST> {
 		}
 	}
 
-	private computeFanOutExits(layout: LayoutResult): Map<InternalTx, number> {
-		const out = new Map<InternalTx, number>();
-		const bySource = new Map<string, InternalTx[]>();
-		for (const t of layout.transitions) {
-			if (t.isBack || t.from === t.to) continue;
-			const list = bySource.get(t.from) ?? [];
+	/** Twin pairs (A→B and B→A) draw both labels beside the pair, so a
+	 * column needs room for the wider of the two before its neighbour. */
+	private twinLabelRoom(transitions: InternalTx[]): number {
+		const pairs = new Map<string, InternalTx[]>();
+		for (const t of transitions) {
+			if (t.from === t.to) continue;
+			const key = t.from < t.to ? `${t.from}|${t.to}` : `${t.to}|${t.from}`;
+			const list = pairs.get(key) ?? [];
 			list.push(t);
-			bySource.set(t.from, list);
+			pairs.set(key, list);
 		}
-		for (const [sourceId, edges] of bySource) {
-			const sourceP = layout.placements.get(sourceId);
-			if (!sourceP) continue;
-			if (edges.length <= 1) continue; // single-edge sources use the default cx
-
-			// Order edges by their first-step target X so leftward edges exit on the
-			// left of the source and rightward edges exit on the right.
-			const annotated = edges.map((e) => {
-				const firstStepId = e.chain && e.chain.length > 1 ? e.chain[1] : e.to;
-				const firstP = firstStepId
-					? layout.placements.get(firstStepId)
-					: undefined;
-				return { edge: e, targetX: firstP?.cx ?? sourceP.cx };
-			});
-			annotated.sort((a, b) => a.targetX - b.targetX);
-
-			const margin = Math.min(12, sourceP.node.width / 4);
-			const left = sourceP.x + margin;
-			const right = sourceP.x + sourceP.node.width - margin;
-			const n = annotated.length;
-			const step = (right - left) / (n + 1);
-			annotated.forEach((a, i) => {
-				out.set(a.edge, left + step * (i + 1));
-			});
-		}
-		return out;
-	}
-
-	private renderEdge(
-		t: InternalTx,
-		fromP: Placement,
-		toP: Placement,
-		offsetX: number,
-		offsetY: number,
-		out: string[],
-		layout: LayoutResult,
-		isTwin = false,
-		exitX?: number,
-	): void {
-		const stroke = COLOR_EDGE;
-
-		// Twin pair (both directions between same two nodes) — render as two
-		// parallel vertical lines offset from the box center, so they read as a
-		// clear bidirectional relationship instead of one wrapping around.
-		if (isTwin && t.from !== t.to) {
-			this.renderTwinEdge(t, fromP, toP, offsetX, offsetY, out);
-			return;
-		}
-
-		// Forward edge with virtual nodes — route as polyline through the chain.
-		if (!t.isBack && t.from !== t.to && t.chain && t.chain.length > 2) {
-			this.renderChainedForwardEdge(t, layout, offsetX, offsetY, out, exitX);
-			return;
-		}
-
-		// Self-loop on the right side
-		if (t.from === t.to) {
-			const sx = fromP.x + fromP.node.width + offsetX;
-			const sy = fromP.cy - 4 + offsetY;
-			const ex = fromP.x + fromP.node.width + offsetX;
-			const ey = fromP.cy + 4 + offsetY;
-			const bulge = 16;
-			out.push(
-				`<path d="M ${sx} ${sy} C ${sx + bulge * 2} ${sy - bulge}, ${ex + bulge * 2} ${ey + bulge}, ${ex} ${ey}" fill="none" stroke="${stroke}" stroke-width="1" marker-end="url(#state-arr)"/>`,
-			);
-			if (t.label) {
-				out.push(
-					edgeLabel(sx + bulge * 2 + 6, fromP.cy + offsetY + 4, t.label),
+		let room = 0;
+		for (const list of pairs.values()) {
+			if (list.length < 2) continue;
+			for (const t of list) {
+				if (!t.label) continue;
+				room = Math.max(
+					room,
+					Math.ceil(estimateTextWidth(t.label, FONT_SIZE_LABEL)) * 2 +
+						TWIN_BOW * 2,
 				);
 			}
-			return;
 		}
-
-		// Back-edge (target above source): route to the right of both, using a
-		// vertical-with-corners path that stays compact instead of a fat C-curve.
-		if (t.isBack) {
-			const sx = fromP.x + fromP.node.width + offsetX;
-			const sy = fromP.cy + offsetY;
-			const ex = toP.x + toP.node.width + offsetX;
-			const ey = toP.cy + offsetY;
-			const apex = Math.max(sx, ex) + 24;
-			const r = 6;
-			const path = [
-				`M ${sx} ${sy}`,
-				`L ${apex - r} ${sy}`,
-				`Q ${apex} ${sy} ${apex} ${sy - r}`,
-				`L ${apex} ${ey + r}`,
-				`Q ${apex} ${ey} ${apex - r} ${ey}`,
-				`L ${ex} ${ey}`,
-			].join(" ");
-			out.push(
-				`<path d="${path}" fill="none" stroke="${stroke}" stroke-width="1" marker-end="url(#state-arr)"/>`,
-			);
-			if (t.label) {
-				out.push(
-					edgeLabel(apex + EDGE_LABEL_OFFSET, (sy + ey) / 2 + 4, t.label),
-				);
-			}
-			return;
-		}
-
-		// Forward edge — bottom of source (at fan-out exit X) to top of target.
-		const sx = (exitX ?? fromP.cx) + offsetX;
-		const sy = fromP.y + fromP.node.height + offsetY;
-		const ex = toP.cx + offsetX;
-		const ey = toP.y + offsetY;
-
-		if (Math.abs(sx - ex) < 1) {
-			// Straight vertical line.
-			out.push(
-				`<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="${stroke}" stroke-width="1" marker-end="url(#state-arr)"/>`,
-			);
-			if (t.label) {
-				out.push(edgeLabel(sx + EDGE_LABEL_OFFSET, (sy + ey) / 2 + 4, t.label));
-			}
-			return;
-		}
-
-		// L-shape path with rounded corners: vertical down, horizontal jog near the
-		// source, then a long vertical descent into the target. Placing the jog high
-		// (close to the source) leaves the lower vertical segment as the dominant
-		// visual element and gives labels generous room before the arrowhead.
-		const jogY = sy + 16;
-		const r = 6;
-		const dir = ex > sx ? 1 : -1;
-		const path = [
-			`M ${sx} ${sy}`,
-			`L ${sx} ${jogY - r}`,
-			`Q ${sx} ${jogY} ${sx + dir * r} ${jogY}`,
-			`L ${ex - dir * r} ${jogY}`,
-			`Q ${ex} ${jogY} ${ex} ${jogY + r}`,
-			`L ${ex} ${ey}`,
-		].join(" ");
-		out.push(
-			`<path d="${path}" fill="none" stroke="${stroke}" stroke-width="1" marker-end="url(#state-arr)"/>`,
-		);
-
-		if (t.label) {
-			// Label sits to the LEFT of the lower vertical descent, midway between
-			// the jog and the arrowhead. text-anchor="end" so the text extends
-			// leftward from ex - offset.
-			const ly = (jogY + ey) / 2;
-			out.push(edgeLabel(ex - EDGE_LABEL_OFFSET, ly + 4, t.label, "end"));
-		}
-	}
-
-	private renderTwinEdge(
-		t: InternalTx,
-		fromP: Placement,
-		toP: Placement,
-		offsetX: number,
-		offsetY: number,
-		out: string[],
-	): void {
-		const stroke = COLOR_EDGE;
-		// Determine which is the upper / lower node based on rank position.
-		const upper = fromP.cy < toP.cy ? fromP : toP;
-		const lower = upper === fromP ? toP : fromP;
-		const goingDown = upper === fromP;
-		const offset = 9;
-		// Forward arrow (the one that visually goes downward) sits on the LEFT
-		// of the column center; reverse arrow sits on the RIGHT.
-		const xOffset = goingDown ? -offset : offset;
-		const cx = (upper.cx + lower.cx) / 2 + offsetX + xOffset;
-		const sy = upper.y + upper.node.height + offsetY;
-		const ey = lower.y + offsetY;
-
-		if (goingDown) {
-			out.push(
-				`<line x1="${cx}" y1="${sy}" x2="${cx}" y2="${ey}" stroke="${stroke}" stroke-width="1" marker-end="url(#state-arr)"/>`,
-			);
-		} else {
-			// Arrow points from lower → upper (going up).
-			out.push(
-				`<line x1="${cx}" y1="${ey}" x2="${cx}" y2="${sy}" stroke="${stroke}" stroke-width="1" marker-end="url(#state-arr)"/>`,
-			);
-		}
-
-		if (t.label) {
-			const labelX = goingDown ? cx - 4 : cx + 4;
-			const anchor = goingDown ? "end" : "start";
-			const labelY = (sy + ey) / 2 + 4;
-			out.push(edgeLabel(labelX, labelY, t.label, anchor));
-		}
-	}
-
-	private renderChainedForwardEdge(
-		t: InternalTx,
-		layout: LayoutResult,
-		offsetX: number,
-		offsetY: number,
-		out: string[],
-		exitX?: number,
-	): void {
-		const chain = t.chain ?? [];
-		const placements = chain
-			.map((id) => layout.placements.get(id))
-			.filter((p): p is Placement => p !== undefined);
-		if (placements.length !== chain.length || placements.length < 2) return;
-
-		const r = 6;
-		const path: string[] = [];
-
-		const firstP = placements[0];
-		if (!firstP) return;
-		let prevX = (exitX ?? firstP.cx) + offsetX;
-		let prevY = firstP.y + firstP.node.height + offsetY; // bottom of source
-		path.push(`M ${prevX} ${prevY}`);
-
-		for (let i = 1; i < placements.length; i++) {
-			const p = placements[i];
-			if (!p) return;
-			const isLast = i === placements.length - 1;
-			const cx = p.cx + offsetX;
-			const targetY = isLast ? p.y + offsetY : p.cy + offsetY;
-			const jogY = (prevY + targetY) / 2;
-
-			if (Math.abs(cx - prevX) < 1) {
-				path.push(`L ${cx} ${targetY}`);
-			} else {
-				const dir = cx > prevX ? 1 : -1;
-				path.push(`L ${prevX} ${jogY - r}`);
-				path.push(`Q ${prevX} ${jogY} ${prevX + dir * r} ${jogY}`);
-				path.push(`L ${cx - dir * r} ${jogY}`);
-				path.push(`Q ${cx} ${jogY} ${cx} ${jogY + r}`);
-				path.push(`L ${cx} ${targetY}`);
-			}
-			prevX = cx;
-			prevY = targetY;
-		}
-
-		out.push(
-			`<path d="${path.join(" ")}" fill="none" stroke="${COLOR_EDGE}" stroke-width="1" marker-end="url(#state-arr)"/>`,
-		);
-
-		if (t.label) {
-			// Place label on the LAST segment (between the final virtual and the
-			// target), to the right of the vertical line. This puts it in the
-			// "channel" column rather than at a corner where it would collide with
-			// labels from sibling edges.
-			const last = placements[placements.length - 1];
-			const beforeLast = placements[placements.length - 2];
-			if (last && beforeLast) {
-				const lastCx = last.cx + offsetX;
-				const lastTopY = last.y + offsetY;
-				const beforeCy =
-					beforeLast.node.kind === "virtual"
-						? beforeLast.cy + offsetY
-						: beforeLast.y + beforeLast.node.height + offsetY;
-				const ly = (beforeCy + lastTopY) / 2;
-				out.push(edgeLabel(lastCx + EDGE_LABEL_OFFSET, ly + 4, t.label));
-			}
-		}
+		return room;
 	}
 
 	private computeNotePosition(

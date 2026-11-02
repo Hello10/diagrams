@@ -14,10 +14,10 @@ import type { DiagramAST, ParseResult, Token } from "./types.ts";
  */
 export abstract class Diagram<AST extends DiagramAST = DiagramAST> {
 	/** Registry key. Must match the opening keyword in plaintext
-	 * (e.g. "wireframe", "wireflow", "sequenceDiagram", "flowchart"). */
+	 * (e.g. "ui", "sequenceDiagram", "flowchart"). */
 	abstract readonly type: string;
 
-	/** Human-readable label (e.g. "Wireframe", "Sequence Diagram"). */
+	/** Human-readable label (e.g. "UI", "Sequence Diagram"). */
 	abstract readonly name: string;
 
 	/** True if the given first non-trivial line indicates this diagram type. */
