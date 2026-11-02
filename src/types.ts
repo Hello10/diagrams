@@ -8,6 +8,8 @@ export type TokenType =
 	| "arrow" // -->
 	| "labeled-arrow" // -->|"label"|
 	| "bracket" // [...] — screen state labels: [loading], [loaded]
+	| "hash" // #id — instance handle in the UI diagram
+	| "tilde" // ~name — an io operation in the UI diagram
 	| "indent" // Synthetic: emitted when indent level increases
 	| "dedent" // Synthetic: emitted when indent level decreases
 	| "newline" // Line boundary

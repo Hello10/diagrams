@@ -1,0 +1,342 @@
+ui
+  use "@hello10/diagrams/ui" Stack, Heading, Text, Link, Input, Select, Button, Image, Audio, Outlet
+  api "@gigs/api" session, genres, results, band, shows, albums, show, quote, ticket, tickets, favorites, profile, tracks
+  api "@gigs/api" signIn, signOut, follow, order, saveProfile, cancelTicket
+
+  in ~session
+
+  %% ─── Layouts ─────────────────────────────────────────────────────────────
+
+  layout Bare
+    Outlet
+  end
+
+  layout AppShell(current)
+    Stack
+      Nav(current)
+      Outlet
+    end
+  end
+
+  component Nav(current)
+    out ~signOut
+      ready => go Login
+    end
+
+    Stack direction=row
+      Link "Search"  #search  to=Search
+      Link "Library" #library to=Library
+      Link "Account" #account to=Account
+      Text "{session.user.name}"
+      Button "X" $click => ~signOut
+    end
+
+    when current
+      Search  => { #search  selected }
+      Library => { #library selected }
+      Account => { #account selected }
+    end
+  end
+
+  %% ─── Screens ─────────────────────────────────────────────────────────────
+
+  screen Login route=/login layout=Bare
+    out ~signIn(email=#email.value, password=#password.value)
+      ready => go Search
+    end
+
+    Stack
+      Heading "Sign in"
+      Input #email    placeholder="Email"
+      Input #password placeholder="Password"
+      when
+        ~signIn.error => Text "Wrong email or password."
+      end
+      when
+        ~signIn.loading => Button "Signing in…" busy disabled
+        else            => Button "Sign in" primary $click => ~signIn
+      end
+    end
+  end
+
+  screen Search route=/ layout=AppShell(current=Search)
+    in ~genres
+    in ~results(query=#query.value, genre=#genre.value)
+
+    Stack
+      Stack direction=row
+        Input  #query placeholder="Search bands"
+        Select #genre options=genres placeholder="Any genre"
+      end
+      list results as band
+        BandResult(band) $open(picked) => go Band(id=picked.id)
+      end
+      when
+        ~results.empty => Text "No bands match."
+      end
+    end
+  end
+
+  screen Band route=/bands/:id layout=AppShell @shows @albums @about
+    in ~band(id)
+    in ~shows(id)
+    in ~albums(id)
+
+    Stack
+      when
+        ~band.loading => Text "Loading…"
+        ~band.error   => Text "Could not load this band."
+      end
+      Stack direction=row
+        Image src=band.image
+        Heading "{band.name}"
+        FollowButton(band)
+      end
+      Stack direction=row
+        Link "Shows"  #showsTab  $click => @shows
+        Link "Albums" #albumsTab $click => @albums
+        Link "About"  #aboutTab  $click => @about
+      end
+      when
+        @shows => Stack
+          list shows as show
+            ShowRow(show) $open(picked) => go Show(id=picked.id)
+          end
+          when
+            ~shows.empty => Text "No upcoming shows."
+          end
+        end
+        @albums => list albums as album direction=row
+          AlbumCard(album)
+        end
+        @about => Text "{band.bio}"
+      end
+    end
+
+    when
+      @shows  => { #showsTab  selected }
+      @albums => { #albumsTab selected }
+      @about  => { #aboutTab  selected }
+    end
+  end
+
+  screen Show route=/shows/:id layout=AppShell
+    in ~show(id)
+
+    Stack
+      when
+        ~show.error => Text "Could not load this show."
+      end
+      Heading "{show.venue}"
+      Text "{show.date}"
+      Link "{show.band.name}" to=Band(id=show.band.id)
+      Text "{show.price}"
+      when
+        show.soldOut => Text "Sold out"
+        else         => TicketPicker(show)
+      end
+    end
+  end
+
+  screen Ticket route=/tickets/:id layout=AppShell
+    in ~ticket(id)
+
+    Stack
+      when
+        ~ticket.error => Text "Could not load this ticket."
+      end
+      Heading "You're going!"
+      Text "{ticket.show.venue}"
+      Text "{ticket.show.date}"
+      Text "{ticket.quantity}"
+      Link "Your tickets" to=Library
+    end
+  end
+
+  screen Library route=/library layout=AppShell(current=Library) @bands @tickets
+    in ~favorites
+    in ~tickets
+
+    Stack
+      Stack direction=row
+        Link "Bands"   #bandsTab   $click => @bands
+        Link "Tickets" #ticketsTab $click => @tickets
+      end
+      when
+        @bands => Stack
+          when
+            ~favorites.error => Text "Could not load your bands."
+            ~favorites.empty => Text "You haven't followed any bands yet."
+          end
+          list favorites as band
+            BandResult(band) $open(picked) => go Band(id=picked.id)
+          end
+        end
+        @tickets => Stack
+          when
+            ~tickets.error => Text "Could not load your tickets."
+            ~tickets.empty => Text "No tickets yet."
+          end
+          list tickets as ticket
+            TicketRow(ticket)
+          end
+        end
+      end
+    end
+
+    when
+      @bands   => { #bandsTab   selected }
+      @tickets => { #ticketsTab selected }
+    end
+  end
+
+  screen Account route=/account layout=AppShell(current=Account)
+    in  ~profile
+    out ~saveProfile(name=#name.value, bio=#bio.value)
+
+    Stack
+      Heading "Your profile"
+      when
+        ~profile.error => Text "Could not load your profile."
+      end
+      Input #name value=profile.name placeholder="Name"
+      Input #bio  value=profile.bio  placeholder="Bio"
+      when
+        ~saveProfile.error => Text "Could not save your profile."
+        ~saveProfile.ready => Text "Saved."
+      end
+      when
+        ~saveProfile.loading => Button "Saving…" busy disabled
+        else                 => Button "Save" primary $click => ~saveProfile
+      end
+    end
+  end
+
+  %% ─── Components ──────────────────────────────────────────────────────────
+
+  component BandResult(band)
+    Stack direction=row
+      Image src=band.image
+      Heading "{band.name}"
+      Button "View" $click => $open(band)
+    end
+  end
+
+  component FollowButton(band)
+    out ~follow(band=band.id)
+
+    when
+      ~follow.ready   => Button "Following" disabled
+      ~follow.loading => Button "Following…" busy disabled
+      else            => Button "Follow" $click => ~follow
+    end
+  end
+
+  component ShowRow(show)
+    Stack direction=row $click => $open(show)
+      Text "{show.venue}"
+      Text "{show.date}"
+    end
+  end
+
+  component TicketPicker(show)
+    in  ~quote(show=show.id, qty=#qty.value)
+    out ~order(show=show.id, qty=#qty.value)
+      ready => go Ticket(id=order.id)
+    end
+
+    Stack
+      Stack direction=row
+        Select #qty options=show.quantities value=1
+        Text "{quote.total}"
+        when
+          ~order.loading => Button "Buying…" busy disabled
+          else           => Button "Buy" primary $click => ~order
+        end
+      end
+      when
+        ~order.error => Text "Could not complete your order."
+      end
+    end
+  end
+
+  component AlbumCard(album) @closed @listening
+    Stack
+      Image src=album.cover
+      Text "{album.title}"
+      Button "Play" $click => @listening
+      when
+        @listening => modal
+          AlbumPlayer(album) $close => @closed
+        end
+      end
+    end
+  end
+
+  component AlbumPlayer(album) @stopped @playing(current)
+    in ~tracks(album=album.id)
+
+    Stack
+      AlbumHeader(album) $close => $close
+      when
+        ~tracks.loading => Text "Loading tracks…"
+      end
+      list tracks as track
+        TrackRow(track) $select(picked) => @playing(picked)
+      end
+      when
+        @playing => Stack
+          Text "{current.title}"
+          Audio src=current.audio controls
+        end
+      end
+    end
+  end
+
+  component AlbumHeader(album)
+    Stack direction=row
+      Image src=album.cover
+      Heading "{album.title}"
+      Button "Close" $click => $close
+    end
+  end
+
+  component TrackRow(track)
+    Stack direction=row $click => $select(track)
+      Text "{track.title}"
+      Text "{track.length}"
+    end
+  end
+
+  component TicketRow(ticket) @holding @confirming
+    out ~cancelTicket(ticket=ticket.id)
+      ready => @holding
+      error => @holding
+    end
+
+    Stack direction=row
+      Text "{ticket.show.venue}"
+      Text "{ticket.show.date}"
+      Text "{ticket.quantity}"
+      when
+        ~cancelTicket.ready => Text "Cancelled"
+        else                => Button "Cancel" $click => @confirming
+      end
+      when
+        ~cancelTicket.error => Text "Could not cancel."
+      end
+      when
+        @confirming => modal
+          when
+            ~cancelTicket.loading => Text "Cancelling…"
+            else => Stack
+              Text "Cancel this ticket?"
+              Button "Keep it"           $click => @holding
+              Button "Cancel it" primary $click => ~cancelTicket
+            end
+          end
+        end
+      end
+    end
+  end
+end

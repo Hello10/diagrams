@@ -230,3 +230,13 @@ describe("metadata", () => {
 		expect(ast.accDescr).toBe("Description");
 	});
 });
+
+describe("statement terminators", () => {
+	test("a trailing ; ends a statement and is not a node", () => {
+		const ast = parse(`flowchart TD
+  A --> B;
+  B --> C;`);
+		expect(ast.nodes.map((n) => n.id)).toEqual(["A", "B", "C"]);
+		expect(ast.edges.length).toBe(2);
+	});
+});

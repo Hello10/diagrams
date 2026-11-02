@@ -307,4 +307,43 @@ describe("tokenize", () => {
 			.map((t) => t.value);
 		expect(labeled).toEqual(["==>|fast|"]);
 	});
+
+	test("tokenizes the ui arrow, io sigil, and a mode followed by parens", () => {
+		const tokens = tokenize('Button "Go" $click => ~signIn');
+		expect(tokens.map((t) => `${t.type}:${t.value}`)).toEqual([
+			"identifier:Button",
+			"string:Go",
+			"identifier:$click",
+			"arrow:=>",
+			"tilde:signIn",
+			"newline:",
+		]);
+		const cond = tokenize("~band.loading => @playing(picked)");
+		expect(cond.map((t) => `${t.type}:${t.value}`)).toEqual([
+			"tilde:band.loading",
+			"arrow:=>",
+			"hook:@playing",
+			"bracket:(picked)",
+			"newline:",
+		]);
+	});
+
+	test("an unquoted attribute value keeps a call with spaces in it", () => {
+		const tokens = tokenize("screen Home layout=Shell(current=Home, x=1) @a");
+		const values = tokens.map((t) => `${t.type}:${t.value}`);
+		expect(values).toContain("attribute:layout=Shell(current=Home, x=1)");
+		expect(values).toContain("hook:@a");
+	});
+
+	test("unquoted attribute values stop at ; and }", () => {
+		const tokens = tokenize(
+			"state s { query value=query.value; results hidden }",
+		);
+		const values = tokens.map((t) => `${t.type}:${t.value}`);
+		expect(values).toContain("attribute:value=query.value");
+		expect(values).toContain("identifier:;");
+		expect(values).toContain("identifier:results");
+		expect(values).toContain("identifier:hidden");
+		expect(values).toContain("identifier:}");
+	});
 });

@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="783" height="1283.1" viewBox="0 0 783 1283.1">
+<style>text { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; }</style>
+<defs><marker id="flow-arr" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/></marker><marker id="flow-arr-thick" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2937"/></marker></defs>
+<g transform="translate(40, 40)">
+
+<rect x="135.5" y="235.60000000000002" width="518" height="317.5" rx="6" ry="6" fill="white" stroke="#1f2937" stroke-width="1.5"/><path d="M 135.5 241.60000000000002 a 6 6 0 0 1 6 -6 h 506 a 6 6 0 0 1 6 6 v 20 h -518 z" fill="#1f2937"/><text x="394.5" y="252.60000000000002" text-anchor="middle" fill="white" font-weight="600">Validation</text>
+<path d="M 385.5 313.6 L 385.5 369.6" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<path d="M 332.5 412 L 332.5 448.7 Q 332.5 454.7 326.5 454.7 L 269 454.7 Q 263 454.7 263 460.7 L 263 497.1" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<text x="269" y="472.70000000000005" font-size="11" fill="#444">no</text>
+<path d="M 438.5 412 L 438.5 460.7 Q 438.5 466.7 444.5 466.7 L 502 466.7 Q 508 466.7 508 472.7 L 508 497.1" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<text x="514" y="484.70000000000005" font-size="11" fill="#444">yes</text>
+<path d="M 248.7 40 L 248.7 96" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<path d="M 184.7 144.4 L 184.7 187.4 Q 184.7 193.4 178.7 193.4 L 109 193.4 Q 103 193.4 103 199.4 L 103 236.1 L 103 609.6 L 103 729.6 L 103 849.6 L 103 945.6 L 103 1065.1" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<text x="109" y="211.37500000000003" font-size="11" fill="#444">no</text>
+<path d="M 312.7 144.4 L 312.7 199.4 Q 312.7 205.4 318.7 205.4 L 388.5 205.4 Q 394.5 205.4 394.5 211.4 L 394.5 235.6" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<text x="400.5" y="223.37500000000003" font-size="11" fill="#444">yes</text>
+<path d="M 394.5 553.1 L 394.5 607.5" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<path d="M 394.5 674.7 L 394.5 729.6 L 394.5 849.6 L 394.5 945.6 L 394.5 1065.1" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<text x="400.5" y="692.725" font-size="11" fill="#444">hit</text>
+<path d="M 444 670 L 444 686.9 Q 444 692.9 450 692.9 L 623 692.9 Q 629 692.9 629 698.9 L 629 727.5" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<text x="635" y="710.875" font-size="11" fill="#444">miss</text>
+<path d="M 629 794.7 L 629 849.1" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<path d="M 629 889.1 L 629 943.5" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<path d="M 629 1010.7 L 629 1065.1" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<path d="M 103 1105.1 L 103 1106.7 Q 103 1112.7 109 1112.7 L 406.8 1112.7 Q 412.8 1112.7 412.8 1118.7 L 412.8 1161.1" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<path d="M 394.5 1105.1 L 394.5 1118.7 Q 394.5 1124.7 400.5 1124.7 L 406.8 1124.7 Q 412.8 1124.7 412.8 1130.7 L 412.8 1161.1" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<path d="M 629 1105.1 L 629 1130.7 Q 629 1136.7 623 1136.7 L 418.8 1136.7 Q 412.8 1136.7 412.8 1142.7 L 412.8 1161.1" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<path d="M 263 537.1 L 263 1127.1 Q 263 1133.1 269 1133.1 L 406.75 1133.1 Q 412.75 1133.1 412.75 1139.1 L 412.75 1161.1" fill="none" stroke="#333" stroke-width="1" marker-end="url(#flow-arr)"/>
+<rect x="172.74999987459793" y="0" width="152" height="40" rx="20" ry="20" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="248.74999987459793" y="24" text-anchor="middle">Incoming request</text>
+<path d="M 248.7499999581993 96 L 324.7499999581993 137.8 L 248.7499999581993 179.60000000000002 L 172.7499999581993 137.8 Z" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="248.7499999581993" y="141.8" text-anchor="middle">Has auth header?</text>
+<rect x="313.49999989460207" y="273.6" width="144" height="40" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="385.49999989460207" y="297.6" text-anchor="middle">Parse JSON body</text>
+<path d="M 385.49999996486736 369.6 L 450.49999996486736 405.35 L 385.49999996486736 441.1 L 320.49999996486736 405.35 Z" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="385.49999996486736" y="409.35" text-anchor="middle">Schema valid?</text>
+<path d="M 177.5 497.1 L 360.5 497.1 L 348.5 537.1 L 165.5 537.1 Z" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="263" y="521.1" text-anchor="middle">Return 400 Bad Request</text>
+<rect x="392.5" y="497.1" width="231" height="40" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="508" y="521.1" text-anchor="middle">Resolve referenced entities</text>
+<path d="M 333 619.1 C 333 603.6, 456 603.6, 456 619.1 L 456 663.1 C 456 678.6, 333 678.6, 333 663.1 Z" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 333 619.1 C 333 634.6, 456 634.6, 456 619.1" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="394.5" y="651.1" text-anchor="middle">Cache lookup</text>
+<path d="M 560.5 739.1 C 560.5 723.6, 697.5 723.6, 697.5 739.1 L 697.5 783.1 C 697.5 798.6, 560.5 798.6, 560.5 783.1 Z" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 560.5 739.1 C 560.5 754.6, 697.5 754.6, 697.5 739.1" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="629" y="771.1" text-anchor="middle">Query database</text>
+<rect x="560.5" y="849.1" width="137" height="40" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<line x1="566.5" y1="849.1" x2="566.5" y2="889.1" stroke="#1f2937" stroke-width="1.2"/>
+<line x1="691.5" y1="849.1" x2="691.5" y2="889.1" stroke="#1f2937" stroke-width="1.2"/>
+<text x="629" y="873.1" text-anchor="middle">Process result</text>
+<path d="M 571 955.1 C 571 939.6, 687 939.6, 687 955.1 L 687 999.1 C 687 1014.6, 571 1014.6, 571 999.1 Z" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 571 955.1 C 571 970.6, 687 970.6, 687 955.1" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="629" y="987.1" text-anchor="middle">Write cache</text>
+<path d="M 14 1065.1 L 204 1065.1 L 192 1105.1 L 2 1105.1 Z" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="103" y="1089.1" text-anchor="middle">Return 401 Unauthorized</text>
+<rect x="297" y="1065.1" width="195" height="40" rx="20" ry="20" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="394.5" y="1089.1" text-anchor="middle">Return cached response</text>
+<rect x="557" y="1065.1" width="144" height="40" rx="20" ry="20" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="629" y="1089.1" text-anchor="middle">Return response</text>
+<rect x="382.75" y="1161.1" width="60" height="40" rx="20" ry="20" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="412.75" y="1185.1" text-anchor="middle">End</text>
+</g>
+</svg>

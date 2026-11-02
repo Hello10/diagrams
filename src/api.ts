@@ -3,10 +3,7 @@ import { ClassDiagram } from "./diagrams/class/index.ts";
 import { FlowchartDiagram } from "./diagrams/flowchart/index.ts";
 import { SequenceDiagram } from "./diagrams/sequence/index.ts";
 import { StateDiagram } from "./diagrams/state/index.ts";
-import {
-	WireflowDiagram,
-	WireframeDiagram,
-} from "./diagrams/wireframe/index.ts";
+import { UiDiagram } from "./diagrams/ui/index.ts";
 import { detectDiagram, getDiagram, registerDiagram } from "./registry.ts";
 import { tokenize } from "./tokenizer.ts";
 import type { DiagramAST, ParseResult } from "./types.ts";
@@ -15,8 +12,7 @@ registerDiagram(new FlowchartDiagram());
 registerDiagram(new SequenceDiagram());
 registerDiagram(new StateDiagram());
 registerDiagram(new ClassDiagram());
-registerDiagram(new WireframeDiagram());
-registerDiagram(new WireflowDiagram());
+registerDiagram(new UiDiagram());
 
 /**
  * Parse a plaintext diagram source string into a JSON AST.

@@ -4,7 +4,7 @@ Plaintext diagram grammar, parser, and SVG renderer. Parse Mermaid-flavored text
 
 - ESM-only, fully typed (TypeScript)
 - Zero runtime dependencies — no DOM, no canvas, runs in Node, Workers, and the browser
-- Six diagram types: `sequence`, `state`, `flowchart`, `class`, `wireframe`, `wireflow`
+- Five diagram types: `sequence`, `state`, `flowchart`, `class`, `ui`
 - Errors are data, not exceptions; partial ASTs on failure
 - Extensible: register new diagram types against the `Diagram` contract
 
@@ -43,44 +43,60 @@ if (result.ok) {
 | State | `stateDiagram` | `stateDiagram-v2`, `state` |
 | Flowchart | `flowchart` | `graph` |
 | Class | `classDiagram` | `class` |
-| Wireframe | `wireframe` | — |
-| Wireflow | `wireflow` | — |
+| UI | `ui` | — |
 
-Wireframe and wireflow are additive types with no Mermaid analog. A wireframe describes a screen as a tree of components, with named states, target viewports, and typed interactions; it renders one frame per state per viewport. A wireflow is the navigation graph: screens (optionally in a state) and decisions as nodes, interactions as edges, rendered as screen thumbnails. See [spec/spec.md](spec/spec.md) §5.4–5.5 for the grammar.
+The UI diagram has no Mermaid analog. It describes an app's interface as components: what each is made of, what it shows, what data it reads and writes, what a person can do in it, and how it looks in each of its modes. One document renders two ways: frames (every screen and component in each view) and flow (screens joined by the moves between them). See [spec/spec.md](spec/spec.md) §5.4 for the language and the standard library, and [examples/diagrams/ui.txt](examples/diagrams/ui.txt) for a worked example. A `%%{theme ink=… accent=…}%%` directive sets the interface color and the callout color; the defaults are neutral.
 
 ```
-wireframe
-  use @hello10/diagrams/ui Stack, Text, Button, Input
-  viewport mobile
+ui
+  use "@hello10/diagrams/ui" Stack, Heading, Text, Input, Button
+  api "@gigs/api" results, band
 
-  screen Home
-    Stack gap=lg
-      Text "Shows" size=lg weight=bold
-      Input id=search placeholder="Search shows"
-      Button "Create" id=create -->|state| creating
-    end
+  screen Search route=/
+    in ~results(query=#query.value)
 
-    state creating
-      create disabled
-      modal
-        Text "New show"
+    Stack
+      Input #query placeholder="Search bands"
+      list results as band
+        BandResult(band) $open(picked) => go Band(id=picked.id)
       end
+      when
+        ~results.empty => Text "No bands match."
+      end
+    end
+  end
+
+  screen Band route=/bands/:id
+    in ~band(id)
+
+    Stack
+      when
+        ~band.loading => Text "Loading…"
+        ~band.error   => Text "Could not load this band."
+      end
+      Heading "{band.name}"
+    end
+  end
+
+  component BandResult(band)
+    Stack direction=row
+      Heading "{band.name}"
+      Button "View" $click => $open(band)
     end
   end
 end
 ```
 
-To draw a wireflow with real screen thumbnails, attach the parsed wireframes before rendering:
-
 ```ts
-const flow = parse(wireflowSource);
-if (flow.ok) {
-  flow.ast.wireframes = { Home: homeWireframe.ast };
-  const svg = render(flow.ast);
+import { parse, render, renderUiFlow, renderUiAscii } from "@hello10/diagrams";
+
+const result = parse(source);
+if (result.ok) {
+  const frames = render(result.ast);       // frames view
+  const flow = renderUiFlow(result.ast);   // flow view
+  const text = renderUiAscii(result.ast);  // the same expanded tree as text
 }
 ```
-
-`renderWireframeAscii(ast)` gives the same expanded tree as text, for terminals and agents.
 
 ## Grammar
 

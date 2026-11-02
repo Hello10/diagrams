@@ -75,6 +75,9 @@ export function computeFanLanes<E>(input: FanLaneInput<E>): Map<E, number> {
 		const margin = Math.min(marginMax, anchor.width / 4);
 		const minX = anchor.x + margin;
 		const maxX = anchor.x + anchor.width - margin;
+		// More lanes than the side can hold: they all meet at the centre
+		// rather than crowding past the box's corners.
+		if ((group.length - 1) * minGap > maxX - minX) continue;
 
 		const annotated = group.map((e) => {
 			const aim = input.aimAt(e) ?? anchor.cx;

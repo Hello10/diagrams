@@ -1,0 +1,141 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1533" height="1452" viewBox="0 0 1533 1452">
+<style>text { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; }</style>
+<defs><marker id="class-arrow" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/></marker><marker id="class-triangle" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 14 7 L 0 14 z" fill="white" stroke="#333" stroke-width="1.2"/></marker><marker id="class-diamond-filled" markerWidth="16" markerHeight="10" refX="16" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 5 L 8 0 L 16 5 L 8 10 z" fill="#333" stroke="#333" stroke-width="1.2"/></marker><marker id="class-diamond-hollow" markerWidth="16" markerHeight="10" refX="16" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 5 L 8 0 L 16 5 L 8 10 z" fill="#ffffff" stroke="#333" stroke-width="1.2"/></marker></defs>
+<g transform="translate(40, 70)">
+<text x="726.5" y="-42" text-anchor="middle" font-weight="bold" font-size="14" fill="#333">Order processing domain model</text>
+<rect x="0" y="196" width="367" height="634" rx="6" ry="6" fill="white" stroke="#1f2937" stroke-width="1.5"/><path d="M 0 202 a 6 6 0 0 1 6 -6 h 355 a 6 6 0 0 1 6 6 v 20 h -367 z" fill="#1f2937"/><text x="183.5" y="213" text-anchor="middle" fill="white" font-weight="600">Ordering</text>
+<rect x="53" y="900" width="261" height="338" rx="6" ry="6" fill="white" stroke="#1f2937" stroke-width="1.5"/><path d="M 53 906 a 6 6 0 0 1 6 -6 h 249 a 6 6 0 0 1 6 6 v 20 h -261 z" fill="#1f2937"/><text x="183.5" y="917" text-anchor="middle" fill="white" font-weight="600">Catalog</text>
+<line x1="183.5" y1="620" x2="183.5" y2="690" stroke="#333" stroke-width="1.2" marker-end="url(#class-diamond-filled)"/>
+<text x="189.5" y="634" font-size="11" fill="#444">1</text>
+<text x="189.5" y="684" font-size="11" fill="#444">1..*</text>
+<text x="189.5" y="659" font-size="11" fill="#444">contains</text>
+<path d="M 183.5 374 L 183.5 403 Q 183.5 409 189.5 409 L 195.5 409 Q 201.5 409 201.5 415 L 201.5 444" fill="none" stroke="#333" stroke-width="1.2" stroke-dasharray="4,3"/>
+<path d="M 183.5 1028 L 183.5 1057 Q 183.5 1063 189.5 1063 L 195.5 1063 Q 201.5 1063 201.5 1069 L 201.5 1098" fill="none" stroke="#333" stroke-width="1.2"/>
+<text x="189.5" y="1042" font-size="11" fill="#444">1</text>
+<text x="207.5" y="1092" font-size="11" fill="#444">*</text>
+<text x="195.5" y="1079" text-anchor="end" font-size="11" fill="#444">groups</text>
+<path d="M 620 126 L 620 155 Q 620 161 626 161 L 1052 161 Q 1058 161 1058 167 L 1058 196" fill="none" stroke="#333" stroke-width="1.2" marker-end="url(#class-diamond-filled)"/>
+<text x="626" y="140" font-size="11" fill="#444">1</text>
+<text x="1064" y="190" font-size="11" fill="#444">1</text>
+<line x1="543.5" y1="304" x2="543.5" y2="900" stroke="#333" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#class-triangle)"/>
+<line x1="561.5" y1="304" x2="561.5" y2="900" stroke="#333" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#class-triangle)"/>
+<path d="M 869.5 286 L 869.5 587 Q 869.5 593 863.5 593 L 654 593 Q 648 593 648 599 L 648 900" fill="none" stroke="#333" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#class-triangle)"/>
+<path d="M 869.5 108 L 869.5 146 Q 869.5 152 875.5 152 L 1347 152 Q 1353 152 1353 158 L 1353 196" fill="none" stroke="#333" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#class-triangle)"/>
+<path d="M 638 126 L 638 155 Q 638 161 644 161 L 1070 161 Q 1076 161 1076 167 L 1076 196" fill="none" stroke="#333" stroke-width="1.2" marker-end="url(#class-diamond-filled)"/>
+<path d="M 431 126 L 431 158 Q 431 164 425 164 L 337 164 Q 331 164 331 170 L 331 444" fill="none" stroke="#333" stroke-width="1.2" marker-end="url(#class-diamond-hollow)"/>
+<text x="437" y="140" font-size="11" fill="#444">1</text>
+<text x="337" y="438" font-size="11" fill="#444">*</text>
+<text x="337" y="180" font-size="11" fill="#444">places</text>
+<line x1="183.5" y1="816" x2="183.5" y2="1098" stroke="#333" stroke-width="1.2" marker-end="url(#class-arrow)"/>
+<text x="189.5" y="830" font-size="11" fill="#444">*</text>
+<text x="189.5" y="1092" font-size="11" fill="#444">1</text>
+<text x="189.5" y="961" font-size="11" fill="#444">references</text>
+<line x1="183.5" y1="90" x2="183.5" y2="444" stroke="#333" stroke-width="1.2" marker-end="url(#class-triangle)"/>
+<path d="M 331 620 L 331 866 Q 331 872 337 872 L 433 872 Q 439 872 439 878 L 439 900" fill="none" stroke="#333" stroke-width="1.2" stroke-dasharray="4,3" marker-end="url(#class-arrow)"/>
+<text x="433" y="888" text-anchor="end" font-size="11" fill="#444">uses</text>
+<path d="M 201.5 816 L 201.5 882 Q 201.5 888 207.5 888 L 213.5 888 Q 219.5 888 219.5 894 L 219.5 1098" fill="none" stroke="#333" stroke-width="1.2" marker-end="url(#class-arrow)"/>
+<rect x="83.5" y="0" width="200" height="90" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 83.5 6 a 6 6 0 0 1 6 -6 h 188 a 6 6 0 0 1 6 6 v 22 h -200 z" fill="#1f2937"/>
+<text x="183.5" y="18" text-anchor="middle" font-weight="600" fill="white">SubscriptionOrder</text>
+<text x="97.5" y="46" font-size="11" fill="#1f2937">+RecurrenceRule recurrence</text>
+<text x="97.5" y="64" font-size="11" fill="#1f2937">+DateTime nextRenewal</text>
+<text x="97.5" y="82" font-size="11" fill="#1f2937">+renew() Confirmation</text>
+<rect x="437" y="0" width="213" height="126" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 437 6 a 6 6 0 0 1 6 -6 h 201 a 6 6 0 0 1 6 6 v 22 h -213 z" fill="#1f2937"/>
+<text x="543.5" y="18" text-anchor="middle" font-weight="600" fill="white">Customer</text>
+<text x="451" y="46" font-size="11" fill="#1f2937">+UUID id</text>
+<text x="451" y="64" font-size="11" fill="#1f2937">+String email</text>
+<text x="451" y="82" font-size="11" fill="#1f2937">+Address address</text>
+<text x="451" y="100" font-size="11" fill="#1f2937">-List&lt;Order&gt; orderHistory</text>
+<text x="451" y="118" font-size="11" fill="#1f2937">+placeOrder(Cart cart) Order</text>
+<rect x="710" y="0" width="319" height="108" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 710 6 a 6 6 0 0 1 6 -6 h 307 a 6 6 0 0 1 6 6 v 22 h -319 z" fill="#1f2937"/>
+<text x="869.5" y="18" text-anchor="middle" font-weight="600" fill="white">OrderRepository</text>
+<text x="724" y="46" font-size="11" fill="#1f2937">+find(UUID id) Optional&lt;Order&gt;</text>
+<text x="724" y="64" font-size="11" fill="#1f2937">+save(Order entity) Order</text>
+<text x="724" y="82" font-size="11" fill="#1f2937">+delete(UUID id) void</text>
+<text x="724" y="100" font-size="11" fill="#1f2937">+findByCustomer(UUID customerId) List&lt;Order&gt;</text>
+<rect x="113.5" y="234" width="140" height="140" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 113.5 240 a 6 6 0 0 1 6 -6 h 128 a 6 6 0 0 1 6 6 v 36 h -140 z" fill="#1f2937"/>
+<text x="183.5" y="246" text-anchor="middle" font-size="11" fill="white" opacity="0.75">«enumeration»</text>
+<text x="183.5" y="266" text-anchor="middle" font-weight="600" fill="white">OrderStatus</text>
+<text x="127.5" y="294" font-size="11" fill="#1f2937">Pending</text>
+<text x="127.5" y="312" font-size="11" fill="#1f2937">Confirmed</text>
+<text x="127.5" y="330" font-size="11" fill="#1f2937">Shipped</text>
+<text x="127.5" y="348" font-size="11" fill="#1f2937">Delivered</text>
+<text x="127.5" y="366" font-size="11" fill="#1f2937">Cancelled</text>
+<rect x="24" y="444" width="319" height="176" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 24 450 a 6 6 0 0 1 6 -6 h 307 a 6 6 0 0 1 6 6 v 36 h -319 z" fill="#1f2937"/>
+<text x="183.5" y="456" text-anchor="middle" font-size="11" fill="white" opacity="0.75">«aggregate root»</text>
+<text x="183.5" y="476" text-anchor="middle" font-weight="600" fill="white">Order</text>
+<text x="38" y="504" font-size="11" fill="#1f2937">+UUID id</text>
+<text x="38" y="522" font-size="11" fill="#1f2937">+OrderStatus status</text>
+<text x="38" y="540" font-size="11" fill="#1f2937">-List&lt;LineItem&gt; items</text>
+<text x="38" y="558" font-size="11" fill="#1f2937">-Customer customer</text>
+<text x="38" y="576" font-size="11" fill="#1f2937">+addItem(Product product, int quantity) void</text>
+<text x="38" y="594" font-size="11" fill="#1f2937">+submit() Result&lt;Confirmation&gt;</text>
+<text x="38" y="612" font-size="11" fill="#1f2937">+cancel(String reason) void</text>
+<rect x="93.5" y="690" width="180" height="126" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 93.5 696 a 6 6 0 0 1 6 -6 h 168 a 6 6 0 0 1 6 6 v 22 h -180 z" fill="#1f2937"/>
+<text x="183.5" y="708" text-anchor="middle" font-weight="600" fill="white">LineItem</text>
+<text x="107.5" y="736" font-size="11" fill="#1f2937">+Product product</text>
+<text x="107.5" y="754" font-size="11" fill="#1f2937">+int quantity</text>
+<text x="107.5" y="772" font-size="11" fill="#1f2937">+decimal unitPrice</text>
+<text x="107.5" y="790" font-size="11" fill="#1f2937">#log(String event) void</text>
+<text x="107.5" y="808" font-size="11" fill="#1f2937">+subtotal() decimal</text>
+<rect x="427" y="196" width="233" height="108" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 427 202 a 6 6 0 0 1 6 -6 h 221 a 6 6 0 0 1 6 6 v 22 h -233 z" fill="#1f2937"/>
+<text x="543.5" y="214" text-anchor="middle" font-weight="600" fill="white">CreditCard</text>
+<text x="441" y="242" font-size="11" fill="#1f2937">-String last4</text>
+<text x="441" y="260" font-size="11" fill="#1f2937">-int expiryYear</text>
+<text x="441" y="278" font-size="11" fill="#1f2937">+charge(decimal amount) Receipt</text>
+<text x="441" y="296" font-size="11" fill="#1f2937">+refund(Receipt receipt) bool</text>
+<rect x="753" y="196" width="233" height="90" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 753 202 a 6 6 0 0 1 6 -6 h 221 a 6 6 0 0 1 6 6 v 22 h -233 z" fill="#1f2937"/>
+<text x="869.5" y="214" text-anchor="middle" font-weight="600" fill="white">StoredCredit</text>
+<text x="767" y="242" font-size="11" fill="#1f2937">+decimal balance</text>
+<text x="767" y="260" font-size="11" fill="#1f2937">+charge(decimal amount) Receipt</text>
+<text x="767" y="278" font-size="11" fill="#1f2937">+refund(Receipt receipt) bool</text>
+<rect x="1046" y="196" width="147" height="108" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 1046 202 a 6 6 0 0 1 6 -6 h 135 a 6 6 0 0 1 6 6 v 22 h -147 z" fill="#1f2937"/>
+<text x="1119.5" y="214" text-anchor="middle" font-weight="600" fill="white">Address</text>
+<text x="1060" y="242" font-size="11" fill="#1f2937">+String street</text>
+<text x="1060" y="260" font-size="11" fill="#1f2937">+String city</text>
+<text x="1060" y="278" font-size="11" fill="#1f2937">+String postalCode</text>
+<text x="1060" y="296" font-size="11" fill="#1f2937">~normalize() void</text>
+<rect x="1253" y="196" width="200" height="104" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 1253 202 a 6 6 0 0 1 6 -6 h 188 a 6 6 0 0 1 6 6 v 36 h -200 z" fill="#1f2937"/>
+<text x="1353" y="208" text-anchor="middle" font-size="11" fill="white" opacity="0.75">«interface»</text>
+<text x="1353" y="228" text-anchor="middle" font-weight="600" fill="white">Repository&lt;T&gt;</text>
+<text x="1267" y="256" font-size="11" fill="#1f2937">+find(UUID id) Optional&lt;T&gt;</text>
+<text x="1267" y="274" font-size="11" fill="#1f2937">+save(T entity) T</text>
+<text x="1267" y="292" font-size="11" fill="#1f2937">+delete(UUID id) void</text>
+<rect x="77" y="938" width="213" height="90" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 77 944 a 6 6 0 0 1 6 -6 h 201 a 6 6 0 0 1 6 6 v 22 h -213 z" fill="#1f2937"/>
+<text x="183.5" y="956" text-anchor="middle" font-weight="600" fill="white">Category</text>
+<text x="91" y="984" font-size="11" fill="#1f2937">+String name</text>
+<text x="91" y="1002" font-size="11" fill="#1f2937">+List&lt;Product&gt; products</text>
+<text x="91" y="1020" font-size="11" fill="#1f2937">+classify(Product item) void</text>
+<rect x="80" y="1098" width="207" height="126" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 80 1104 a 6 6 0 0 1 6 -6 h 195 a 6 6 0 0 1 6 6 v 22 h -207 z" fill="#1f2937"/>
+<text x="183.5" y="1116" text-anchor="middle" font-weight="600" fill="white">Product</text>
+<text x="94" y="1144" font-size="11" fill="#1f2937">+String sku</text>
+<text x="94" y="1162" font-size="11" fill="#1f2937">+String name</text>
+<text x="94" y="1180" font-size="11" fill="#1f2937">+decimal price</text>
+<text x="94" y="1198" font-size="11" fill="#1f2937">+int stock</text>
+<text x="94" y="1216" font-size="11" fill="#1f2937">+reserve(int quantity) bool</text>
+<rect x="427" y="900" width="233" height="86" rx="6" ry="6" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<path d="M 427 906 a 6 6 0 0 1 6 -6 h 221 a 6 6 0 0 1 6 6 v 36 h -233 z" fill="#1f2937"/>
+<text x="543.5" y="912" text-anchor="middle" font-size="11" fill="white" opacity="0.75">«interface»</text>
+<text x="543.5" y="932" text-anchor="middle" font-weight="600" fill="white">PaymentMethod</text>
+<text x="441" y="960" font-size="11" fill="#1f2937">+charge(decimal amount) Receipt</text>
+<text x="441" y="978" font-size="11" fill="#1f2937">+refund(Receipt receipt) bool</text>
+<path d="M 385 487 L 605 487 L 605 531 L 597 539 L 385 539 Z" fill="#fef3a3" stroke="#c9a93a" stroke-width="1"/><path d="M 597 539 L 605 531 L 597 531 Z" fill="#e2cf6a" stroke="#c9a93a" stroke-width="1"/><text x="495" y="517" text-anchor="middle" font-size="11"></text>
+<text x="395" y="509" font-size="11" fill="#333">Aggregate root: only the Order</text>
+<text x="395" y="525" font-size="11" fill="#333">may mutate its own LineItems.</text>
+<path d="M 0 1274 L 220 1274 L 220 1334 L 212 1342 L 0 1342 Z" fill="#fef3a3" stroke="#c9a93a" stroke-width="1"/><path d="M 212 1342 L 220 1334 L 212 1334 Z" fill="#e2cf6a" stroke="#c9a93a" stroke-width="1"/><text x="110" y="1312" text-anchor="middle" font-size="11"></text>
+<text x="10" y="1296" font-size="11" fill="#333">Domain model lives in</text>
+<text x="10" y="1312" font-size="11" fill="#333">@app/domain; entities are</text>
+<text x="10" y="1328" font-size="11" fill="#333">persistence-agnostic.</text>
+</g>
+</svg>

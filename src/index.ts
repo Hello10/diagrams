@@ -7,13 +7,14 @@ export { FlowchartDiagram } from "./diagrams/flowchart/index.ts";
 export { SequenceDiagram } from "./diagrams/sequence/index.ts";
 export { StateDiagram } from "./diagrams/state/index.ts";
 export {
-	clearWireframeLibraryAdapters,
-	getWireframeLibraryAdapter,
-	registerWireframeLibraryAdapter,
-	renderWireframeAscii,
-	WireflowDiagram,
-	WireframeDiagram,
-} from "./diagrams/wireframe/index.ts";
+	clearUiLibraryAdapters,
+	getUiLibraryAdapter,
+	registerUiLibraryAdapter,
+	renderUiAscii,
+	renderUiFlow,
+	renderUiStoryboard,
+	UiDiagram,
+} from "./diagrams/ui/index.ts";
 export { registerDiagram } from "./registry.ts";
 export type {
 	BaseElementNode,

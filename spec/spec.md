@@ -2,7 +2,7 @@
 
 `@hello10/diagrams` is a plaintext diagram library: parse Mermaid-flavored syntax into a JSON AST, render the AST to SVG, round-trip the AST back to canonical plaintext.
 
-This document is the source of truth for the package as a whole — its public API, extension contract, current diagram types, and the phasing of additional types we plan to support. Six types are implemented. Wireframe and wireflow (§5.4, §5.5) are specified prescriptively: the grammar there is the grammar, and the implementation is held to it.
+This document is the source of truth for the package as a whole — its public API, extension contract, current diagram types, and the phasing of additional types we plan to support. Five Mermaid-aligned types are implemented. The UI diagram (§5.4) is specified prescriptively: the grammar there is the grammar, and the implementation is held to it.
 
 ## 1. Goals
 
@@ -27,8 +27,7 @@ filename, in addition to the Mermaid-canonical type keyword:
 | State | `stateDiagram` (and `stateDiagram-v2`) | `state` |
 | Sequence | `sequenceDiagram` | `sequence` |
 | Flowchart | `flowchart` (and `graph`) | `flowchart` (same) |
-| Wireframe | `wireframe` | `wireframe` (same) |
-| Wireflow | `wireflow` | `wireflow` (same) |
+| UI | `ui` | `ui` (same) |
 | Class | `classDiagram` | `class` |
 | ER | `erDiagram` | `entity` (planned) |
 
@@ -50,19 +49,16 @@ source's first-line keyword.
 
 These are extensions for diagram families Mermaid doesn't have, all introduced in Mermaid's stylistic mold (lowercase keywords, `end`-closed blocks, JS-style imports for module references):
 
-- `wireframe` / `wireflow` keywords introducing the new diagram families.
-- `use @module as Alias` and `use @module Name1, Name2` JS-style imports for component vocabularies.
-- `define Name ... end` for reusable component subtrees, with `$param` content slots bound at the use site.
-- `viewport name [width=n]` declarations and `viewport name ... end` override blocks.
-- `screen Name ... end` with `state name ... end` blocks declaring what differs from the default state.
-- `@hello10/diagrams/ui`, the module that ships the canonical vocabulary (`Stack` and the form-and-media set).
-- `repeat` and `modal` wrappers, with `repeat Card` shorthand for a single child.
-- `-->|goto|`, `-->|state|`, `-->|call|` typed interactions on components, and the matching `-->|kind trigger|` edge labels in wireflow.
-- `[*]` entry/exit edges in wireflow, borrowed from the state diagram.
+- `ui`, the keyword introducing the UI diagram (§5.4).
+- `use "@module" as Alias` and `use "@module" Name1, Name2` JS-style imports, including the standard library `@hello10/diagrams/ui`; `api "@module" name, …` for operations.
+- `screen Name route=… end`, `component Name(inputs) … end`, and `layout Name … end` blocks with an `Outlet`; `state name … end` blocks declaring what differs from the tree; `entry`.
+- `repeat Component data #data` lists and `modal` overlays.
+- `#id` handles, `emits event(payload)` on the element that fires it, and `#handle.event --> target` transitions.
+- Brace blocks with `;` for one-line bodies, after Ruby's convention; `end` otherwise.
 
 #### Lexical constraint on `@`
 
-Mermaid v11 introduced shape-decorator syntax for flowchart nodes: `A@{ shape: rect, label: "Hello" }`. The tokenizer matches `@` as a `hook` token **only when followed by an identifier-start character**, so `@{...}` stays available for the flowchart parser. Module names (`@acme/ui`) contain a `/` and are emitted as identifiers. No current grammar consumes a bare `@identifier`: the wireframe and wireflow parsers reject it with a pointer to the `-->|call| hook` form it replaced.
+Mermaid v11 introduced shape-decorator syntax for flowchart nodes: `A@{ shape: rect, label: "Hello" }`. The tokenizer matches `@` as a `hook` token **only when followed by an identifier-start character**, so `@{...}` stays available for the flowchart parser. Module names (`@acme/ui`) contain a `/` and are emitted as identifiers. The UI diagram consumes a bare `@identifier` as a mode, and `~identifier` as an io operation.
 
 ### 2.3 Deliberate divergences
 
@@ -80,8 +76,7 @@ The library's purpose is to support **living specifications** — documentation 
 
 | Phase | Diagram | Type key | Status |
 |-------|---------|----------|--------|
-| 1 | Wireframe | `wireframe` | Implemented to the §5.4 grammar; layout renderer with states and viewports |
-| 1 | Wireflow | `wireflow` | Implemented to the §5.5 grammar; graph renderer with screen thumbnails |
+| 1 | UI | `ui` | Implemented to §5.4: parser with structural checks, frames and flow renderers, text rendering |
 | 2 | Sequence | `sequenceDiagram` | Implemented; basic Mermaid coverage; renderer limits fixed as Jump diagrams hit them |
 | 2 | State | `stateDiagram` (alias `stateDiagram-v2`) | Implemented; basic Mermaid coverage; renderer limits fixed as Jump diagrams hit them |
 | 3 | Flowchart | `flowchart` (alias `graph`) | Implemented; basic Mermaid coverage; enhancements tracked in §5.3 |
@@ -133,7 +128,7 @@ These Mermaid types exist but don't serve the living-spec goal. Documenting them
 
 ### Active priorities
 
-1. Wireframe and wireflow in use by Jump specs; renderer gaps fixed as real screens expose them.
+1. The `ui` type in use by Jump specs; renderer gaps fixed as real screens expose them.
 2. Fix known renderer bugs in `state` and `sequence` when a Jump diagram hits them.
 3. Phase 3 — Tier A: **ER**. Architecture and user journey follow as the first Tier B work but aren't scheduled into Phase 3.
 
@@ -181,9 +176,9 @@ Token types:
 | `indent`, `dedent` | Synthetic tokens emitted when indent level changes |
 | `newline` | Line boundary |
 
-Indentation is two spaces or one tab per level. Mixed indentation rounds down. Blank lines do not change indent. Indentation is presentational for every wireframe block (all close on `end`); a component line uses indent presence as the signal for "do you have a body."
+Indentation is two spaces or one tab per level. Mixed indentation rounds down. Blank lines do not change indent. Indentation is presentational for every UI-diagram block (all close on `end` or are brace blocks); a tree line uses indent presence as the signal for "do you have a body."
 
-The tokenizer is **shared but not neutral.** Some lexemes are biased toward existing diagram types (`[*]` brackets come from state and are reused by wireflow; flowchart shape openers `((...))`, `(((...)))`, `{{...}}`, `[/.../\\]`, `[\\...\\]`, `>...]`, etc. landed with phase 3; relationship arrows `<|--`, `*--`, `o--` with class). Still to come: the `@{...}` shape-decorator form for flowchart; cardinality lexemes `||--o{`, `}o--||` for ER. Extending the longest-match lists is the standard way to grow the tokenizer. One consequence for wireframe: a `-flag` override whose flag starts with `x` or `)` would lex as the `-x` / `-)` sequence arrow, so such flags cannot be cleared with the shorthand.
+The tokenizer is **shared but not neutral.** Some lexemes are biased toward existing diagram types (`[*]` brackets come from state; flowchart shape openers `((...))`, `(((...)))`, `{{...}}`, `[/.../\\]`, `[\\...\\]`, `>...]`, etc. landed with phase 3; relationship arrows `<|--`, `*--`, `o--` with class). Still to come: the `@{...}` shape-decorator form for flowchart; cardinality lexemes `||--o{`, `}o--||` for ER. Extending the longest-match lists is the standard way to grow the tokenizer. The UI diagram adds `=>` to the arrow list, `~name` as a `tilde` token, and lets an unquoted attribute value carry a parenthesised call with spaces (`layout=AppShell(current=Search)`).
 
 If lexical pressure ever makes the shared tokenizer ugly, the escape hatch is letting `Diagram` provide an optional `tokenize()` override. We do not do that today.
 
@@ -243,9 +238,9 @@ type BaseElementNode = {
 };
 ```
 
-Diagram types extend `DiagramAST` with their own fields. `BaseElementNode` is the recommended shape for contained nodes that flow through component-like grammars (currently used by wireframe). Diagram-type-specific fields are declared on the concrete subtype, never added to `BaseElementNode`.
+Diagram types extend `DiagramAST` with their own fields. `BaseElementNode` is the recommended shape for contained nodes that flow through component-like grammars (used by the UI diagram's tree nodes). Diagram-type-specific fields are declared on the concrete subtype, never added to `BaseElementNode`.
 
-Every parser accepts `title`, `accTitle`, and `accDescr` lines (with or without a `:`); wireframe and wireflow included.
+Every parser accepts `title`, `accTitle`, and `accDescr` lines (with or without a `:`).
 
 ### 4.6 Error model
 
@@ -268,15 +263,11 @@ type ParseResult<T> =
 
 ### 4.7 Frontmatter & directives
 
-`---` frontmatter delimiters and `%%{...}%%` directives are tokenized but no diagram type currently consumes them. They round-trip transparently. Future use: theme selection, render hints, accessibility metadata.
+`---` frontmatter delimiters and `%%{...}%%` directives are tokenized. The UI diagram consumes one directive, `%%{theme ink=… accent=…}%%` (§5.4.1), and rejects any other; the remaining types ignore them, and they round-trip transparently. Future use: render hints, accessibility metadata.
 
 ### 4.8 Library adapters (extension point)
 
-For diagram types that render in terms of an external component vocabulary (currently only wireframe), adapters map `{ module, componentName }` pairs to canonical render types and/or custom SVG/ASCII renderers. See §7.
-
-### 4.9 Attached data
-
-A wireflow is rendered from its own AST, but its screen nodes are more useful as thumbnails of the real screens. The caller may set `ast.wireframes` (a map from screen name to a parsed `WireframeAST`) before calling `render()`; the renderer then draws each screen node from that wireframe, in the addressed state, at its first declared viewport. The field is never produced by the parser and does not survive `toPlaintext`. This is the one place a diagram's render depends on data outside its own source.
+For diagram types that render in terms of an imported element vocabulary (the UI diagram), adapters map `{ module, name }` pairs to standard elements and/or custom SVG/ASCII renderers. See §7.
 
 ## 5. Diagram Types
 
@@ -605,211 +596,232 @@ Tracked here rather than in §9 because none of them block the next Tier A diagr
 - **Per-subgraph direction.** `FlowSubgraph.direction` is captured in the AST but the renderer always inherits the outer direction. Honoring it would unlock horizontal-row subgraphs inside vertical diagrams.
 - **Per-shape edge anchors for circles / double-circles.** Diamonds and cylinders already project source/target arrow endpoints onto the actual outline. Circles and double-circles still attach at the bbox edge — which happens to coincide with the circle's edge at center, but not for offset fan-out arrows.
 
-### 5.4 Wireframe
+### 5.4 UI diagram
 
-**Type key:** `wireframe`
-**Detection:** first line starts with `wireframe` (case-insensitive)
+**Type key:** `ui`
+**Detection:** first line is `ui` (case-insensitive)
+**Status:** implemented. Supersedes the former `wireframe` and `wireflow` types.
 
-A wireframe describes a screen as a tree of components, with enough fidelity that an agent builds the right screen from it and a person can review the screen before it is built. Scenarios say what the screen does; the wireframe says what it is. The rendered wireframe is the design.
+A `ui` document describes an app's user interface as components: what each is made of, what it shows, what data it reads and writes, what a person can do in it, and how it looks in each of its modes. The same document renders two ways: **frames** (each screen and component drawn in each of its views) and **flow** (screens as thumbnails, joined by the moves between them). It records composition, data dependencies, and interaction surfaces. It does not define execution: nothing in it says when, in what order, or how often anything happens.
 
-#### Grammar
+This section has three parts that are kept strictly apart. §5.4.1 is the language. §5.4.2 is the standard library the language imports. §5.4.3 is one worked example; every noun in it (`band`, `album`, `track`) belongs to the example and to nothing else.
+
+#### 5.4.1 Language
+
+**Document.** A `ui` document is a list of declarations. References resolve after the whole document is read, so declaration order is free except inside a component body.
 
 ```
-wireframe
-  use @hello10/diagrams/ui Stack, Text, Button, Input, Image, Table, Checkbox, Dialog
-  use @app/components as App
+ui
+  use "<module>" <Name>, <Name>, …     % element types, by name
+  use "<module>" as <Alias>            % element types, namespaced
+  api "<module>" <name>, <name>, …     % operations, by name
+  api "<source>"                       % operations from a formal source
+  in ~<name>                           % app data, in scope everywhere
+  layout <Name>[(<param>, …)] … end
+  screen <Name> route=<path> [layout=<Layout>[(<args>)]] [@<mode> …] … end
+  component <Name>[(<param>, …)] [@<mode> …] … end
+end
+```
 
-  viewport mobile
-  viewport desktop width=1024
+Nothing resolves without a declaration. Element types come from `use`; operations come from `api`. With names listed, every `in` and `out` must name one of them. With no names, the module is a formal source (an OpenAPI or GraphQL document) and any operation is accepted; checking those names against the source is a step outside this library.
 
-  define ShowCard
-    Stack gap=sm
-      Image aspect=16:9
-      Text $title weight=bold
-      Text $venue size=sm muted
-      Button "Open" -->|call| onOpen
-    end
+**Sigils.** Three, each marking one kind of thing. Position tells a declaration from a reference.
+
+| Sigil | Thing | Declared | Referenced |
+|---|---|---|---|
+| `#` | an instance in a tree | on its tree line: `Input #query` | anywhere in the component: `#query.value`, `#query selected` |
+| `@` | a mode of a component | on the header: `component Nav @none @search` | in actions, conditions, overrides: `=> @search`, `when @search`, `#nav @search` |
+| `$` | an event | where emitted: `=> $open(band)` | where handled: `$open(picked) => …` |
+| `~` | an io operation | by `in` or `out`: `in ~band(id)` | in actions and conditions: `=> ~signIn`, `when ~band.loading` |
+
+The data an `in` returns is addressed by the operation's name without the sigil: `~band` is the request, `band` is what came back.
+
+**Reserved words.** `ui use api in out screen layout component list as modal when else end go`, the io modes `loading error ready empty`, and the flag `hidden`. Attribute keys the language owns: `route`, `layout`, `direction`. Everything else lowercase on an element line comes from that element's contract (§5.4.2).
+
+**Component body, in this order:** io declarations, the tree, then component-level `when` blocks. The order is enforced so a reader meets every name before it is used.
+
+```
+component TicketPicker(show)
+  in  ~quote(show=show.id, qty=#qty.value)
+  out ~order(show=show.id, qty=#qty.value)
+    ready => go Ticket(id=order.id)
   end
 
-  define PaymentDialog
-    Dialog "Confirm purchase"
-      Text "Two tickets for Hamilton, Saturday 8pm."
-      Checkbox "Email me the receipt" checked
-      Stack direction=row gap=sm justify=end
-        Button "Cancel" -->|state| default
-        Button "Pay $84" primary -->|call| onPay
-      end
-    end
-  end
+  <tree>
 
-  screen Home
-    Stack id=layout gap=lg
-      App.Nav id=nav
-        Stack direction=row align=center justify=between
-          Text "Shows" size=lg weight=bold
-          Button "Create" id=create -->|state| paying
-        end
-      end
-      Stack id=content gap=lg
-        Input id=search placeholder="Search shows"
-        repeat ShowCard id=shows data=Show count=2 -->|call| onOpenShow
-        Table id=showsTable data=Show columns="Title, Venue, Date" rows=3
-      end
-    end
-
-    state paying
-      create disabled
-      modal PaymentDialog id=payment
-    end
-
-    viewport desktop
-      layout direction=row gap=xl
-      nav width=240
-      shows direction=row gap=lg
-    end
+  when
+    @mode => { <override>; … }
   end
 end
 ```
 
-Keywords (lowercase): `wireframe`, `use`, `viewport`, `define`, `screen`, `state`, `repeat`, `modal`, `end`, plus `title` / `accTitle` / `accDescr`. PascalCase identifiers are component references, and every one resolves to a `define` or an import; nothing is ambient. Lowercase identifiers inside a `state` or `viewport` block are component ids. Every block closes on `end`; indentation is presentational.
+**Io.** `in ~name(args)` declares a read; `out ~name(args)` declares a write. An `in` runs on entry and again whenever an argument changes. An `out` runs when an action names it. Arguments are named (`name=value`), with `name` short for `name=name`. An operation's modes are `loading`, `error`, `ready`, and, for an `in` whose data is a list, `empty`; they are addressed as a path on the operation, `~signIn.error`. An io block holds outcome lines only, `<mode> => <action>`: what happens on entering that mode. What the component looks like in a mode is in the tree, under `when`. An `in` is `ready` at rest; an `out` is idle until named. A write's result is in hand in its `ready` outcome: `go Ticket(id=order.id)`.
 
-#### Core
-
-```
-structure     screen · state · viewport · repeat · modal · define · use
-vocabulary    use @hello10/diagrams/ui Stack, Text, Button, Input, Select, Checkbox, Radio, Image, Audio, Video, Table, Dialog
-layout        Stack — direction, gap, align, justify, padding; width / height on any node
-canonical     text  button  input  select  checkbox  radio  image  audio  video  table  dialog
-interaction   -->|goto| Screen · -->|state| name · -->|call| hook
-data          data=Ref on any node
-```
-
-The canonical set is the HTML form-and-media set: types with distinct semantics, not distinct looks. Variants are props or adapters, not new types — a toggle is a checkbox, a heading is text, a link is a button that navigates, a toast is a dialog. Everything above the core is composition: `define` builds a Card, a Nav, a Tabs from the core and reuses it. A component with no mapping and no definition renders as a labeled box; that is a component that has not been mapped yet, not a gap in the language.
-
-#### Constructs
-
-- **`use`** — `use @module as Alias` (namespace) or `use @module A, B` (named). Top level only. The canonical set lives in `@hello10/diagrams/ui` and is imported like anything else: `use @hello10/diagrams/ui Stack, Text, Button`. A project's own vocabulary is another module (`use @acme/ui as App`). Resolution is `define`, then named import, then namespace; to use a different `Button`, import it from somewhere else. A canonical name used without its import gets an error that quotes the `use` line to add.
-- **`viewport name [width=n]`** — top level. Declares a viewport the wireframe targets. `mobile` (390), `tablet` (768), and `desktop` (1280) have default widths; any other name needs `width=`. With no declaration the wireframe renders at one unnamed 390px viewport.
-- **`define Name … end`** — top level. A reusable subtree. `$param` as a component's content declares a slot; a use site binds it with an attribute of the same name (`ShowCard title="Hamilton"`). Unbound slots render as italic placeholders. Hooks (`-->|call|`) inside a define surface on every screen that uses it. Use-site attributes that are not params, plus flags, `data=`, and an interaction, apply to the expanded root.
-- **`screen Name … end`** — top level. The default state's component tree, followed by any `state` and `viewport` blocks.
-- **Component line** — `Ref ["content" | $param] [id=name] [data=Ref] [key=value …] [flag …] [-->|kind| target]`, with an optional indented body closed by `end`. `id` values are camelCase and unique within their screen (states included); the same id may appear in different screens. Content must come directly after the reference.
-- **`Stack`** — the one layout primitive, from `@hello10/diagrams/ui`. `direction=column|row` (column default), `gap` and `padding` (`none xs sm md lg xl xxl` or a pixel number), `align=start|center|end|stretch` (stretch default), `justify=start|center|end|between`. Any component with children lays them out as a column; `Stack` is how you say otherwise.
-- **Sizing** — `width` and `height` on any node: `fill`, `hug`, or a pixel number. Unset width is `fill` in a column (unless the column's `align` is not `stretch`) and, in a row, `fill` for containers and fields (`Stack`, boxes, `table`, `dialog`, `input`, `select`) but `hug` for controls and media. Unset height is `hug`; a row with `align=stretch` stretches its children.
-- **`repeat`** — a repeated region. `repeat Card [props]` is shorthand for `repeat [props]` with a body of one bare `Card`; both normalize to the same AST (a `repeat` node with children). `count=n` is the number of copies drawn (default 3); `direction=row` lays them side by side. `data=` names the collection.
-- **`modal`** — an overlay. Same two forms as `repeat`. Valid anywhere inside a screen, almost always inside a `state`. Drawn over a dimmed frame with a shadow; never part of the flow.
-- **`state name … end`** — inside a screen. Declares what differs from `default`. Two kinds of line: an **override** (`id [content] [data=] [key=value …] [flag …] [-flag …] [-->|kind| target]`) changes an existing component's props, flags, content, data, or interaction, with `-flag` clearing a flag; an **addition** (a component, `repeat`, or `modal`) is appended after the default tree. `default` is the implicit base state and cannot be declared; `-->|state| default` returns to it. Overrides must match an id in the default tree or in the same state's additions.
-- **`viewport name … end`** — inside a screen. Overrides only, for a declared viewport. Layout props may vary per viewport; the tree does not, so components, content, and interactions are rejected here. A `hidden` flag is a prop and is allowed.
-- **Interactions** — one per component. `goto` targets a screen (`Detail`) or a screen state (`Detail.open`); `state` targets a state of the enclosing screen and is validated (except inside a `define`); `call` names a hook the screen raises. Plain `-->` and bare `@hook` are rejected with a pointer to the typed form.
-- **`data=Ref`** — a spec reference for the collection or entity a component shows. Promoted to `node.data`; the value is opaque to the library.
-- **Flags the renderer honors** — `primary` and `selected`/`active` on buttons; `checked`/`selected` on checkbox and radio; `disabled` on anything (dimmed); `hidden` (not drawn); `muted` and `bold` on text.
-- **Attributes the renderer honors** — `size` (`xs sm md lg xl xxl` or px) and `weight` (`bold medium semibold` or a number) and `align` on text; `placeholder` and `label` on input and select; `aspect` (`16:9`, `1:1`, …) on image and video; `columns="A, B"` and `rows=n` on table. All other attributes pass through to adapters and the AST untouched.
-
-#### AST
-
-```ts
-type WireframeAST = DiagramAST & {
-  type: 'wireframe';
-  root: string;
-  elements: Record<string, WireframeElementNode>;   // keyed by element id
-  defines: Record<string, DefineNode>;
-  uses: WireframeUseImport[];
-  viewports: WireframeViewport[];                   // { name, width }
-};
-
-type WireframeElementNode = BaseElementNode & {
-  nodeKind: 'root' | 'screen' | 'component' | 'repeat' | 'modal';
-  declaredId?: string;              // the id= the author wrote
-  componentName?: string;           // as written: Button, UI.Card, Stack
-  component?: WireframeComponentRef;// local | named-import | namespace-import
-  data?: string;
-  targetKind?: 'goto' | 'state' | 'call';
-  target?: string;
-  // screen only
-  screenName?: string;
-  states?: { name: string; overrides: WireframeOverride[]; children: string[] }[];
-  viewportOverrides?: { viewport: string; overrides: WireframeOverride[] }[];
-  hooks?: string[];
-};
-
-type WireframeOverride = {
-  id: string; content?: string; data?: string;
-  attributes: Record<string, string>; flags: string[]; clearFlags: string[];
-  targetKind?: 'goto' | 'state' | 'call'; target?: string;
-};
-```
-
-Element keys are the declared id when one was given (suffixed `~2`, `~3`, … when another screen already used it) and a generated `kind-stem-n` otherwise. Generated ids are not serialized. A state's additions are in `elements` and listed in `states[].children`, not in the screen's `children`.
-
-#### Validation
-
-Errors, all with a pointer to the right form: unknown keyword; bare `id`; `[state]` or a viewport on the screen line; duplicate imports, defines, viewports, states, or viewport blocks; undeclared viewport; `default` declared as a state; unresolved component (with the `use` line to add when it is a canonical name) or unknown namespace; duplicate id within a screen; override matching no id; component or interaction inside a viewport block; unknown `state` target; plain `-->`; bare `@hook`; `repeat Card` combined with a body; `repeat`/`modal` with neither; invalid `Stack` direction/align/justify/gap/padding; invalid `width`/`height`; two interactions on one line; legacy keywords (`list`, `grid`, `table`, `external`, `ref`).
-
-#### Rendering
-
-The renderer expands the tree once per screen × state × viewport (defines expanded with bindings, overrides applied — state first, then viewport — repeats unrolled, modals lifted) into a layout tree, then runs a measure pass and a draw pass with Stack semantics. Both the SVG and the ASCII rendering (`renderWireframeAscii`) walk that same tree, so they stay in step by construction.
-
-- One frame per state per viewport, at the viewport's width; frames for a screen share a row per state. A caption carries screen, state, and viewport.
-- A spacing scale (`4 8 12 16 24 32`) and a type scale (`11 12 14 18 24 32`) applied consistently; grayscale palette; controls 36px tall.
-- Each canonical type is recognizable as itself: filled primary buttons, chevron on select, checked marks, image/video/audio placeholders, table header plus placeholder rows (or children as rows), dialog with title.
-- Modals drawn over a dimmed frame with a drop shadow; the frame grows to fit them.
-- Unmapped components: dashed box labeled `Name #id`. Adapter `renderSvg` receives the measured box and its children's SVG.
-- Each drawn component is wrapped in `<g data-id data-component data-ref data-goto|data-state|data-call>` so tooling can locate it; each frame in `<g data-screen data-state data-viewport>`.
-- A **Components** section renders every `define` on its own at 320px with its params.
-
-### 5.5 Wireflow
-
-**Type key:** `wireflow`
-**Detection:** first line starts with `wireflow` (case-insensitive)
-
-The navigation graph: wireframes as nodes, interactions as edges. An interaction declared on a wireframe component and an edge in a wireflow are one fact stated from two sides.
-
-#### Grammar
+**Tree.** A sequence of lines; a line with children has a block closed by `end` (or a `{ a; b }` brace block, the same thing on one line).
 
 ```
-wireflow
-  title Ticketing flow
+<Type> ["content"] [#handle] [key=value …] [flag …] [$event[(param)] => <action> …]   element
+<Type>(<args>) [#handle] [$event[(param)] => <action> …]                               component use
+list <data> as <item> [direction=row] … end
+when [<subject>] … end
+modal … end
+```
 
-  decision paymentOk "Payment accepted?"
+- Content is a quoted string; `{path}` inside it interpolates data: `Heading "{band.name}"`, `Text "Hi, {session.user.name}"`.
+- An attribute is `key=value`. The value is a string, a number, a data path (`src=band.image`, `options=genres`, `value=profile.name`), or, for a link's `to=`, a screen call (`to=Band(id=show.band.id)`).
+- A component takes arguments in parens, named, with the shorthand: `FollowButton(band)` is `FollowButton(band=band)`. A value is a data path, a Name, or quoted text; quoted text is literal, so `Card(title="Hello")` shows Hello where the component writes `{title}`.
+- `#handle` makes the instance addressable; unique within the component. A handle is needed only where something refers to it.
+- Flags are bare words the element's contract defines (`primary`, `disabled`, `controls`), plus `hidden`.
+- A **handler** is `$event[(param)] => action`, on the line of the element or instance that fires the event. `click` is an event of every element; other events come from the contract, and a component's events are what it emits. A component event carries at most one value; the handler binds it to a name that is in scope on that line: `BandResult(band) $open(picked) => go Band(id=picked.id)`. A line may carry several handlers.
+- `list <data> as <item>` draws its body once per item; the item name is in scope inside the body.
+- `modal … end` draws its body over the component, dimming it.
 
-  [*] --> Login
-  Login -->|call onSignIn| Home
-  Login -->|goto signupLink| Signup
-  Signup -->|call onSignUp| Home
-  Home -->|state create| Home.paying
-  Home -->|call onOpenShow| ShowDetail
-  Home.paying -->|state cancel| Home
-  Home.paying -->|call onPay| paymentOk
-  paymentOk -->|yes| ShowDetail
-  paymentOk -->|no| Home.paying
-  ShowDetail -->|goto back| Home
-  Home -->|call onLogout| [*]
+**Actions.** What follows `=>`, after an event or an io mode. Every action starts with a sigil or a verb:
+
+```
+@mode[(value)]        enter a mode; the value fills the mode's parameter
+$event[(value)]       emit an event to the parent
+~op                   run a write, or re-run a read
+go Screen[(args)]     navigate; args are the screen's route params
+```
+
+**Modes.** A mode is one discrete appearance of a component, declared on its header: `screen Band … @shows @albums @about`. The first declared is the start. A mode may take one parameter, `@playing(current)`, which is in scope inside `when @playing` and in that mode's overrides; entering it supplies the value, `=> @playing(picked)`. Modes are flat: a component with two independent axes of state is two components. Io modes are the reserved four and are never declared.
+
+**`when`.** The one conditional. In the tree it decides what is drawn; at component level it decides overrides.
+
+```
+when                         % each case is a condition
+  ~signIn.error   => Text "Wrong email or password."
+  ~signIn.loading => Button "Signing in…" busy disabled
+  else            => Button "Sign in" primary $click => ~signIn
+end
+
+when current                 % each case is a value the subject is matched against
+  Search  => { #search selected }
+  Library => { #library selected }
+end
+
+when                         % a case's result is one statement, with its own block
+  @shows => Stack
+    list shows as show
+      ShowRow(show) $open(picked) => go Show(id=picked.id)
+    end
+  end
+  @about => Text "{band.bio}"
 end
 ```
 
-- **Nodes** — a screen is named by its wireframe screen name (`Home`); a screen state by `Screen.state` (`Home.paying`). Both are nodes and need no declaration; `screen Name` declares one that no edge mentions. `decision id "Question?"` declares a decision (lowercase id). Node order is first mention.
-- **Edges** — `From -->|label| To`, one per line, `-->` only. Leaving a screen, the label is `kind [trigger]`: the same `goto` / `state` / `call` vocabulary as wireframe, and the component id (for `goto` and `state`) or hook name (for `call`) that fires it. The trigger is optional; the kind is not. Leaving a decision, the label is the branch and is required.
-- **Entry and exit** — `[*] --> Screen` (no label) and `Screen --> [*]` or `Screen -->|call hook| [*]`, as in a state diagram.
-- **Validation** — untyped screen edges; unknown kind; decision edge without a branch; entry into a decision or with a label; `[*] --> [*]`; a `state` edge whose target is not a state of the same screen; `goto` into a decision; invalid node names; legacy `ref … end` blocks and wireframe keywords, each with a pointer to the current form.
+A condition is a data path (true when it holds a value), a mode `@name`, or an io mode `~op.mode`. With a subject, cases are values: a string, a number, or a Name. The first matching case wins; `else` is the last. No match draws nothing. A case's result is exactly one statement: in the tree, one tree line with its own block when it has one (several lines group in a `Stack`); at component level, an override block. One `when` is one or the other. `when` is a block like every other, `when … end` or `when { … }`, and an override block is likewise `{ … }` or newline-to-`end`.
 
-#### AST
+**Overrides.** `#handle ["content"] [key=value …] [flag …] [@mode[(value)]] [$event => action …]`: a change to an instance the tree declares, in a component-level `when` case. `#search selected` marks a link; `#nav @search` sets a component instance's mode; `#audio $pause => @paused` adds a handler in that mode only. Overrides never add nodes: everything drawable is in the tree.
+
+**Layouts.** `layout Name(params) … end` is a component that wraps screens: its tree holds exactly one `Outlet`, where the screen goes, and whatever every wrapped screen shares. A screen names its layout with `layout=Name`, passing arguments like any component use, `layout=AppShell(current=Search)`; a parameter not passed is not in hand, so a `when` on it matches nothing. With exactly one layout declared, every screen that names none uses it; with several, every screen must name one. Navigation declared in a layout, or in a component it embeds, is available from every screen it wraps.
+
+**Where the app opens.** The screen whose `route=/`. A document with screens and no `/` is an error.
+
+**Theme.** `%%{theme ink=#002676 accent=#FDB515}%%` anywhere at document level sets the rendering colors, in the language's own `key=value` form. `ink` is the interface's own color: frame borders, buttons, headings, text, the flow's screen outlines. `accent` is the callout badges, which draw as an accent disc with a numeral in white or in the ink, whichever contrasts with the accent, so a badge is distinct from any control it sits on. Both are hex colors; either may be left out. The defaults are `ink=#1f2937 accent=#3299f6`. Grays for secondary text, lines, and surfaces are the renderer's and are not themed.
+
+**Data and scope.** One namespace per component, every name declared once: parameters, route parameters, the names of its `in` and `out` operations, and document-level `in`. List items are in scope in the list body, a mode's parameter inside that mode, a handler's parameter on its line. A bare lowercase name is always data; an instance's one readable property is `#handle.value`. A node bound to data that is not in hand is not drawn, so a frame in `~band.loading` shows what does not depend on `band`.
+
+**Checks.** All structural. The parser reports an error for each:
+
+- an element or component name that is neither imported nor declared; a namespace alias that is not imported
+- an operation no `api` declares; an `~op` used in a component that neither declares it with `in`/`out` nor has it as document-level `in`
+- a handler for an event the element or component does not fire; a parameter bound on an event that carries no value; an event a child emits that the parent never handles
+- a data path whose head nothing supplies; an instance's value addressed bare (`q.value` for `#q.value`); a name declared twice
+- a mode that is not on the header; a value on a mode without a parameter, or none on a mode with one; `else` not last; a value case without a subject; a path case under a subject
+- `go` to something that is not a screen; route params missing or unknown, on `go` and on `to=`
+- an argument to a parameter the component does not declare; arguments on an element; attributes or children on a component
+- a layout without exactly one `Outlet`; an `Outlet` outside a layout; `layout=` naming something that is not a layout, or a parameter it does not declare; a screen naming no layout when several are declared
+- an override on a handle the tree does not declare; `@mode` on a handle that is not a component instance, or a mode that component does not declare
+- io declared after the tree; a tree line after a component-level `when`; `empty` on an `out`; anything but outcomes in an io block
+- duplicate handles, modes, or declarations; no screen at `/`
+- retired words from earlier drafts (`state`, `entry`, `repeat`, `reads`, `writes`, `emits`, `on`, `if`, `data=`, `-->`), each with what replaced it
+
+**Rendering.** One drawing, the storyboard, from `render()`:
+
+- *Flow overview* first: screens as thumbnails, joined by every move to a screen: `go` actions on handlers and io outcomes, and links' `to=`, labeled by the event and the element or instance as the screen wrote it (`click Shows`, `open BandResult`) or by the io outcome (`~signIn.ready`), including those declared inside a component the screen embeds. A layout in use is a node too, drawn with the Outlet as an empty slot and captioned `layout`; its navigation is drawn once, from it. Self-loops are not drawn. The screen at `/` has a heavier border. Also available alone as `renderUiFlow()`.
+- *Four tiers*, headed Flow, Layouts, Screens, Components. A layout's section comes first: its tree with the Outlet as an empty slot, and its actions listed once, there. A screen's frame draws the screen inside its layout, with the layout dimmed so the screen reads as the subject and a faint dashed outline around the content where the Outlet is, the same dash the layout's empty Outlet has, and lists only the screen's own actions; nothing from the layout is repeated across the screens it wraps. Every screen section precedes every component section; a component section is labeled with where it is first embedded: the component whose tree holds it, the mode, and `modal` (`in AppShell`, `in AlbumCard @listening, modal`).
+- *One section per screen*: a mode chart when the component declares more than one mode, drawn by the state diagram renderer (§5.1) with the modes as its states and every action that enters a mode as a labeled transition from the mode it is written in; then its **views** as frames in a row. A view is a mode, or an io condition the tree names drawn in the mode it sits in; captioned `@shows`, `~band.loading`, `@bands ~favorites.empty`. A component with neither modes nor io conditions is one frame. In each frame, `when` cases are decided by the view (a data-path condition cannot be known from a diagram and is false, so `else` branches show), lists are unrolled three deep, a modal dims the frame, and data not in hand is left out. A row whose items do not fit wraps them onto further lines at their natural widths; nothing is squeezed. Only a placeholder wider than the whole frame is shortened, and it keeps its tail, the part that names the value. Literal text is what it says and is never shortened. Under each frame, a numbered callout for everything a person can do: a badge on the element, and a legend line `event → action` (`click → go Band(id=picked.id)`). Hidden, `disabled`, and `selected` elements get none. While a modal is up only the modal's elements count. A handler on a component instance is badged on the element inside that emits the event, through any forwarding, and its legend is the line as the parent wrote it: `TrackRow(track) $select(picked) => @playing(picked)` lists `select(picked) → @playing(picked)` on the row, and TrackRow's own frame explains `click → $select(track)`. Each frame speaks its own component's words. A view that shows an io condition is its mode's view with that condition applied, so it calls out only what the condition adds (a retry button, a modal's choices); the tabs and links the mode's own view already lists are not repeated under every variant.
+- *One section per component*, drawn once, in the components tier, the same way at component width.
+- Text rendering of the same expanded trees is available for terminals and agents (`renderUiAscii()`); canonical plaintext from `toPlaintext()` re-parses to the same document.
+
+**Nesting.** How a component draws inside another:
+
+1. An instance draws as its tree in its start mode, unless an override sets another (`#nav @search`), with its arguments bound. Its io is at rest: reads ready, writes idle.
+2. Arguments substitute into placeholders and callouts: `Card(show=featured)` draws `{featured.title}` and `click → go Detail(id=featured.id)`. The component's own section uses its own names; inside a `list`, items keep the item name.
+3. A `when <subject>` inside the instance matches against what the parent bound: `Nav(current)` with `current=Search` selects the Search link.
+4. A parent's overrides reach the instance by its handle, never its insides.
+5. A `modal` draws over the dimmed parent; a `list` draws three copies.
+6. Recursion draws as a labeled box at the point of recursion.
+
+**AST sketch.**
 
 ```ts
-type WireflowAST = DiagramAST & {
-  type: 'wireflow';
-  order: string[];
-  nodes: Record<string, { kind: 'screen'; id; ref: { screen; state? } } | { kind: 'decision'; id; question }>;
-  edges: { from; to; interaction?: 'goto' | 'state' | 'call'; trigger?; branch? }[];   // [*] appears as an endpoint
-  entries: string[];
-  exits: string[];
-  wireframes?: Record<string, WireframeAST>;   // attached by the caller, see §4.9
+type UiAST = DiagramAST & {
+  type: 'ui';
+  uses: UiImport[]; apis: UiApi[]; io: UiIo[];
+  entry?: string;                               // the screen at /
+  components: Record<string, UiComponent>; order: string[];
 };
+type UiComponent = {
+  name: string; route?: string; routeParams: string[]; isLayout?: boolean;
+  layoutName?: string; layoutArgs: Record<string, string>; usesLayout?: string;
+  params: string[]; modes: { name: string; param?: string }[];
+  io: UiIo[]; tree: UiNode[]; whens: UiNode[];
+  emits: Record<string, boolean>; scope: string[];
+};
+type UiIo = { kind: 'in' | 'out'; name: string; args: Record<string, string>; outcomes: { mode: UiIoMode; action: UiAction }[] };
+type UiNode = { kind: 'instance' | 'list' | 'modal' | 'when'; name?: string; ref?: UiRef; content?: string; id?: string;
+  args; attributes; flags; handlers: UiHandler[]; data?: string; item?: string; subject?: string; cases?: UiCase[]; children: UiNode[] };
+type UiHandler = { event: string; param?: string; action: UiAction };
+type UiAction = { kind: 'mode'; mode; value? } | { kind: 'emit'; event; value? } | { kind: 'io'; name } | { kind: 'go'; screen; args };
+type UiCase = { condition: UiCondition; nodes: UiNode[]; overrides: UiOverride[] };
 ```
 
-#### Rendering
+#### 5.4.2 Standard library
 
-A top-down layered graph using the shared layout pipeline (§4 of `src/layout.ts`): screens as 140px thumbnails (the real frame when a wireframe is attached, in the addressed state; a placeholder frame otherwise), decisions as diamonds, `[*]` as the state diagram's markers. Forward edges leave the bottom of their source and enter the top of their target, fanned across the thumbnail edge; every edge segment in a rank gap gets its own jog line so horizontals never overlap. Back edges run dashed up a channel to the right, with labels spread apart. Labels are `kind trigger` or the branch, on white pills. Sized to stay readable at twenty screens.
+`@hello10/diagrams/ui` ships the elements. It is imported like any module; nothing is ambient. Each element follows its HTML5 counterpart: the attributes it takes, the events it fires, and the flags it owns are those of the HTML element, reduced to what a wireframe needs. `click` is an event of every element and is not listed.
 
-### 5.6 Class diagram
+| Element | HTML5 | Attributes | Events | Flags |
+|---|---|---|---|---|
+| `Stack` | `div` | `direction=row\|column` | | |
+| `Heading` | `h1`–`h6` | content, `level` | | |
+| `Text` | `p` / `span` | content | | |
+| `Link` | `a` | content, `to` | | `selected` |
+| `Button` | `button` | content | | `disabled`, `primary`, `busy` |
+| `Input` | `input` | `placeholder`, `value`, `label` | `change`, `submit`, `focus`, `blur` | `disabled`, `invalid` |
+| `Select` | `select` | `options`, `value`, `placeholder`, `label` | `change` | `disabled` |
+| `Checkbox` | `input[type=checkbox]` | content | `change` | `checked`, `disabled` |
+| `Radio` | `input[type=radio]` | content | `change` | `checked`, `disabled` |
+| `Image` | `img` | `src`, `alt`, `aspect` | | |
+| `Audio` | `audio` | `src` | `play`, `pause`, `ended` | `controls` |
+| `Video` | `video` | `src`, `aspect` | `play`, `pause`, `ended` | `controls` |
+| `Table` | `table` | `columns`, `rows` | | |
+| `Dialog` | `dialog` | content | `close` | `open` |
+| `Outlet` | `slot` | | | |
+
+`Outlet` is valid only inside a `layout`, exactly once: it is where the wrapped screen renders. `to=` on a `Link` is a screen call and draws as navigation. `src=` and `options=` take data paths; `value=` is a literal prefill or a data path.
+
+`busy` is a button with work in flight: it draws a spinner at its right edge, and the case that uses it usually gives a progressive label and `disabled` as well (`~signIn.loading => Button "Signing in…" busy disabled`). `selected` is the link to where you already are. A `disabled` element and a `selected` link are inert: they fire nothing, and a frame draws no callout on them. `hidden` is a flag every element and component accepts. `Stack` is layout: `direction` is the only layout word in the language; sizes, spacing, and alignment are the renderer's.
+
+Other modules are a project's own elements and components, mapped onto this set through adapters (§7).
+
+#### 5.4.3 Worked example
+
+`examples/diagrams/ui.txt`: seven screens of a gig-finding app (sign in, band search, a band page with shows, albums, and an album player, a show page with a ticket purchase, a ticket, a library of followed bands and tickets, and a profile), two layouts, and the components they use. It is the fixture for the type and the document the language was derived from. Read it against §5.4.1; a few places to look:
+
+- `api "@gigs/api" …` lists every operation the document uses; `in ~session` at document level is the signed-in user, read by `Nav` without being passed in.
+- `AppShell(current)` is the layout the signed-in screens name, passing what the nav needs: `layout=AppShell(current=Search)`. `Nav(current)` marks the matching link with a `when current` block; `Band` passes nothing, so there nothing is marked. `Login` uses `Bare`.
+- `Login` is an `out` and a form: the write takes `#email.value` and `#password.value`, its `ready` outcome goes to Search, and the tree says what the screen looks like while it is loading and when it fails, with two `when` blocks.
+- `Search` has two reads; `~results` takes the input and the select by handle and re-runs when either changes. Nothing in the tree triggers it.
+- `Band` declares three modes on its header, one per tab, and three reads. The tab links enter modes; the tab content sits under `when @shows` and the rest; the selected link is an override in a component-level `when`. Its frames are the three modes, then `~band.loading`, `~band.error`, and `~shows.empty`, each in the mode its condition sits in.
+- `Show` uses `when show.soldOut … else …` for a data condition; the frames show the `else` branch, since a diagram cannot know the data.
+- `FollowButton` and `TicketPicker` own their writes, so `Band` and `Show` have no mode for them. `FollowButton`'s whole tree is one `when` with three cases.
+- `AlbumCard` owns the player modal: `@closed` and `@listening`, with the modal under `when @listening`. `AlbumPlayer` has a mode with a parameter, `@playing(current)`, entered from a track row with `=> @playing(picked)`, and draws the audio only under `when @playing`. Its header's `$close` is forwarded with `$close => $close`.
+- `TicketRow` is a confirmation flow: `@holding` and `@confirming`, the modal under `when @confirming`, and the write's outcomes returning to `@holding`.
+
+### 5.5 Class diagram
 
 **Type key:** `classDiagram` (alias `class`)
 **Detection:** first line is `classDiagram` or `class` (case-insensitive)
@@ -828,51 +840,51 @@ Split-pane editor with type-to-render. The example sources in `examples/diagrams
 
 ## 7. Library adapters
 
-> Wireframe-specific today; documented here because adapters are an extension point that may apply to future component-rendering diagram types.
+> Used by the UI diagram.
 
 ### 7.1 Adapter shape
 
 ```ts
-type WireframeLibraryAdapter = {
+type UiLibraryAdapter = {
   module: string;
-  components: Record<string, WireframeLibraryComponentAdapter>;
+  elements: Record<string, UiElementAdapter>;
 };
 
-type WireframeLibraryComponentAdapter = {
-  type?: WireframeCanonicalRenderType;
-  renderSvg?: (ctx: WireframeSvgRenderContext) => string;
-  renderAscii?: (ctx: WireframeAsciiRenderContext) => string;
+type UiElementAdapter = {
+  type?: UiRenderType;
+  renderSvg?: (ctx: UiSvgRenderContext) => string;
+  renderAscii?: (ctx: UiAsciiRenderContext) => string;
 };
 ```
 
-### 7.2 Canonical render types
+### 7.2 Render types
 
-`stack`, `text`, `button`, `input`, `select`, `checkbox`, `radio`, `image`, `audio`, `video`, `table`, `dialog`.
+One per standard element (§5.4.2): `stack`, `heading`, `text`, `link`, `button`, `input`, `select`, `checkbox`, `radio`, `image`, `audio`, `video`, `table`, `dialog`.
 
-These are **renderer-layer vocabulary**: what an adapter maps a component name onto. `@hello10/diagrams/ui` is the adapter that maps the canonical PascalCase names (`Stack`, `Text`, `Button`, …) one to one; a project adapter may map its own `HStack` to `stack` or `PrimaryButton` to `button` the same way.
+These are **renderer-layer vocabulary**: what an adapter maps a project's element name onto. `@hello10/diagrams/ui` is the adapter that maps the standard names one to one; a project adapter may map its own `PrimaryButton` to `button` the same way.
 
 ### 7.3 Registration
 
 ```ts
-import { registerWireframeLibraryAdapter } from '@hello10/diagrams';
+import { registerUiLibraryAdapter } from '@hello10/diagrams';
 
-registerWireframeLibraryAdapter({
+registerUiLibraryAdapter({
   module: '@my-org/ui',
-  components: {
+  elements: {
     PrimaryButton: { type: 'button' },
     Hero:          { renderSvg: ctx => `...` },
   },
 });
 ```
 
-### 7.4 The canonical module
+### 7.4 The standard library
 
-`@hello10/diagrams/ui` is always registered and cannot be replaced (`registerWireframeLibraryAdapter` throws). It is the only registration this library makes; it has no knowledge of any particular UI package. `clearWireframeLibraryAdapters()` removes every project adapter and keeps the canonical module. `WIREFRAME_UI_MODULE` and `WIREFRAME_UI_COMPONENTS` export the name and the mapping.
+`@hello10/diagrams/ui` is always registered and cannot be replaced (`registerUiLibraryAdapter` throws). It is the only registration this library makes; it has no knowledge of any particular UI package. `clearUiLibraryAdapters()` removes every project adapter and keeps the standard library. `UI_STANDARD_MODULE` and `UI_STANDARD_ELEMENTS` export the name and the contracts.
 
 ### 7.5 Resolution rules
 
-- Imported components without an adapter mapping fall back to a dashed labeled box.
-- Local `define` components render by expanding their declared subtree with the use site's bindings.
+- Imported names without an adapter mapping fall back to a dashed labeled box.
+- Components declared in the document render by expanding their tree with the use site's bindings.
 - A component-level `renderSvg` overrides canonical-type rendering. It receives the measured box (`x`, `y`, `width`, `height`) and `childrenSvg`; height is the children's column height plus padding, at least 48px.
 - `renderAscii` mirrors `renderSvg` for the ASCII renderer.
 
@@ -887,26 +899,25 @@ registerDiagram
 
 // Diagram classes (for custom registries)
 Diagram, DiagramParser, DiagramRenderer
-FlowchartDiagram, SequenceDiagram, StateDiagram, ClassDiagram, WireframeDiagram, WireflowDiagram
+FlowchartDiagram, SequenceDiagram, StateDiagram, ClassDiagram, UiDiagram
 
-// Wireframe extension points
-registerWireframeLibraryAdapter
-clearWireframeLibraryAdapters
-getWireframeLibraryAdapter
-renderWireframeAscii
+// UI diagram
+renderUiStoryboard, renderUiFlow, renderUiAscii
+registerUiLibraryAdapter
+clearUiLibraryAdapters
+getUiLibraryAdapter
 
 // Types
 BaseElementNode, DiagramAST, ParseError, ParseResult, Token, TokenType
 ```
 
-Diagram-type-specific AST types (`WireframeAST`, `SequenceDiagramAST`, `StateDiagramAST`, etc.) are accessible through the corresponding subpath modules.
+Diagram-type-specific AST types (`UiAST`, `SequenceDiagramAST`, `StateDiagramAST`, etc.) are accessible through the corresponding subpath modules.
 
 ## 9. Next major work
 
 Tracked at the spec level so the gap between current implementation and target is explicit.
 
-1. **Wireframe in use.** The renderer's remaining limits surface only against real Jump screens: text metrics are estimated, not measured; `hug` width inside a hugging column is approximate; a row that overflows shrinks its hugging children rather than wrapping. Fix each as a Jump diagram hits it.
-2. **Wireflow at scale.** Twenty screens render; beyond that, edge crossings and back-edge channels will need a second pass (lane assignment per back edge, label placement away from crossings).
+1. **UI rendering limits.** Text metrics are estimated, not measured; the flow graph is readable to about twenty screens. Fix each as a Jump diagram hits it.
 3. **State / sequence cleanup.** Fix the rendering bugs called out in §5.1 / §5.2 when a Jump diagram hits them.
 4. **Phase 3 — ER.** Parser, AST, renderer, and structural-assertion fixture, plus cardinality lexemes (`||--o{`, `}o--||`, `||..||`, …) in the tokenizer.
 
