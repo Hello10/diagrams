@@ -176,3 +176,75 @@ end`;
 		expect(messages).toContain('Shell has no parameter "nowhere"');
 	});
 });
+
+describe("a branching flow at scale", () => {
+	// A hub with five sections, each with a detail and a settings screen,
+	// cross links, and back edges to the hub: eighteen screens.
+	const sections = ["Feed", "Search", "Inbox", "Profile", "Store"];
+	const screens = [
+		`  screen Home route=/
+    Stack
+      ${sections.map((s) => `Link "${s}" to=${s}`).join("\n      ")}
+    end
+  end`,
+		...sections.map((s, i) => {
+			const next = sections[(i + 1) % sections.length];
+			return `  screen ${s} route=/${s.toLowerCase()}
+    Stack
+      Button "Open" $click => go ${s}Item(id=1)
+      Link "Settings" to=${s}Settings
+      Link "${next}" to=${next}
+    end
+  end
+  screen ${s}Item route=/${s.toLowerCase()}/:id
+    Stack
+      Text "${s} item"
+      Button "Back" $click => go ${s}
+      Link "Home" to=Home
+      ${i % 2 === 0 ? `Link "Related" to=${next}Item(id=2)` : ""}
+    end
+  end
+  screen ${s}Settings route=/${s.toLowerCase()}/settings
+    Stack
+      Button "Save" $click => go ${s}
+      ${i === 4 ? 'Link "Account" to=Account' : ""}
+    end
+  end`;
+		}),
+		`  screen Account route=/account
+    Stack
+      Link "Home" to=Home
+      Button "Log out" $click => go Login
+    end
+  end
+  screen Login route=/login
+    Stack
+      Button "Sign in" $click => go Home
+    end
+  end`,
+	];
+	const doc = `ui
+  use "@hello10/diagrams/ui" Stack, Text, Link, Button
+${screens.join("\n")}
+end`;
+
+	test("every screen is a node, every move an edge, nothing clipped", () => {
+		const ast = assertOk<UiAST>(parse(doc));
+		const svg = renderUiFlow(ast);
+		expect((svg.match(/<g data-node="/g) ?? []).length).toBe(18);
+		expect((svg.match(/marker-end=/g) ?? []).length).toBe(42);
+		expect(svg).not.toContain("NaN");
+		const box = /viewBox="0 0 (\d+(?:\.\d+)?) (\d+(?:\.\d+)?)"/.exec(svg);
+		expect(Number(box?.[1])).toBeGreaterThan(1000);
+		expect(Number(box?.[2])).toBeGreaterThan(2000);
+		// Every routed path stays inside the drawing.
+		for (const m of svg.matchAll(/<path d="([^"]+)"/g)) {
+			const nums = (m[1] ?? "").match(/-?\d+(?:\.\d+)?/g) ?? [];
+			for (const [i, v] of nums.entries()) {
+				const limit = i % 2 === 0 ? Number(box?.[1]) : Number(box?.[2]);
+				expect(Number(v)).toBeGreaterThanOrEqual(0);
+				expect(Number(v)).toBeLessThanOrEqual(limit);
+			}
+		}
+	});
+});

@@ -973,3 +973,129 @@ end`;
 		expect(gap(withLayout).screens).toBeGreaterThan(0);
 	});
 });
+
+describe("one mistake is one error", () => {
+	const DOC = `ui
+  ${STD} Stack, Heading, Text, Button
+  ${API} results
+  screen Home route=/ @all @mine
+    in ~results
+    Stack
+      Heading "Hello"
+      list results as item
+        Row(item) $open(picked) => go Detail(id=picked.id)
+      end
+      when
+        @all  => Text "all"
+        @mine => Text "mine"
+      end
+      Button "Mine" $click => @mine
+    end
+  end
+  screen Detail route=/d/:id
+    Text "detail"
+  end
+  component Row(item)
+    Stack direction=row $click => $open(item)
+      Text "{item.name}"
+    end
+  end
+end`;
+	const errorsOf = (src: string) => {
+		const r = parse(src);
+		return r.ok ? [] : r.errors.map((e) => `L${e.line} ${e.message}`);
+	};
+	const mutate = (from: string, to: string) => {
+		expect(DOC).toContain(from);
+		return errorsOf(DOC.replace(from, to));
+	};
+
+	test("an unknown action word", () => {
+		const errors = mutate(
+			"go Detail(id=picked.id)",
+			"goto Detail(id=picked.id)",
+		);
+		expect(errors).toEqual([
+			'L9 Unknown action "goto"; actions are @mode, $event, ~op, go Screen',
+		]);
+	});
+
+	test("a block missing its end", () => {
+		const errors = mutate(
+			"        Row(item) $open(picked) => go Detail(id=picked.id)\n      end\n",
+			"        Row(item) $open(picked) => go Detail(id=picked.id)\n",
+		);
+		expect(errors).toEqual([
+			"L8 list on line 8 is missing its end; its block ends before line 10",
+		]);
+	});
+
+	test("a screen missing its end", () => {
+		const errors = mutate(
+			'      Button "Mine" $click => @mine\n    end\n  end\n',
+			'      Button "Mine" $click => @mine\n    end\n',
+		);
+		expect(errors).toEqual([
+			"L4 screen Home on line 4 is missing its end; its block ends before line 17",
+		]);
+	});
+
+	test("an extra end", () => {
+		const errors = mutate(
+			'      Button "Mine" $click => @mine\n    end\n',
+			'      Button "Mine" $click => @mine\n    end\n    end\n',
+		);
+		expect(errors).toEqual([
+			"L17 Extra end on line 17; screen Home on line 4 closes with an end at its own indent",
+		]);
+	});
+
+	test("two lines under one case", () => {
+		const errors = mutate(
+			'        @mine => Text "mine"\n',
+			'        @mine => Text "mine"\n          Text "and more"\n',
+		);
+		expect(errors).toEqual([
+			"L14 A case yields one tree line, with its own block when it has one; group several lines in a Stack",
+		]);
+	});
+
+	test("unquoted text", () => {
+		const errors = mutate('Heading "Hello"', "Heading Hello there");
+		expect(errors).toEqual([
+			'L7 Unexpected "Hello" on Heading line; text is quoted: Heading "…"',
+		]);
+	});
+
+	test("a wrong arrow, a misspelled flag, a missing action", () => {
+		expect(mutate("$click => @mine", "$click --> @mine")).toEqual([
+			"L15 The ui arrow is =>, got -->",
+		]);
+		expect(
+			mutate('Button "Mine" $click', 'Button "Mine" primry $click'),
+		).toEqual(['L15 Button has no flag "primry"']);
+		expect(mutate("$click => @mine", "$click")).toEqual([
+			"L15 $click needs an action: `$click => action`",
+		]);
+	});
+
+	test("a line indented under a leaf element is the next line, not a child", () => {
+		const r = parse(
+			DOC.replace(
+				'      Heading "Hello"\n',
+				'      Heading "Hello"\n        Text "under"\n',
+			),
+		);
+		expect(r.ok).toBe(true);
+		if (!r.ok) return;
+		const home = (r.ast as UiAST).components.Home;
+		const stack = home?.tree[0];
+		expect(stack?.children.map((c) => c.name ?? c.kind)).toEqual([
+			"Heading",
+			"Text",
+			"list",
+			"when",
+			"Button",
+		]);
+	});
+});

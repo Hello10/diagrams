@@ -88,13 +88,14 @@ end
 ```
 
 ```ts
-import { parse, render, renderUiFlow, renderUiAscii } from "@hello10/diagrams";
+import { parse, render, renderUiFlow, renderUiAscii, toPlaintext } from "@hello10/diagrams";
 
 const result = parse(source);
 if (result.ok) {
   const storyboard = render(result.ast);   // flow, layouts, screens, components
   const flow = renderUiFlow(result.ast);   // the flow alone
-  const text = renderUiAscii(result.ast);  // the same expanded tree as text
+  const text = renderUiAscii(result.ast);  // the expanded trees as text, for a quick look at a frame
+  const source = toPlaintext(result.ast);  // canonical source: what an agent reads
 }
 ```
 

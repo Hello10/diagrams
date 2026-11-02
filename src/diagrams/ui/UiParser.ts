@@ -89,6 +89,9 @@ export class UiParser extends DiagramParser<UiAST> {
 	private overrideTokens = new Map<UiOverride, Token>();
 	private ioTokens = new Map<UiIo, Token>();
 	private handlerTokens = new Map<UiHandler, Token>();
+	/** Nodes whose line lost a handler to a parse error. What that handler
+	 * would have handled is unknown, so no check is built on its absence. */
+	private broken = new Set<UiNode>();
 	private actionTokens = new Map<UiAction, Token>();
 	private componentTokens = new Map<UiComponent, Token>();
 	private layoutTokens = new Map<UiComponent, Token>();
@@ -109,6 +112,12 @@ export class UiParser extends DiagramParser<UiAST> {
 			if (token.type === "identifier" && token.value === "end") {
 				this.consume();
 				this.consumeIf("newline");
+				if (token.indentLevel > 0 && !this.isAtEnd()) {
+					// The document's own end is at the margin; an indented one
+					// here is left over from a block above it.
+					this.error(`Extra end on line ${token.line}`, token);
+					continue;
+				}
 				break;
 			}
 			this.parseTopLevel();
@@ -415,7 +424,11 @@ export class UiParser extends DiagramParser<UiAST> {
 		this.order.push(component.name);
 
 		const phase = { current: "io" as Phase };
-		this.parseBlock(() => this.parseBodyStatement(component, phase));
+		this.parseBlock(
+			() => this.parseBodyStatement(component, phase),
+			keyword,
+			`${kind} ${component.name}`,
+		);
 	}
 
 	// ─── Component body ────────────────────────────────────────────────────────
@@ -578,7 +591,11 @@ export class UiParser extends DiagramParser<UiAST> {
 		}
 		target.push(io);
 		if (this.peek()?.value === "{" || this.indentedBlockAhead()) {
-			this.parseBlock(() => this.parseOutcome(io));
+			this.parseBlock(
+				() => this.parseOutcome(io),
+				keyword,
+				`${kind} ~${io.name}`,
+			);
 			return;
 		}
 		this.endStatement();
@@ -718,6 +735,7 @@ export class UiParser extends DiagramParser<UiAST> {
 			if (t.type === "identifier" && t.value.startsWith("$")) {
 				const handler = this.parseHandler();
 				if (handler) node.handlers.push(handler);
+				else this.broken.add(node);
 				continue;
 			}
 			this.consume();
@@ -778,10 +796,15 @@ export class UiParser extends DiagramParser<UiAST> {
 				node.words.push(t.value);
 				continue;
 			}
+			const name = node.name ?? node.kind;
 			this.error(
-				`Unexpected "${t.value}" on ${node.name ?? node.kind} line`,
+				t.type === "identifier" && node.content === undefined
+					? `Unexpected "${t.value}" on ${name} line; text is quoted: ${name} "…"`
+					: `Unexpected "${t.value}" on ${name} line`,
 				t,
 			);
+			this.skipStatement();
+			return;
 		}
 	}
 
@@ -864,15 +887,53 @@ export class UiParser extends DiagramParser<UiAST> {
 	}
 
 	private parseChildren(node: UiNode): void {
+		const head = this.nodeTokens.get(node);
+		const label = node.name ?? node.kind;
+		// A standard leaf element (Text, Button, Input, …) has no body. A
+		// line indented under one is the next line of the enclosing block,
+		// which is what the author meant; a brace body is an error.
+		if (node.kind === "instance" && node.name && this.standardLeaf(node.name)) {
+			if (this.peek()?.value === "{") {
+				this.error(`${label} takes no children`, this.peek());
+				this.skipBlock();
+				return;
+			}
+			this.endStatement();
+			return;
+		}
 		if (this.peek()?.value === "{") {
-			this.parseBlock(() => this.parseChildStatement(node));
+			this.parseBlock(() => this.parseChildStatement(node), head, label);
 			return;
 		}
 		if (!this.indentedBlockAhead()) {
 			this.endStatement();
 			return;
 		}
-		this.parseBlock(() => this.parseChildStatement(node));
+		this.parseBlock(() => this.parseChildStatement(node), head, label);
+	}
+
+	/** Is `name` a standard element that draws no children? Known from the
+	 * imports alone, so it holds while the tree is still being read. */
+	private standardLeaf(name: string): boolean {
+		const dot = name.indexOf(".");
+		const alias = dot === -1 ? undefined : name.slice(0, dot);
+		const bare = dot === -1 ? name : name.slice(dot + 1);
+		for (const use of this.uses) {
+			if (use.module !== UI_STANDARD_MODULE) continue;
+			const hit =
+				use.kind === "named"
+					? alias === undefined && use.names.includes(bare)
+					: alias === use.alias;
+			if (!hit) continue;
+			const contract = UI_STANDARD_ELEMENTS[bare];
+			return (
+				!!contract &&
+				contract.type !== "stack" &&
+				contract.type !== "dialog" &&
+				contract.type !== "outlet"
+			);
+		}
+		return false;
 	}
 
 	private parseChildStatement(parent: UiNode): void {
@@ -921,7 +982,7 @@ export class UiParser extends DiagramParser<UiAST> {
 		const state: { level?: "tree" | "overrides"; sawElse: boolean } = {
 			sawElse: false,
 		};
-		this.parseBlock(() => this.parseCase(node, state));
+		this.parseBlock(() => this.parseCase(node, state), head, "when");
 		if (node.cases.length === 0)
 			this.error("when needs at least one case", head);
 		return { node, level: state.level ?? "tree" };
@@ -965,21 +1026,25 @@ export class UiParser extends DiagramParser<UiAST> {
 					next,
 				);
 			state.level = state.level ?? "overrides";
-			this.parseBlock(() => {
-				const o = this.peek();
-				if (o?.type !== "hash") {
-					this.error(
-						o && isPascal(o.value)
-							? `"${o.value}" is a tree line; an override block changes instances the tree declares: #handle …`
-							: `An override starts with a handle: #handle …; got "${o?.value}"`,
-						o,
-					);
-					this.skipStatement();
-					return;
-				}
-				const override = this.parseOverride();
-				if (override) kase.overrides.push(override);
-			});
+			this.parseBlock(
+				() => {
+					const o = this.peek();
+					if (o?.type !== "hash") {
+						this.error(
+							o && isPascal(o.value)
+								? `"${o.value}" is a tree line; an override block changes instances the tree declares: #handle …`
+								: `An override starts with a handle: #handle …; got "${o?.value}"`,
+							o,
+						);
+						this.skipStatement();
+						return;
+					}
+					const override = this.parseOverride();
+					if (override) kase.overrides.push(override);
+				},
+				t,
+				`case ${t.value}`,
+			);
 		} else if (this.atStatementEnd()) {
 			this.error(
 				"A case yields one tree line, with its own block when it has one; group several lines in a Stack",
@@ -997,8 +1062,49 @@ export class UiParser extends DiagramParser<UiAST> {
 			state.level = state.level ?? "tree";
 			const child = this.parseTreeStatement();
 			if (child) kase.nodes.push(child);
+			this.rejectCaseContinuation(t);
 		}
 		when.cases?.push(kase);
+	}
+
+	/** After a case's one tree line: a further line indented under the
+	 * case is not its second line. One error; the lines are skipped. */
+	private rejectCaseContinuation(caseToken: Token): void {
+		const next = this.nextNonTrivia();
+		if (
+			!next ||
+			next.indentLevel <= caseToken.indentLevel ||
+			(next.type === "identifier" &&
+				(next.value === "end" || next.value === "}"))
+		)
+			return;
+		this.error(
+			"A case yields one tree line, with its own block when it has one; group several lines in a Stack",
+			next,
+		);
+		while (true) {
+			const t = this.nextNonTrivia();
+			if (!t || t.indentLevel <= caseToken.indentLevel) return;
+			this.skipTrivia();
+			this.skipStatement();
+			this.endStatement();
+		}
+	}
+
+	private nextNonTrivia(): Token | undefined {
+		for (let i = this.pos; i < this.tokens.length; i++) {
+			const t = this.tokens[i];
+			if (!t) continue;
+			if (
+				t.type === "newline" ||
+				t.type === "comment" ||
+				t.type === "indent" ||
+				t.type === "dedent"
+			)
+				continue;
+			return t;
+		}
+		return undefined;
 	}
 
 	/** After a statement end: does the next line, past the indent, start
@@ -1334,7 +1440,16 @@ export class UiParser extends DiagramParser<UiAST> {
 
 	/** A block is either `{ a; b }` or a newline followed by statements up
 	 * to `end`. Both call `statement` once per statement. */
-	private parseBlock(statement: () => void): void {
+	/** A block: `{ a; b }` on one line, or lines closed by `end`. With the
+	 * opener's token, a body the author indents is also bounded by that
+	 * indent: a line that comes back to the opener's level, or an `end`
+	 * shallower than it, means this block never got its `end`. That is one
+	 * error, at the opener, and the enclosing block carries on. */
+	private parseBlock(
+		statement: () => void,
+		opener?: Token,
+		label = opener?.value ?? "block",
+	): void {
 		if (this.peek()?.value === "{") {
 			const open = this.consume();
 			while (true) {
@@ -1355,14 +1470,42 @@ export class UiParser extends DiagramParser<UiAST> {
 			}
 		}
 		this.consumeIf("newline");
+		let bodyIndent: number | undefined;
+		const missingEnd = (at: Token) => {
+			this.error(
+				`${label} on line ${opener?.line} is missing its end; its block ends before line ${at.line}`,
+				opener,
+			);
+		};
 		while (true) {
 			this.skipTrivia();
 			const t = this.peek();
 			if (!t) {
-				this.error("Missing end", this.peek(-1));
+				if (opener) missingEnd(this.peek(-1) ?? opener);
+				else this.error("Missing end", this.peek(-1));
 				return;
 			}
 			if (t.type === "identifier" && t.value === "end") {
+				if (opener && t.indentLevel < opener.indentLevel) {
+					missingEnd(t);
+					return;
+				}
+				if (
+					opener &&
+					bodyIndent !== undefined &&
+					bodyIndent > opener.indentLevel &&
+					t.indentLevel > opener.indentLevel
+				) {
+					// An `end` sits at the indent of the line that opened its
+					// block; one deeper, inside an indented body, closes nothing.
+					this.error(
+						`Extra end on line ${t.line}; ${label} on line ${opener.line} closes with an end at its own indent`,
+						t,
+					);
+					this.consume();
+					this.endStatement();
+					continue;
+				}
 				this.consume();
 				this.endStatement();
 				return;
@@ -1372,6 +1515,16 @@ export class UiParser extends DiagramParser<UiAST> {
 				this.consume();
 				continue;
 			}
+			if (
+				opener &&
+				bodyIndent !== undefined &&
+				bodyIndent > opener.indentLevel &&
+				t.indentLevel <= opener.indentLevel
+			) {
+				missingEnd(t);
+				return;
+			}
+			bodyIndent ??= t.indentLevel;
 			const before = this.pos;
 			statement();
 			if (this.pos === before) this.consume();
@@ -1425,9 +1578,11 @@ export class UiParser extends DiagramParser<UiAST> {
 		}
 	}
 
+	/** Give up on the rest of this statement. The terminator is left for
+	 * the enclosing loop, so a line that failed halfway is one error and
+	 * the next line parses on its own. */
 	private skipStatement(): void {
 		while (!this.atStatementEnd()) this.consume();
-		this.endStatement();
 	}
 
 	private indentedBlockAhead(): boolean {
@@ -1846,7 +2001,7 @@ export class UiParser extends DiagramParser<UiAST> {
 
 		// A child that emits must be heard.
 		for (const node of this.allNodes(component)) {
-			if (node.ref?.kind !== "component") continue;
+			if (node.ref?.kind !== "component" || this.broken.has(node)) continue;
 			const child = ast.components[node.ref.name];
 			const handled = new Set(node.handlers.map((h) => h.event));
 			for (const event of Object.keys(child?.emits ?? {})) {
