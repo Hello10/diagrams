@@ -1,5 +1,7 @@
 import { Diagram } from "../../Diagram.ts";
+import type { HighlightRange } from "../../highlight.ts";
 import type { ParseResult, Token } from "../../types.ts";
+import { flowchartHighlight } from "./flowchartHighlight.ts";
 import { FlowchartParser } from "./FlowchartParser.ts";
 import { FlowchartRenderer } from "./FlowchartRenderer.ts";
 import type { FlowchartAST } from "./flowchartTypes.ts";
@@ -25,5 +27,9 @@ export class FlowchartDiagram extends Diagram<FlowchartAST> {
 
 	toPlaintext(ast: FlowchartAST): string {
 		return new FlowchartRenderer(ast).toPlaintext();
+	}
+
+	override highlight(tokens: Token[], lines: string[]): HighlightRange[] {
+		return flowchartHighlight(tokens, lines);
 	}
 }

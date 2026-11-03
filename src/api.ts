@@ -4,6 +4,7 @@ import { FlowchartDiagram } from "./diagrams/flowchart/index.ts";
 import { SequenceDiagram } from "./diagrams/sequence/index.ts";
 import { StateDiagram } from "./diagrams/state/index.ts";
 import { UiDiagram } from "./diagrams/ui/index.ts";
+import { type HighlightSpan, highlightSpans } from "./highlight.ts";
 import { detectDiagram, getDiagram, registerDiagram } from "./registry.ts";
 import { tokenize } from "./tokenizer.ts";
 import type { DiagramAST, ParseResult } from "./types.ts";
@@ -50,6 +51,18 @@ export function parse<AST extends DiagramAST = DiagramAST>(
 
 	const tokens = tokenize(source);
 	return diagram.parse(tokens, source) as ParseResult<AST>;
+}
+
+/**
+ * Classify a source string for syntax highlighting: spans of source text with
+ * a kind, in order and never overlapping. Editor-neutral, and works on
+ * half-typed source, since it needs tokens rather than a successful parse.
+ * Never throws. A source of no known type gets the lexical layer alone.
+ */
+export function highlight(source: string): HighlightSpan[] {
+	const firstLine = getFirstMeaningfulLine(source);
+	const diagram = firstLine ? detectDiagram(firstLine) : undefined;
+	return highlightSpans(source, tokenize(source), diagram);
 }
 
 /**

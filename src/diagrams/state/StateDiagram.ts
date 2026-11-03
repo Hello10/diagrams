@@ -1,5 +1,7 @@
 import { Diagram } from "../../Diagram.ts";
+import type { HighlightRange } from "../../highlight.ts";
 import type { ParseResult, Token } from "../../types.ts";
+import { stateHighlight } from "./stateHighlight.ts";
 import { StateParser } from "./StateParser.ts";
 import { StateRenderer } from "./StateRenderer.ts";
 import type { StateDiagramAST } from "./stateTypes.ts";
@@ -25,5 +27,9 @@ export class StateDiagram extends Diagram<StateDiagramAST> {
 
 	toPlaintext(ast: StateDiagramAST): string {
 		return new StateRenderer(ast).toPlaintext();
+	}
+
+	override highlight(tokens: Token[], lines: string[]): HighlightRange[] {
+		return stateHighlight(tokens, lines);
 	}
 }

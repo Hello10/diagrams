@@ -1,5 +1,7 @@
 import { Diagram } from "../../Diagram.ts";
+import type { HighlightRange } from "../../highlight.ts";
 import type { ParseResult, Token } from "../../types.ts";
+import { uiHighlight } from "./uiHighlight.ts";
 import { UiParser } from "./UiParser.ts";
 import { UiStoryboardRenderer } from "./UiStoryboardRenderer.ts";
 import { uiToPlaintext } from "./uiToPlaintext.ts";
@@ -25,5 +27,9 @@ export class UiDiagram extends Diagram<UiAST> {
 
 	toPlaintext(ast: UiAST): string {
 		return uiToPlaintext(ast);
+	}
+
+	override highlight(tokens: Token[], lines: string[]): HighlightRange[] {
+		return uiHighlight(tokens, lines);
 	}
 }

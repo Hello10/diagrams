@@ -23,7 +23,7 @@ import {
 	type UiTheme,
 } from "./uiTypes.ts";
 
-const KEYWORDS = new Set([
+export const KEYWORDS = new Set([
 	"ui",
 	"use",
 	"api",

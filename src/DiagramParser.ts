@@ -44,6 +44,7 @@ export abstract class DiagramParser<AST extends DiagramAST> {
 				value: "",
 				line: this.lastLine(),
 				col: 0,
+				endCol: 1,
 				indentLevel: 0,
 			};
 			this.error("Unexpected end of input", fakeToken);

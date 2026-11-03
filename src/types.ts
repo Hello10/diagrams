@@ -24,6 +24,10 @@ export type Token = {
 	line: number;
 	/** 1-indexed column number of the token start. */
 	col: number;
+	/** 1-indexed column just past the token's source text. `value` can be
+	 * shorter than that text: strings lose their quotes, comments their `%%`,
+	 * handles and operations their sigil. */
+	endCol: number;
 	/** Indentation depth of the line this token is on (0-based). */
 	indentLevel: number;
 };

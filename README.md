@@ -99,6 +99,19 @@ if (result.ok) {
 }
 ```
 
+## Syntax highlighting
+
+`highlight(source)` returns spans of source text with a kind, for any diagram type. It ships no colors or editor code, so any editor can use it, and half-typed source highlights too.
+
+```ts
+import { highlight } from "@hello10/diagrams";
+
+highlight('ui\n  use "@hello10/diagrams/ui" Text');
+// { line: 1, col: 1, endCol: 3, from: 0, to: 2, kind: "keyword" }, …
+```
+
+See [spec/spec.md](spec/spec.md) §4.9.
+
 ## Grammar
 
 The grammar reference is [spec/spec.md](spec/spec.md): goals, Mermaid alignment (what is adopted verbatim, what is additive, where we diverge), architecture, and per-type grammar, AST shape, and coverage.

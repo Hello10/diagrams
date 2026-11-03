@@ -1,5 +1,7 @@
 import { Diagram } from "../../Diagram.ts";
+import type { HighlightRange } from "../../highlight.ts";
 import type { ParseResult, Token } from "../../types.ts";
+import { classHighlight } from "./classHighlight.ts";
 import { ClassParser } from "./ClassParser.ts";
 import { ClassRenderer } from "./ClassRenderer.ts";
 import type { ClassDiagramAST } from "./classTypes.ts";
@@ -25,5 +27,9 @@ export class ClassDiagram extends Diagram<ClassDiagramAST> {
 
 	toPlaintext(ast: ClassDiagramAST): string {
 		return new ClassRenderer(ast).toPlaintext();
+	}
+
+	override highlight(tokens: Token[], lines: string[]): HighlightRange[] {
+		return classHighlight(tokens, lines);
 	}
 }

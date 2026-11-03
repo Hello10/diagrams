@@ -195,6 +195,7 @@ interface Diagram<AST extends DiagramAST = DiagramAST> {
   parse(tokens: Token[], source?: string): ParseResult<AST>;
   render(ast: AST): string;                                // SVG string
   toPlaintext(ast: AST): string;                           // canonical plaintext
+  highlight?(tokens: Token[], lines: string[]): HighlightRange[]; // optional, see §4.9
 }
 ```
 
@@ -215,6 +216,7 @@ render(ast: DiagramAST): string
 toJSON(ast: DiagramAST): string
 fromJSON(json: string): DiagramAST
 toPlaintext(ast: DiagramAST): string
+highlight(source: string): HighlightSpan[]
 ```
 
 - `parse()` finds the first non-trivial line (skipping blank, `%%`, and `---` frontmatter delimiters), routes through `detectDiagram()`, and runs the matched parser. It never throws.
@@ -271,6 +273,16 @@ type ParseResult<T> =
 ### 4.8 Library adapters (extension point)
 
 For diagram types that render in terms of an imported element vocabulary (the UI diagram), adapters map `{ module, name }` pairs to standard elements and/or custom SVG/ASCII renderers. See §7.
+
+### 4.9 Highlighting
+
+`highlight(source)` classifies source text for syntax highlighting. It returns spans in order, never overlapping, each with `line`, `col`, and `endCol` (1-indexed, `endCol` exclusive), `from` and `to` (UTF-16 offsets), and a `kind`: `comment`, `directive`, `keyword`, `type`, `string`, `label`, `operator`, `property`, `data`, `handle`, `mode`, `event`, or `operation`. Text with no span, such as `,` or `{`, is plain.
+
+It is editor-neutral: the library ships no colors and no editor code, and an editor maps kinds to its own styles. It works from tokens rather than a parse, so half-typed source highlights too, and it never throws.
+
+There are two layers. A lexical layer covers everything the token type settles for every diagram: comments, directives, strings, arrows, bracket labels, and attributes. A diagram's optional `highlight()` then classifies what needs its own knowledge, such as keywords, names, and free text, and its ranges win where they overlap. The UI classifier uses the parser's own reserved words. A source of no known type, or a registered diagram without a classifier, gets the lexical layer alone.
+
+`Token.endCol` is what makes this exact: a token's `value` can be shorter than its source text, since strings lose their quotes, comments their `%%`, and handles and operations their sigil.
 
 ## 5. Diagram Types
 
@@ -845,7 +857,7 @@ Mermaid class-diagram coverage: `class Name { … }` bodies and `Name : member` 
 pnpm examples
 ```
 
-A split-pane editor that renders as you type, with the example for each type in a dropdown, the selection tracked in the URL hash, zoom controls, and a draggable divider. A source with hard errors renders its partial AST at half opacity. The sources in `examples/diagrams/*.txt` double as the round-trip corpus and the snapshot fixtures (`src/__snapshots__/*.svg`, approved with `pnpm exec vp test -u src/snapshots.test.ts`). Treat the viewer as a development tool, not a public API.
+A split-pane editor that renders as you type, highlighted by `highlight()` through CSS Custom Highlights over a plain-text `contenteditable` (`examples/editorHighlight.ts`), with the example for each type in a dropdown, the selection tracked in the URL hash, zoom controls, and a draggable divider. A source with hard errors renders its partial AST at half opacity. The sources in `examples/diagrams/*.txt` double as the round-trip corpus and the snapshot fixtures (`src/__snapshots__/*.svg`, approved with `pnpm exec vp test -u src/snapshots.test.ts`). Treat the viewer as a development tool, not a public API.
 
 ## 7. Library adapters
 
@@ -903,7 +915,7 @@ Exported from `@hello10/diagrams`:
 
 ```ts
 // Core
-parse, render, toJSON, fromJSON, toPlaintext
+parse, render, toJSON, fromJSON, toPlaintext, highlight
 registerDiagram
 
 // Diagram classes (for custom registries)
@@ -918,6 +930,7 @@ getUiLibraryAdapter
 
 // Types
 BaseElementNode, DiagramAST, ParseError, ParseResult, Token, TokenType
+HighlightKind, HighlightRange, HighlightSpan
 UiAST, UiComponent, UiNode, UiTheme
 FlowchartAST, StateDiagramAST, SequenceDiagramAST, ClassDiagramAST
 ```
