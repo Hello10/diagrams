@@ -3,14 +3,13 @@
 	"extends": "@hello10/config-typescript/base",
 	"compilerOptions": {
 		"lib": ["ES2022", "DOM", "DOM.Iterable"],
-		"types": ["vitest/globals", "vite/client", "node"],
+		"types": ["vite-plus/test/globals", "vite-plus/client", "node"],
 		"emitDeclarationOnly": false,
 		"noEmit": true,
 		"sourceMap": true,
 		"verbatimModuleSyntax": true,
 		"noImplicitOverride": true,
 		"noFallthroughCasesInSwitch": true,
-		"ignoreDeprecations": "6.0",
 		"rootDir": ".",
 		"outDir": "dist"
 	},

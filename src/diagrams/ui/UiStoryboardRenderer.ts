@@ -1,9 +1,9 @@
 import { DiagramRenderer } from "../../DiagramRenderer.ts";
 import { FONT_MONO } from "../../style.ts";
 import { svgEsc } from "../../svg.ts";
-import { UiFlowRenderer } from "./UiFlowRenderer.ts";
 import { renderUiAsciiText } from "./uiAscii.ts";
 import { walkTree } from "./uiCallouts.ts";
+import { UiFlowRenderer } from "./UiFlowRenderer.ts";
 import {
 	BADGE_R,
 	CANVAS_PAD,

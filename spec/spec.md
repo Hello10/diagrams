@@ -845,7 +845,7 @@ Mermaid class-diagram coverage: `class Name { … }` bodies and `Name : member` 
 pnpm examples
 ```
 
-A split-pane editor that renders as you type, with the example for each type in a dropdown, the selection tracked in the URL hash, zoom controls, and a draggable divider. A source with hard errors renders its partial AST at half opacity. The sources in `examples/diagrams/*.txt` double as the round-trip corpus and the snapshot fixtures (`src/__snapshots__/*.svg`, approved with `pnpm vitest run -u src/snapshots.test.ts`). Treat the viewer as a development tool, not a public API.
+A split-pane editor that renders as you type, with the example for each type in a dropdown, the selection tracked in the URL hash, zoom controls, and a draggable divider. A source with hard errors renders its partial AST at half opacity. The sources in `examples/diagrams/*.txt` double as the round-trip corpus and the snapshot fixtures (`src/__snapshots__/*.svg`, approved with `pnpm exec vp test -u src/snapshots.test.ts`). Treat the viewer as a development tool, not a public API.
 
 ## 7. Library adapters
 

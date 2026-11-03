@@ -31,39 +31,41 @@
 		"dist"
 	],
 	"exports": {
-		".": {
-			"types": "./dist/index.d.ts",
-			"import": "./dist/index.js"
-		}
+		".": "./dist/index.js",
+		"./package.json": "./package.json"
 	},
-	"main": "./dist/index.js",
-	"module": "./dist/index.js",
 	"types": "./dist/index.d.ts",
 	"scripts": {
-		"build": "tsup",
-		"dev": "tsup --watch",
-		"test": "vitest run",
-		"typecheck": "tsc --noEmit",
-		"lint": "biome check .",
-		"format": "biome format --write .",
-		"fix": "biome check --write .",
-		"verify": "pnpm run build && pnpm run typecheck && pnpm run test && pnpm run lint",
-		"examples": "vite examples",
-		"prepublishOnly": "pnpm run build",
+		"build": "vp pack",
+		"dev": "vp pack --watch",
+		"test": "vp test",
+		"check": "vp check",
+		"fix": "vp check --fix",
+		"verify": "vp pack && vp check && vp test",
+		"examples": "vp dev examples",
+		"prepublishOnly": "vp run build",
+		"prepare": "vp config",
 		"clean": "rm -rf dist node_modules"
 	},
 	"publishConfig": {
 		"access": "public"
 	},
 	"devDependencies": {
-		"@biomejs/biome": "^2.5.7",
-		"@hello10/config-biome": "^1.0.0",
 		"@hello10/config-typescript": "^1.0.0",
 		"@types/node": "^26.2.0",
-		"tsup": "^8.5.0",
-		"typescript": "^6.0.3",
-		"vite": "^8.0.8",
-		"vitest": "^4.1.10"
+		"typescript": "^7.0.2",
+		"vite-plus": "catalog:"
 	},
-	"packageManager": "pnpm@11.20.0"
+	"devEngines": {
+		"packageManager": {
+			"name": "pnpm",
+			"version": "12.16.1",
+			"onFail": "download"
+		},
+		"runtime": {
+			"name": "node",
+			"version": "^24.11.0",
+			"onFail": "download"
+		}
+	}
 }

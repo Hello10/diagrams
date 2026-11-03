@@ -319,8 +319,8 @@ export function assignColumnPositions<N extends LayoutNodeLike>(
 		0,
 		...sortedRanks.map((r) => groups.get(r)?.length ?? 0),
 	);
-	const colCenter: number[] = new Array(numCols).fill(0);
-	const colHalfMax: number[] = new Array(numCols).fill(0);
+	const colCenter = Array.from({ length: numCols }, () => 0);
+	const colHalfMax = Array.from({ length: numCols }, () => 0);
 	for (let i = 0; i < numCols; i++) {
 		let minCx = 0;
 		let halfMax = 0;
