@@ -4,6 +4,7 @@ import flowchartSource from "./diagrams/flowchart.txt?raw";
 import sequenceSource from "./diagrams/sequence.txt?raw";
 import stateSource from "./diagrams/state.txt?raw";
 import uiSource from "./diagrams/ui.txt?raw";
+import { editorText, paintHighlights } from "./editorHighlight.ts";
 
 const EXAMPLES: Record<string, string> = {
 	ui: uiSource,
@@ -15,7 +16,7 @@ const EXAMPLES: Record<string, string> = {
 
 const SOURCE_WIDTH_KEY = "diagrams-examples:source-width";
 
-const editor = document.getElementById("editor") as HTMLTextAreaElement;
+const editor = document.getElementById("editor") as HTMLDivElement;
 const preview = document.getElementById("preview") as HTMLDivElement;
 const errorBox = document.getElementById("error") as HTMLDivElement;
 const exampleSelector = document.getElementById(
@@ -171,7 +172,8 @@ function loadExample(key: string) {
 	if (!(key in EXAMPLES)) return;
 	currentExample = key;
 	exampleSelector.value = key;
-	editor.value = EXAMPLES[key] || "";
+	editor.textContent = EXAMPLES[key] || "";
+	paintHighlights(editor);
 	writeExampleToUrl(key);
 	updatePreview();
 }
@@ -186,7 +188,7 @@ function clearError() {
 }
 
 function updatePreview() {
-	const text = editor.value;
+	const text = editorText(editor);
 	if (!text.trim()) {
 		preview.innerHTML = "";
 		clearError();
@@ -226,6 +228,7 @@ const DEBOUNCE_MS = 250;
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 editor.addEventListener("input", () => {
+	paintHighlights(editor);
 	if (debounceTimer !== null) clearTimeout(debounceTimer);
 	debounceTimer = setTimeout(() => {
 		debounceTimer = null;
