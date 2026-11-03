@@ -1,3 +1,4 @@
+import type { HighlightRange } from "./highlight.ts";
 import type { DiagramAST, ParseResult, Token } from "./types.ts";
 
 /**
@@ -37,4 +38,12 @@ export abstract class Diagram<AST extends DiagramAST = DiagramAST> {
 	/** Convert the AST back to canonical plaintext. Used for display, editing,
 	 * and round-trip validation. */
 	abstract toPlaintext(ast: AST): string;
+
+	/**
+	 * Classify what the shared lexical layer cannot: which words are keywords,
+	 * names, or free text. Returned ranges win over that layer. Runs on source
+	 * that may be half-typed, so it works from tokens and never needs a parse.
+	 * Without it a diagram still gets strings, comments, arrows, and the rest.
+	 */
+	highlight?(tokens: Token[], lines: string[]): HighlightRange[];
 }

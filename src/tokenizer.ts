@@ -67,14 +67,30 @@ function lexLine(state: LexState, line: string, lineNum: number): void {
 
 	// Directive: %%{...}%%
 	if (raw.startsWith("%%{") && raw.endsWith("}%%")) {
-		emit(state, "directive", raw, lineNum, col + 1, indentLevel);
+		emit(
+			state,
+			"directive",
+			raw,
+			lineNum,
+			col + 1,
+			indentLevel,
+			line.trimEnd().length + 1,
+		);
 		emit(state, "newline", "", lineNum, line.length + 1, indentLevel);
 		return;
 	}
 
 	// Comment: %% ...
 	if (raw.startsWith("%%")) {
-		emit(state, "comment", raw.slice(2).trim(), lineNum, col + 1, indentLevel);
+		emit(
+			state,
+			"comment",
+			raw.slice(2).trim(),
+			lineNum,
+			col + 1,
+			indentLevel,
+			line.trimEnd().length + 1,
+		);
 		emit(state, "newline", "", lineNum, line.length + 1, indentLevel);
 		return;
 	}
@@ -182,11 +198,20 @@ function lexContent(
 					lineNum,
 					col,
 					indentLevel,
+					colOffset + closeQuote + 2,
 				);
 				pos = closeQuote + 1;
 			} else {
 				// Unclosed string — consume to end of line
-				emit(state, "string", raw.slice(pos + 1), lineNum, col, indentLevel);
+				emit(
+					state,
+					"string",
+					raw.slice(pos + 1),
+					lineNum,
+					col,
+					indentLevel,
+					colOffset + raw.length + 1,
+				);
 				pos = raw.length;
 			}
 			continue;
@@ -274,7 +299,15 @@ function lexContent(
 			const start = pos;
 			pos++;
 			while (pos < raw.length && isIdentChar(raw[pos] as string)) pos++;
-			emit(state, "hash", raw.slice(start + 1, pos), lineNum, col, indentLevel);
+			emit(
+				state,
+				"hash",
+				raw.slice(start + 1, pos),
+				lineNum,
+				col,
+				indentLevel,
+				colOffset + pos + 1,
+			);
 			continue;
 		}
 
@@ -291,6 +324,7 @@ function lexContent(
 				lineNum,
 				col,
 				indentLevel,
+				colOffset + pos + 1,
 			);
 			continue;
 		}
@@ -364,7 +398,15 @@ function lexContent(
 					}
 					value = raw.slice(valueStart, pos);
 				}
-				emit(state, "attribute", `${word}=${value}`, lineNum, col, indentLevel);
+				emit(
+					state,
+					"attribute",
+					`${word}=${value}`,
+					lineNum,
+					col,
+					indentLevel,
+					colOffset + pos + 1,
+				);
 			} else {
 				emit(state, "identifier", word, lineNum, col, indentLevel);
 			}
@@ -426,8 +468,9 @@ function emit(
 	line: number,
 	col: number,
 	indentLevel: number,
+	endCol: number = col + value.length,
 ): void {
-	state.tokens.push({ type, value, line, col, indentLevel });
+	state.tokens.push({ type, value, line, col, endCol, indentLevel });
 }
 
 function isIdentStart(ch: string): boolean {

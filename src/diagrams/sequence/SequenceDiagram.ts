@@ -1,5 +1,7 @@
 import { Diagram } from "../../Diagram.ts";
+import type { HighlightRange } from "../../highlight.ts";
 import type { ParseResult, Token } from "../../types.ts";
+import { sequenceHighlight } from "./sequenceHighlight.ts";
 import { SequenceParser } from "./SequenceParser.ts";
 import { SequenceRenderer } from "./SequenceRenderer.ts";
 import type { SequenceDiagramAST } from "./sequenceTypes.ts";
@@ -25,5 +27,9 @@ export class SequenceDiagram extends Diagram<SequenceDiagramAST> {
 
 	toPlaintext(ast: SequenceDiagramAST): string {
 		return new SequenceRenderer(ast).toPlaintext();
+	}
+
+	override highlight(tokens: Token[], lines: string[]): HighlightRange[] {
+		return sequenceHighlight(tokens, lines);
 	}
 }

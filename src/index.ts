@@ -1,4 +1,11 @@
-export { fromJSON, parse, render, toJSON, toPlaintext } from "./api.ts";
+export {
+	fromJSON,
+	highlight,
+	parse,
+	render,
+	toJSON,
+	toPlaintext,
+} from "./api.ts";
 export { Diagram } from "./Diagram.ts";
 export { DiagramParser } from "./DiagramParser.ts";
 export { DiagramRenderer } from "./DiagramRenderer.ts";
@@ -25,6 +32,11 @@ export type {
 	UiNode,
 	UiTheme,
 } from "./diagrams/ui/uiTypes.ts";
+export type {
+	HighlightKind,
+	HighlightRange,
+	HighlightSpan,
+} from "./highlight.ts";
 export { registerDiagram } from "./registry.ts";
 export type {
 	BaseElementNode,
