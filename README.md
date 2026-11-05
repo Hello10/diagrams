@@ -60,8 +60,8 @@ ui
       list results as band
         BandResult(band) $open(picked) => go Band(id=picked.id)
       end
-      when
-        ~results.empty => Text "No bands match."
+      when ~results
+        empty { Text "No bands match." }
       end
     end
   end
@@ -70,9 +70,9 @@ ui
     in ~band(id)
 
     Stack
-      when
-        ~band.loading => Text "Loading…"
-        ~band.error   => Text "Could not load this band."
+      when ~band
+        loading { Text "Loading…" }
+        error   { Text "Could not load this band." }
       end
       Heading "{band.name}"
     end

@@ -17,6 +17,7 @@ import {
 	type UiImport,
 	type UiIo,
 	type UiIoMode,
+	type UiSwitch,
 	type UiMode,
 	type UiNode,
 	type UiOverride,
@@ -59,7 +60,7 @@ const RETIRED: Record<string, string> = {
 	emit: "an action: `=> $event(value)`",
 	emits: "a handler on the element: `$click => $open(band)`",
 	on: "a handler on the element: `$event => action`",
-	if: "`when`",
+	if: "`when path` with `true { … }` and `else { … }` cases",
 	done: "`ready`",
 	failed: "`error`",
 	pending: "`loading`",
@@ -69,6 +70,15 @@ const RETIRED: Record<string, string> = {
 const IO_MODES = new Set<string>(UI_IO_MODES);
 
 type Phase = "io" | "tree" | "whens";
+
+/** What a when's cases have settled so far: whether it draws tree lines or
+ * holds overrides, whether `else` has been seen, and whether a case failed
+ * (so a missing-cases error would only repeat it). */
+type CaseState = {
+	level?: "tree" | "overrides";
+	sawElse: boolean;
+	failed: boolean;
+};
 
 export class UiParser extends DiagramParser<UiAST> {
 	constructor(tokens: Token[]) {
@@ -948,251 +958,232 @@ export class UiParser extends DiagramParser<UiAST> {
 	 * tree line, with its own block when it has one; at component level it
 	 * is an override block. Which one a `when` is follows from its first
 	 * case, and the rest must agree. */
+	/** `when <subject>` and its cases. The subject is `@` (the component's
+	 * mode), `~op` (an operation's state), or a data path; each case is a
+	 * label of that subject with a block, `label { … }` or `label` then
+	 * lines then `end`. In the tree a case holds tree lines; at component
+	 * level, overrides. Which one follows from the first body line. */
 	private parseWhen():
 		| { node: UiNode; level: "tree" | "overrides" }
 		| undefined {
 		const head = this.consume("identifier", "when");
 		const node = this.newNode("when", head);
 		node.cases = [];
-		const subject = this.peek();
-		if (subject && !this.atStatementEnd() && subject.value !== "{") {
-			if (
-				subject.type === "identifier" &&
-				isLowerPath(subject.value) &&
-				!KEYWORDS.has(subject.value)
-			) {
-				this.consume();
-				node.subject = subject.value;
-			} else if (subject.type === "arrow") {
-				this.error(
-					"when has no condition of its own; each case does: `when` then `cond => result` lines",
-					subject,
-				);
-				this.skipStatement();
-				this.skipBlock();
-				return undefined;
-			} else {
-				this.error(
-					`when takes a data path as its subject, or nothing; got "${subject.value}"`,
-					subject,
-				);
-				this.skipStatement();
-			}
+		const on = this.parseSwitch(head);
+		if (!on) {
+			this.skipStatement();
+			this.skipBlock();
+			return undefined;
 		}
-		const state: { level?: "tree" | "overrides"; sawElse: boolean } = {
-			sawElse: false,
-		};
-		this.parseBlock(() => this.parseCase(node, state), head, "when");
-		if (node.cases.length === 0)
+		node.on = on;
+		if (!this.atStatementEnd() && this.peek()?.value !== "{") {
+			const extra = this.peek();
+			if (extra?.type === "arrow")
+				this.error(
+					"when has no result of its own; each case does: `label { … }`",
+					extra,
+				);
+			else
+				this.error(
+					`Nothing follows the subject on a when line; got "${extra?.value}"`,
+					extra,
+				);
+			this.skipStatement();
+		}
+		const state: CaseState = { sawElse: false, failed: false };
+		this.parseBlock(() => this.parseCase(node, on, state), head, "when");
+		if (node.cases.length === 0 && !state.failed)
 			this.error("when needs at least one case", head);
 		return { node, level: state.level ?? "tree" };
 	}
 
-	private parseCase(
-		when: UiNode,
-		state: { level?: "tree" | "overrides"; sawElse: boolean },
-	): void {
+	private parseSwitch(head: Token): UiSwitch | undefined {
+		const t = this.peek();
+		const usage =
+			"when switches on a subject: `when @` for the mode, `when ~op` for an operation, `when path` for data";
+		if (!t || this.atStatementEnd() || t.value === "{") {
+			this.error(usage, t && !this.atStatementEnd() ? t : head);
+			return undefined;
+		}
+		if (t.type === "identifier" && t.value === "@") {
+			this.consume();
+			return { kind: "mode" };
+		}
+		if (t.type === "tilde") {
+			this.consume();
+			const dot = t.value.indexOf(".");
+			if (dot !== -1) {
+				this.error(
+					`\`when ~${t.value.slice(0, dot)}\` switches on the operation; its states are the cases: \`${t.value.slice(dot + 1)} { … }\``,
+					t,
+				);
+				return undefined;
+			}
+			return { kind: "io", name: t.value };
+		}
+		if (t.type === "hook") {
+			this.consume();
+			this.error(
+				`\`when @\` switches on the mode; ${t.value} is one of its cases: \`${t.value.slice(1)} { … }\``,
+				t,
+			);
+			return undefined;
+		}
+		if (
+			t.type === "identifier" &&
+			isLowerPath(t.value) &&
+			!KEYWORDS.has(t.value)
+		) {
+			this.consume();
+			return { kind: "path", path: t.value };
+		}
+		this.error(usage, t);
+		return undefined;
+	}
+
+	private parseCase(when: UiNode, on: UiSwitch, state: CaseState): void {
 		const t = this.peek();
 		if (!t) return;
 		if (state.sawElse) this.error("else is the last case of a when", t);
-		const condition = this.parseCondition(when.subject !== undefined);
+		const condition = this.parseCaseLabel(on);
 		if (!condition) {
-			this.skipStatement();
+			state.failed = true;
+			this.skipCaseBody();
 			return;
 		}
 		if (condition.kind === "else") state.sawElse = true;
-		const arrow = this.peek();
-		if (arrow?.type !== "arrow") {
-			this.error(
-				"A case is `condition => result`",
-				arrow && !this.atStatementEnd() ? arrow : t,
-			);
-			this.skipStatement();
-			return;
-		}
-		this.consume();
-		this.checkArrow(arrow);
 		const kase: UiCase = { condition, nodes: [], overrides: [] };
 		this.caseTokens.set(kase, t);
 
 		const next = this.peek();
-		const overrides =
-			next?.value === "{" ||
-			(this.atStatementEnd() && this.nextLineStartsWith("hash"));
-		if (overrides) {
-			if (state.level === "tree")
+		if (next?.type === "arrow") {
+			this.error(
+				`A case is a block: \`${t.value} { … }\`, or \`${t.value}\` then its lines then end; => leads to an action`,
+				next,
+			);
+			state.failed = true;
+			this.skipCaseBody();
+			return;
+		}
+		if (next?.value !== "{") {
+			if (!this.atStatementEnd()) {
 				this.error(
-					"This when draws tree lines; overrides go in a component-level when",
+					`A case is its label alone, then a block: \`${t.value} { … }\`; got "${next?.value}"`,
 					next,
 				);
-			state.level = state.level ?? "overrides";
-			this.parseBlock(
-				() => {
-					const o = this.peek();
-					if (o?.type !== "hash") {
-						this.error(
-							o && isPascal(o.value)
-								? `"${o.value}" is a tree line; an override block changes instances the tree declares: #handle …`
-								: `An override starts with a handle: #handle …; got "${o?.value}"`,
-							o,
-						);
-						this.skipStatement();
-						return;
-					}
-					const override = this.parseOverride();
-					if (override) kase.overrides.push(override);
-				},
-				t,
-				`case ${t.value}`,
-			);
-		} else if (this.atStatementEnd()) {
-			this.error(
-				"A case yields one tree line, with its own block when it has one; group several lines in a Stack",
-				t,
-			);
-			this.endStatement();
-			this.skipBlock();
-			return;
-		} else {
-			if (state.level === "overrides")
+				state.failed = true;
+				this.skipCaseBody();
+				return;
+			}
+			if (!this.indentedBlockAhead()) {
 				this.error(
-					"This when holds overrides; tree lines go in a when inside the tree",
+					`A case has a body: \`${t.value} { … }\`, or lines indented under it closed by end`,
 					t,
 				);
-			state.level = state.level ?? "tree";
-			const child = this.parseTreeStatement();
-			if (child) kase.nodes.push(child);
-			this.rejectCaseContinuation(t);
+				state.failed = true;
+				this.endStatement();
+				return;
+			}
 		}
+		this.parseBlock(
+			() => this.parseCaseStatement(kase, state),
+			t,
+			`case ${t.value}`,
+		);
 		when.cases?.push(kase);
 	}
 
-	/** After a case's one tree line: a further line indented under the
-	 * case is not its second line. One error; the lines are skipped. */
-	private rejectCaseContinuation(caseToken: Token): void {
-		const next = this.nextNonTrivia();
-		if (
-			!next ||
-			next.indentLevel <= caseToken.indentLevel ||
-			(next.type === "identifier" &&
-				(next.value === "end" || next.value === "}"))
-		)
-			return;
-		this.error(
-			"A case yields one tree line, with its own block when it has one; group several lines in a Stack",
-			next,
-		);
-		while (true) {
-			const t = this.nextNonTrivia();
-			if (!t || t.indentLevel <= caseToken.indentLevel) return;
-			this.skipTrivia();
-			this.skipStatement();
-			this.endStatement();
-		}
+	/** The rest of a case whose label line failed: the line, and the block
+	 * it opened, whether with `{` on the line or by indentation. */
+	private skipCaseBody(): void {
+		if (this.peek()?.value !== "{") this.skipStatement();
+		this.skipBlock();
 	}
 
-	private nextNonTrivia(): Token | undefined {
-		for (let i = this.pos; i < this.tokens.length; i++) {
-			const t = this.tokens[i];
-			if (!t) continue;
-			if (
-				t.type === "newline" ||
-				t.type === "comment" ||
-				t.type === "indent" ||
-				t.type === "dedent"
-			)
-				continue;
-			return t;
-		}
-		return undefined;
-	}
-
-	/** After a statement end: does the next line, past the indent, start
-	 * with a token of this type? */
-	private nextLineStartsWith(type: Token["type"]): boolean {
-		for (let i = this.pos; i < this.tokens.length; i++) {
-			const t = this.tokens[i];
-			if (!t) continue;
-			if (
-				t.type === "newline" ||
-				t.type === "comment" ||
-				t.type === "indent" ||
-				t.type === "dedent"
-			)
-				continue;
-			return t.type === type;
-		}
-		return false;
-	}
-
-	private parseCondition(hasSubject: boolean): UiCondition | undefined {
-		const t = this.consume();
-		const needsSubject = (what: string) => {
-			if (!hasSubject) {
+	/** One line of a case's body: an override at component level, a tree
+	 * line in the tree. The first body line of a when decides which. */
+	private parseCaseStatement(kase: UiCase, state: CaseState): void {
+		const t = this.peek();
+		if (!t) return;
+		if (t.type === "hash") {
+			if (state.level === "tree")
 				this.error(
-					`${what} is a value; matching values needs a subject: \`when path\``,
+					"This when draws tree lines; overrides go in a component-level when",
 					t,
 				);
-				return undefined;
-			}
-			return { kind: "value", value: t.value } as const;
-		};
-		switch (t.type) {
-			case "string":
-				return needsSubject(`"${t.value}"`);
-			case "tilde": {
-				const dot = t.value.indexOf(".");
-				const name = dot === -1 ? t.value : t.value.slice(0, dot);
-				const mode = dot === -1 ? "" : t.value.slice(dot + 1);
-				if (!IO_MODES.has(mode)) {
+			state.level = state.level ?? "overrides";
+			const override = this.parseOverride();
+			if (override) kase.overrides.push(override);
+			return;
+		}
+		if (state.level === "overrides") {
+			this.error(
+				isPascal(t.value)
+					? `"${t.value}" is a tree line; this when holds overrides, which change instances the tree declares: #handle …`
+					: `An override starts with a handle: #handle …; got "${t.value}"`,
+				t,
+			);
+			this.skipStatement();
+			return;
+		}
+		state.level = state.level ?? "tree";
+		const child = this.parseTreeStatement();
+		if (child) kase.nodes.push(child);
+	}
+
+	/** A case's label, read against the subject. */
+	private parseCaseLabel(on: UiSwitch): UiCondition | undefined {
+		const t = this.consume();
+		if (t.type === "identifier" && t.value === "else") return { kind: "else" };
+		switch (on.kind) {
+			case "mode":
+				if (t.type === "hook") {
 					this.error(
-						`~${name} needs a mode: ~${name}.${UI_IO_MODES.join("|")}`,
+						`Cases of \`when @\` are bare mode names: \`${t.value.slice(1)} { … }\``,
 						t,
 					);
 					return undefined;
 				}
-				if (hasSubject)
-					this.error("With a subject, cases are values, not conditions", t);
-				return { kind: "io", name, mode: mode as UiIoMode };
-			}
-			case "hook": {
-				if (this.peek()?.type === "bracket")
-					this.error(
-						`A mode condition takes no value: ${t.value}`,
-						this.consume(),
-					);
-				if (hasSubject)
-					this.error("With a subject, cases are values, not conditions", t);
-				return { kind: "mode", mode: t.value.slice(1) };
-			}
-			case "identifier":
-				if (t.value === "else") return { kind: "else" };
-				if (/^[0-9]/.test(t.value)) return needsSubject(t.value);
-				if (isPascal(t.value)) return needsSubject(t.value);
-				if (isLowerPath(t.value) && !KEYWORDS.has(t.value)) {
-					if (hasSubject) {
-						this.error(
-							`With a subject, cases are values: a string, a number, or a Name; "${t.value}" reads as a path`,
-							t,
-						);
-						return undefined;
-					}
-					return { kind: "path", path: t.value };
-				}
-				if (IO_MODES.has(t.value)) {
-					this.error(`An io mode belongs to an operation: ~name.${t.value}`, t);
-					return undefined;
-				}
-				this.error(`Unexpected "${t.value}" as a case`, t);
-				return undefined;
-			case "hash":
+				if (
+					t.type === "identifier" &&
+					isLower(t.value) &&
+					!KEYWORDS.has(t.value)
+				)
+					return { kind: "mode", mode: t.value };
 				this.error(
-					`#${t.value} is an instance, not a condition; an input's value is data: \`when #${t.value.split(".")[0]}.value\` is not valid either, bind it through an in`,
+					`Cases of \`when @\` are the component's modes; got "${t.value}"`,
 					t,
 				);
 				return undefined;
-			default:
-				this.error(`Unexpected ${t.type} "${t.value}" as a case`, t);
+			case "io":
+				if (t.type === "identifier" && IO_MODES.has(t.value))
+					return { kind: "io", name: on.name, mode: t.value as UiIoMode };
+				this.error(
+					`Cases of \`when ~${on.name}\` are its states: ${UI_IO_MODES.join(", ")}; got "${t.value}"`,
+					t,
+				);
+				return undefined;
+			case "path":
+				if (t.type === "string") return { kind: "value", value: t.value };
+				if (
+					t.type === "identifier" &&
+					(isPascal(t.value) ||
+						/^[0-9]/.test(t.value) ||
+						t.value === "true" ||
+						t.value === "false")
+				)
+					return { kind: "value", value: t.value };
+				if (t.type === "hook" || t.type === "tilde") {
+					this.error(
+						`\`when ${on.path}\` matches values of ${on.path}; a mode is \`when @\`, an operation \`when ~op\``,
+						t,
+					);
+					return undefined;
+				}
+				this.error(
+					`Cases of \`when ${on.path}\` are its values: a Name, "text", a number, true, or false; got "${t.value}"`,
+					t,
+				);
 				return undefined;
 		}
 	}
@@ -2055,8 +2046,8 @@ export class UiParser extends DiagramParser<UiAST> {
 		ast: UiAST,
 	): void {
 		const token = this.nodeTokens.get(when);
-		if (when.subject !== undefined)
-			this.checkDataRef(when.subject, component, locals, handles, token);
+		if (when.on?.kind === "path")
+			this.checkDataRef(when.on.path, component, locals, handles, token);
 		for (const kase of when.cases ?? []) {
 			const ct = this.caseTokens.get(kase);
 			const c = kase.condition;

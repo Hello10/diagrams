@@ -212,15 +212,24 @@ export type UiHandler = { event: string; param?: string; action: UiAction };
 // ─── Conditions ──────────────────────────────────────────────────────────────
 
 /** The left side of a `when` case. */
+/** The subject of a `when`: the component's mode, one operation's state,
+ * or a data path whose value the cases name. */
+export type UiSwitch =
+	| { kind: "mode" }
+	| { kind: "io"; name: string }
+	| { kind: "path"; path: string };
+
+/** A case's label, resolved against the `when`'s subject. */
 export type UiCondition =
 	| { kind: "else" }
-	/** In `when <subject>`: a value the subject is matched against. */
+	/** Under `when path`: a value the path is matched against. */
 	| { kind: "value"; value: string }
-	/** A data path, true when it holds a value. */
+	/** A data path, true when it holds a value. Not written as a case any
+	 * more; kept for tooling that still produces it. */
 	| { kind: "path"; path: string }
-	/** `~signIn.error`: an operation in one of its modes. */
+	/** Under `when ~op`: the operation in that state. */
 	| { kind: "io"; name: string; mode: UiIoMode }
-	/** `@shows`: the component is in that mode. */
+	/** Under `when @`: the component in that mode. */
 	| { kind: "mode"; mode: string };
 
 export type UiCase = {
@@ -260,8 +269,8 @@ export type UiNode = {
 	/** `list <data> as <item>` */
 	data?: string;
 	item?: string;
-	/** `when [subject]` */
-	subject?: string;
+	/** What a `when` switches on: `when @`, `when ~op`, or `when path`. */
+	on?: UiSwitch;
 	cases?: UiCase[];
 	children: UiNode[];
 };
@@ -408,6 +417,31 @@ export function renderArgs(args: Record<string, string>): string {
 		k === v ? k : `${k}=${v}`,
 	);
 	return parts.length ? `(${parts.join(", ")})` : "";
+}
+
+/** The subject as written: `@`, `~band`, `current`. */
+export function renderSwitch(on: UiSwitch | undefined): string {
+	if (!on) return "";
+	if (on.kind === "mode") return "@";
+	if (on.kind === "io") return `~${on.name}`;
+	return on.path;
+}
+
+/** A case's label as written under its subject: `shows`, `loading`,
+ * `Search`, `else`. */
+export function renderCaseLabel(c: UiCondition): string {
+	switch (c.kind) {
+		case "else":
+			return "else";
+		case "value":
+			return c.value;
+		case "path":
+			return c.path;
+		case "io":
+			return c.mode;
+		case "mode":
+			return c.mode;
+	}
 }
 
 export function renderCondition(c: UiCondition): string {

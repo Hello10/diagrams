@@ -329,6 +329,16 @@ function lexContent(
 			continue;
 		}
 
+		// A lone `@`, as in `when @`: the ui diagram's mode subject.
+		if (
+			raw[pos] === "@" &&
+			(pos + 1 >= raw.length || /[\s;}]/.test(raw[pos + 1] as string))
+		) {
+			emit(state, "identifier", "@", lineNum, col, indentLevel);
+			pos++;
+			continue;
+		}
+
 		// Hook: @identifier, or module path-like identifier: @scope/pkg.
 		// `@` must be followed by an identifier-start char; sequences like
 		// `@{shape: rect}` (flowchart shape decorator) fall through.

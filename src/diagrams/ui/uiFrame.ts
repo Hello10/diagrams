@@ -450,8 +450,9 @@ export class UiFrameEngine {
 
 	/** The case of a `when` that holds, if any. */
 	private chosenCase(node: UiNode, ctx: BuildContext): UiCase | undefined {
+		const subject = node.on?.kind === "path" ? node.on.path : undefined;
 		return (node.cases ?? []).find((k) =>
-			this.holds(k.condition, ctx, node.subject),
+			this.holds(k.condition, ctx, subject),
 		);
 	}
 

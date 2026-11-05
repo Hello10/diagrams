@@ -367,7 +367,6 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="ShowRow">
 <g data-component="Text" data-ref="show.venue">
 <text x="16" y="182.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
@@ -397,8 +396,6 @@
 </g>
 <g data-component="Text" data-ref="show.date">
 <text x="113" y="246.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
-
-</g>
 
 </g>
 
@@ -610,7 +607,6 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="BandResult">
 <g data-component="Image" data-ref="band.image">
 <rect x="16" y="96" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
@@ -667,8 +663,6 @@
 <rect x="226" y="252" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
 <text x="259.5" y="274.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
 
-
-</g>
 
 </g>
 
@@ -1121,7 +1115,6 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="ShowRow">
 <g data-component="Text" data-ref="show.venue">
 <text x="56" y="4081.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
@@ -1151,8 +1144,6 @@
 </g>
 <g data-component="Text" data-ref="show.date">
 <text x="153" y="4145.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
-
-</g>
 
 </g>
 
@@ -1459,7 +1450,6 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="ShowRow">
 <g data-component="Text" data-ref="show.venue">
 <text x="1346" y="4053.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
@@ -1489,8 +1479,6 @@
 </g>
 <g data-component="Text" data-ref="show.date">
 <text x="1443" y="4117.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
-
-</g>
 
 </g>
 
@@ -1559,7 +1547,6 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="ShowRow">
 <g data-component="Text" data-ref="show.venue">
 <text x="1776" y="4053.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
@@ -1589,8 +1576,6 @@
 </g>
 <g data-component="Text" data-ref="show.date">
 <text x="1873" y="4117.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
-
-</g>
 
 </g>
 
@@ -1671,11 +1656,8 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="Text">
 <text x="2206" y="4081.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">No upcoming shows.</text>
-
-</g>
 
 </g>
 
@@ -1989,7 +1971,6 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="BandResult">
 <g data-component="Image" data-ref="band.image">
 <rect x="56" y="5617" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
@@ -2054,8 +2035,6 @@
 </g>
 
 </g>
-
-</g>
 </g>
 </g>
 <circle cx="48" cy="5865" r="8" fill="#3299f6"/><text x="48" y="5869" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
@@ -2108,7 +2087,6 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="TicketRow">
 <g data-component="Text" data-ref="ticket.show.venue">
 <text x="486" y="5631.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
@@ -2176,8 +2154,6 @@
 </g>
 
 </g>
-
-</g>
 </g>
 </g>
 <circle cx="478" cy="5889" r="8" fill="#3299f6"/><text x="478" y="5893" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
@@ -2230,11 +2206,8 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="Text">
 <text x="916" y="5631.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not load your bands.</text>
-
-</g>
 
 </g>
 
@@ -2289,11 +2262,8 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="Text">
 <text x="1346" y="5631.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">You haven't followed any bands yet.</text>
-
-</g>
 
 </g>
 
@@ -2348,11 +2318,8 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="Text">
 <text x="1776" y="5631.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not load your tickets.</text>
-
-</g>
 
 </g>
 
@@ -2407,11 +2374,8 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="Text">
 <text x="2206" y="5631.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">No tickets yet.</text>
-
-</g>
 
 </g>
 
@@ -3142,7 +3106,6 @@
 </g>
 
 </g>
-<g data-component="Stack">
 <g data-component="Text" data-ref="current.title">
 <text x="416" y="8615.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{current.title}</text>
 
@@ -3153,8 +3116,6 @@
 <path d="M 433 8648 L 441 8653 L 433 8658 Z" fill="#ffffff"/>
 <line x1="456" y1="8653" x2="688" y2="8653" stroke="#d1d5db" stroke-width="3" stroke-linecap="round"/>
 <line x1="456" y1="8653" x2="537.2" y2="8653" stroke="#1f2937" stroke-width="3" stroke-linecap="round"/>
-
-</g>
 
 </g>
 
@@ -3418,7 +3379,6 @@
 </g>
 <rect x="400" y="9755" width="320" height="228" fill="rgba(17, 24, 39, 0.45)"/>
 <g filter="url(#ui-shadow)"><rect x="424" y="9795" width="272" height="148" rx="0" fill="#ffffff"/></g>
-<g data-component="Stack">
 <g data-component="Text">
 <text x="440" y="9825.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Cancel this ticket?</text>
 
@@ -3434,8 +3394,6 @@
 <text x="560" y="9913.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Cancel it</text>
 
 <circle cx="440" cy="9891" r="8" fill="#3299f6"/><text x="440" y="9895" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
-</g>
-
 </g>
 </g>
 </g>

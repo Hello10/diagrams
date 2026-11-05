@@ -23,8 +23,8 @@ const BASIC = `ui
       list results as band
         BandResult(band) $open(picked) => go Band(id=picked.id)
       end
-      when
-        ~results.empty => Text "No bands match."
+      when ~results
+        empty { Text "No bands match." }
       end
     end
   end
@@ -34,17 +34,19 @@ const BASIC = `ui
     in ~albums(id)
 
     Stack
-      when
-        ~band.loading => Text "Loading…"
-        ~band.error   => Text "Could not load this band."
+      when ~band
+        loading { Text "Loading…" }
+        error   { Text "Could not load this band." }
       end
       Heading "{band.name}"
       list albums as album direction=row
         AlbumCard(album) $play(picked) => @listening(picked)
       end
-      when
-        @listening => modal
-          Player(album=current) $close => @browsing
+      when @
+        listening
+          modal
+            Player(album=current) $close => @browsing
+          end
         end
       end
     end
@@ -74,9 +76,9 @@ const BASIC = `ui
       Audio #audio src=album.audio controls
     end
 
-    when
-      @paused  => { #audio $play => @playing }
-      @playing => { #audio $pause => @paused }
+    when @
+      paused  { #audio $play => @playing }
+      playing { #audio $pause => @paused }
     end
   end
 end`;
@@ -238,7 +240,7 @@ describe("ui language", () => {
       Link "Home" #home to=Home
     end
     when current
-      Home => { #home selected }
+      Home { #home selected }
     end
   end`,
 					"Stack, Text, Link, Outlet",
@@ -246,7 +248,10 @@ describe("ui language", () => {
 			),
 		);
 		expect(ast.components.Home?.layoutArgs).toEqual({ current: "Home" });
-		expect(ast.components.Nav?.whens[0]?.subject).toBe("current");
+		expect(ast.components.Nav?.whens[0]?.on).toEqual({
+			kind: "path",
+			path: "current",
+		});
 		expect(ast.components.Nav?.whens[0]?.cases?.[0]?.condition).toEqual({
 			kind: "value",
 			value: "Home",
@@ -259,59 +264,109 @@ describe("ui language", () => {
 		const long = `  screen Home route=/ @a @b
     Stack
       Link "A" #la $click => @a
-      when
-        @a => Text "a"
-        else => Text "b"
+      when @
+        a
+          Text "a"
+        end
+        else
+          Text "b"
+        end
       end
     end
-    when
-      @a =>
+    when @
+      a
         #la selected
       end
     end
   end`;
 		const short = `  screen Home route=/ @a @b
-    Stack { Link "A" #la $click => @a; when { @a => Text "a"; else => Text "b" } }
-    when { @a => { #la selected } }
+    Stack { Link "A" #la $click => @a; when @ { a { Text "a" }; else { Text "b" } } }
+    when @ { a { #la selected } }
   end`;
 		const a = toPlaintext(assertOk<UiAST>(parse(`${head}${long}\nend`)));
 		const b = toPlaintext(assertOk<UiAST>(parse(`${head}${short}\nend`)));
 		expect(a).toBe(b);
-		expect(a).toContain("      @a => { #la selected }");
+		expect(a).toContain("      a { #la selected }");
+		expect(a).toContain('        a { Text "a" }');
 	});
 
-	test("a case yields one statement; a container's block belongs to the case", () => {
+	test("a case is a block: several lines lie in the parent, with no wrapper", () => {
 		const ast = assertOk<UiAST>(
 			parse(
 				doc(
 					`  screen Home route=/ @a
-    when
-      @a => Stack
+    when @
+      a
         Text "x"
         Text "y"
       end
-      else => Text "z"
+      else { Text "z" }
     end
   end`,
 				),
 			),
 		);
 		const when = ast.components.Home?.tree[0];
-		expect(when?.cases?.[0]?.nodes[0]?.children).toHaveLength(2);
+		expect(when?.on).toEqual({ kind: "mode" });
+		expect(when?.cases?.[0]?.nodes.map((n) => n.content)).toEqual(["x", "y"]);
 		expect(when?.cases?.[1]?.nodes[0]?.content).toBe("z");
+		const svg = render(ast);
+		expect(svg).toContain(">x</text>");
+		expect(svg).toContain(">y</text>");
 		expectError(
 			doc(
 				`  screen Home route=/ @a
-    when
-      @a =>
-        Text "x"
-        Text "y"
-      else => Text "z"
+    when @
+      a => Text "x"
     end
   end`,
 			),
-			/A case yields one tree line, with its own block when it has one; group several lines in a Stack/,
+			/A case is a block: `a \{ … \}`, or `a` then its lines then end; => leads to an action/,
 		);
+	});
+
+	test("when switches on a subject: the mode, an operation, or a data path", () => {
+		const errors = (body: string, extra = "", io = "") =>
+			errorsOf(
+				doc(
+					`  screen Home route=/ @a\n${io}    Text "t"\n${body}\n  end`,
+					"Text",
+					extra,
+				),
+			);
+		expect(errors('    when\n      a { Text "x" }\n    end')).toEqual([
+			"when switches on a subject: `when @` for the mode, `when ~op` for an operation, `when path` for data",
+		]);
+		expect(errors('    when @a\n      a { Text "x" }\n    end')).toEqual([
+			"`when @` switches on the mode; @a is one of its cases: `a { … }`",
+		]);
+		expect(
+			errors(
+				'    when ~items.error\n      error { Text "x" }\n    end',
+				"items",
+				"    in ~items\n",
+			),
+		).toEqual([
+			"`when ~items` switches on the operation; its states are the cases: `error { … }`",
+		]);
+		expect(
+			errors(
+				'    when ~items\n      busy { Text "x" }\n    end',
+				"items",
+				"    in ~items\n",
+			),
+		).toEqual([
+			'Cases of `when ~items` are its states: loading, error, ready, empty; got "busy"',
+		]);
+		expect(errors('    when @\n      @a { Text "x" }\n    end')).toEqual([
+			"Cases of `when @` are bare mode names: `a { … }`",
+		]);
+		expect(errors('    when @\n      Big { Text "x" }\n    end')).toEqual([
+			'Cases of `when @` are the component\'s modes; got "Big"',
+		]);
+		expect(errors("    when @\n      a\n    end")).toEqual([
+			"A case has a body: `a { … }`, or lines indented under it closed by end",
+		]);
 	});
 
 	test("brace and end forms are the same block", () => {
@@ -368,7 +423,7 @@ describe("ui checks", () => {
 		);
 		expectError(
 			doc(
-				`  screen Home route=/\n    when\n      ~items.error => Text "x"\n    end\n  end`,
+				`  screen Home route=/\n    when ~items\n      error { Text "x" }\n    end\n  end`,
 			),
 			/~items is not declared in Home/,
 		);
@@ -553,7 +608,7 @@ describe("ui checks", () => {
 	test("overrides address a handle in a component-level when", () => {
 		expectError(
 			doc(
-				`  screen Home route=/ @a\n    Button "Go" #go\n    when\n      @a => { #nope busy }\n    end\n  end`,
+				`  screen Home route=/ @a\n    Button "Go" #go\n    when @\n      a { #nope busy }\n    end\n  end`,
 			),
 			/#nope is not a handle in Home/,
 		);
@@ -563,45 +618,58 @@ describe("ui checks", () => {
 		);
 		expectError(
 			doc(
-				`  screen Home route=/ @a\n    Button "Go" #go\n    when\n      @a => { #go @b }\n    end\n  end`,
+				`  screen Home route=/ @a\n    Button "Go" #go\n    when @\n      a { #go @b }\n    end\n  end`,
 			),
 			/@b sets a component's mode; #go is not a component instance/,
 		);
 		expectError(
 			doc(
-				`  screen Home route=/ @a\n    Card #card\n    when\n      @a => { #card @zzz }\n    end\n  end\n  component Card @x\n    Text "x"\n  end`,
+				`  screen Home route=/ @a\n    Card #card\n    when @\n      a { #card @zzz }\n    end\n  end\n  component Card @x\n    Text "x"\n  end`,
 			),
 			/Card has no mode @zzz/,
 		);
 	});
 
-	test("when: else last, values need a subject, a subject takes values", () => {
+	test("when: else last, and a data subject takes values", () => {
 		expectError(
 			doc(
-				`  screen Home route=/ @a\n    when\n      else => Text "x"\n      @a => Text "y"\n    end\n  end`,
+				`  screen Home route=/ @a\n    when @\n      else { Text "x" }\n      a { Text "y" }\n    end\n  end`,
 			),
 			/else is the last case/,
 		);
 		expectError(
 			doc(
-				`  screen Home route=/\n    when\n      "x" => Text "x"\n    end\n  end`,
-			),
-			/"x" is a value; matching values needs a subject/,
-		);
-		expectError(
-			doc(
-				`  in ~session\n  screen Home route=/\n    when session.role\n      session.admin => Text "x"\n    end\n  end`,
+				`  in ~session\n  screen Home route=/\n    when session.role\n      session.admin { Text "x" }\n    end\n  end`,
 				"Text",
 				"session",
 			),
-			/With a subject, cases are values/,
+			/Cases of `when session.role` are its values: a Name, "text", a number, true, or false; got "session.admin"/,
 		);
 		expectError(
 			doc(
-				`  screen Home route=/\n    when\n      @a --> Text "x"\n    end\n  end`,
+				`  in ~session\n  screen Home route=/ @a\n    when session.role\n      @a { Text "x" }\n    end\n  end`,
+				"Text",
+				"session",
 			),
-			/The ui arrow is =>, got -->/,
+			/`when session.role` matches values of session.role; a mode is `when @`, an operation `when ~op`/,
 		);
+		const ast = assertOk<UiAST>(
+			parse(
+				doc(
+					`  in ~session\n  screen Home route=/\n    when session.admin\n      true { Text "admin" }\n      "guest" { Text "guest" }\n      3 { Text "three" }\n      else { Text "other" }\n    end\n  end`,
+					"Text",
+					"session",
+				),
+			),
+		);
+		expect(
+			ast.components.Home?.tree[0]?.cases?.map((c) => c.condition),
+		).toEqual([
+			{ kind: "value", value: "true" },
+			{ kind: "value", value: "guest" },
+			{ kind: "value", value: "3" },
+			{ kind: "else" },
+		]);
 	});
 
 	test("declaration rules: duplicate ids, unknown flags and attributes, retired words", () => {
@@ -696,8 +764,8 @@ describe("ui round-trip", () => {
 			"  screen Band route=/bands/:id @browsing @listening(current)",
 		);
 		expect(text).toContain('      Button "View" $click => $open(band)');
-		expect(text).toContain("      @paused => { #audio $play => @playing }");
-		expect(text).toContain('        ~band.loading => Text "Loading…"');
+		expect(text).toContain("      paused { #audio $play => @playing }");
+		expect(text).toContain('        loading { Text "Loading…" }');
 		const ast2 = assertOk<UiAST>(parse(text));
 		expect(toPlaintext(ast2)).toBe(text);
 		expect(ast2.components.Band?.io).toEqual(ast1.components.Band?.io);
@@ -919,8 +987,8 @@ end`;
   ${STD} Button
   screen Home route=/ @stopped @playing
     Button "Play" #play $click => @playing
-    when
-      @playing => { #play "Pause" $click => @stopped }
+    when @
+      playing { #play "Pause" $click => @stopped }
     end
   end
 end`;
@@ -985,9 +1053,9 @@ describe("one mistake is one error", () => {
       list results as item
         Row(item) $open(picked) => go Detail(id=picked.id)
       end
-      when
-        @all  => Text "all"
-        @mine => Text "mine"
+      when @
+        all  { Text "all" }
+        mine { Text "mine" }
       end
       Button "Mine" $click => @mine
     end
@@ -1050,13 +1118,23 @@ end`;
 		]);
 	});
 
-	test("two lines under one case", () => {
+	test("a case written with =>", () => {
 		const errors = mutate(
-			'        @mine => Text "mine"\n',
-			'        @mine => Text "mine"\n          Text "and more"\n',
+			'        mine { Text "mine" }\n',
+			'        mine => Text "mine"\n',
 		);
 		expect(errors).toEqual([
-			"L14 A case yields one tree line, with its own block when it has one; group several lines in a Stack",
+			"L13 A case is a block: `mine { … }`, or `mine` then its lines then end; => leads to an action",
+		]);
+	});
+
+	test("the old condition-per-case form", () => {
+		const errors = mutate(
+			'      when @\n        all  { Text "all" }\n        mine { Text "mine" }\n      end\n',
+			'      when\n        @all => Text "all"\n        @mine => Text "mine"\n      end\n',
+		);
+		expect(errors).toEqual([
+			"L11 when switches on a subject: `when @` for the mode, `when ~op` for an operation, `when path` for data",
 		]);
 	});
 

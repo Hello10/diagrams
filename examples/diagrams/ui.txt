@@ -32,9 +32,9 @@ ui
     end
 
     when current
-      Search  => { #search  selected }
-      Library => { #library selected }
-      Account => { #account selected }
+      Search  { #search  selected }
+      Library { #library selected }
+      Account { #account selected }
     end
   end
 
@@ -49,12 +49,12 @@ ui
       Heading "Sign in"
       Input #email    placeholder="Email"
       Input #password placeholder="Password"
-      when
-        ~signIn.error => Text "Wrong email or password."
+      when ~signIn
+        error { Text "Wrong email or password." }
       end
-      when
-        ~signIn.loading => Button "Signing in…" busy disabled
-        else            => Button "Sign in" primary $click => ~signIn
+      when ~signIn
+        loading { Button "Signing in…" busy disabled }
+        else    { Button "Sign in" primary $click => ~signIn }
       end
     end
   end
@@ -71,8 +71,8 @@ ui
       list results as band
         BandResult(band) $open(picked) => go Band(id=picked.id)
       end
-      when
-        ~results.empty => Text "No bands match."
+      when ~results
+        empty { Text "No bands match." }
       end
     end
   end
@@ -83,9 +83,9 @@ ui
     in ~albums(id)
 
     Stack
-      when
-        ~band.loading => Text "Loading…"
-        ~band.error   => Text "Could not load this band."
+      when ~band
+        loading { Text "Loading…" }
+        error   { Text "Could not load this band." }
       end
       Stack direction=row
         Image src=band.image
@@ -97,26 +97,28 @@ ui
         Link "Albums" #albumsTab $click => @albums
         Link "About"  #aboutTab  $click => @about
       end
-      when
-        @shows => Stack
+      when @
+        shows
           list shows as show
             ShowRow(show) $open(picked) => go Show(id=picked.id)
           end
-          when
-            ~shows.empty => Text "No upcoming shows."
+          when ~shows
+            empty { Text "No upcoming shows." }
           end
         end
-        @albums => list albums as album direction=row
-          AlbumCard(album)
+        albums
+          list albums as album direction=row
+            AlbumCard(album)
+          end
         end
-        @about => Text "{band.bio}"
+        about { Text "{band.bio}" }
       end
     end
 
-    when
-      @shows  => { #showsTab  selected }
-      @albums => { #albumsTab selected }
-      @about  => { #aboutTab  selected }
+    when @
+      shows  { #showsTab  selected }
+      albums { #albumsTab selected }
+      about  { #aboutTab  selected }
     end
   end
 
@@ -124,16 +126,16 @@ ui
     in ~show(id)
 
     Stack
-      when
-        ~show.error => Text "Could not load this show."
+      when ~show
+        error { Text "Could not load this show." }
       end
       Heading "{show.venue}"
       Text "{show.date}"
       Link "{show.band.name}" to=Band(id=show.band.id)
       Text "{show.price}"
-      when
-        show.soldOut => Text "Sold out"
-        else         => TicketPicker(show)
+      when show.soldOut
+        true { Text "Sold out" }
+        else { TicketPicker(show) }
       end
     end
   end
@@ -142,8 +144,8 @@ ui
     in ~ticket(id)
 
     Stack
-      when
-        ~ticket.error => Text "Could not load this ticket."
+      when ~ticket
+        error { Text "Could not load this ticket." }
       end
       Heading "You're going!"
       Text "{ticket.show.venue}"
@@ -162,20 +164,20 @@ ui
         Link "Bands"   #bandsTab   $click => @bands
         Link "Tickets" #ticketsTab $click => @tickets
       end
-      when
-        @bands => Stack
-          when
-            ~favorites.error => Text "Could not load your bands."
-            ~favorites.empty => Text "You haven't followed any bands yet."
+      when @
+        bands
+          when ~favorites
+            error { Text "Could not load your bands." }
+            empty { Text "You haven't followed any bands yet." }
           end
           list favorites as band
             BandResult(band) $open(picked) => go Band(id=picked.id)
           end
         end
-        @tickets => Stack
-          when
-            ~tickets.error => Text "Could not load your tickets."
-            ~tickets.empty => Text "No tickets yet."
+        tickets
+          when ~tickets
+            error { Text "Could not load your tickets." }
+            empty { Text "No tickets yet." }
           end
           list tickets as ticket
             TicketRow(ticket)
@@ -184,9 +186,9 @@ ui
       end
     end
 
-    when
-      @bands   => { #bandsTab   selected }
-      @tickets => { #ticketsTab selected }
+    when @
+      bands   { #bandsTab   selected }
+      tickets { #ticketsTab selected }
     end
   end
 
@@ -196,18 +198,18 @@ ui
 
     Stack
       Heading "Your profile"
-      when
-        ~profile.error => Text "Could not load your profile."
+      when ~profile
+        error { Text "Could not load your profile." }
       end
       Input #name value=profile.name placeholder="Name"
       Input #bio  value=profile.bio  placeholder="Bio"
-      when
-        ~saveProfile.error => Text "Could not save your profile."
-        ~saveProfile.ready => Text "Saved."
+      when ~saveProfile
+        error { Text "Could not save your profile." }
+        ready { Text "Saved." }
       end
-      when
-        ~saveProfile.loading => Button "Saving…" busy disabled
-        else                 => Button "Save" primary $click => ~saveProfile
+      when ~saveProfile
+        loading { Button "Saving…" busy disabled }
+        else    { Button "Save" primary $click => ~saveProfile }
       end
     end
   end
@@ -225,10 +227,10 @@ ui
   component FollowButton(band)
     out ~follow(band=band.id)
 
-    when
-      ~follow.ready   => Button "Following" disabled
-      ~follow.loading => Button "Following…" busy disabled
-      else            => Button "Follow" $click => ~follow
+    when ~follow
+      ready   { Button "Following" disabled }
+      loading { Button "Following…" busy disabled }
+      else    { Button "Follow" $click => ~follow }
     end
   end
 
@@ -249,13 +251,13 @@ ui
       Stack direction=row
         Select #qty options=show.quantities value=1
         Text "{quote.total}"
-        when
-          ~order.loading => Button "Buying…" busy disabled
-          else           => Button "Buy" primary $click => ~order
+        when ~order
+          loading { Button "Buying…" busy disabled }
+          else    { Button "Buy" primary $click => ~order }
         end
       end
-      when
-        ~order.error => Text "Could not complete your order."
+      when ~order
+        error { Text "Could not complete your order." }
       end
     end
   end
@@ -265,9 +267,11 @@ ui
       Image src=album.cover
       Text "{album.title}"
       Button "Play" $click => @listening
-      when
-        @listening => modal
-          AlbumPlayer(album) $close => @closed
+      when @
+        listening
+          modal
+            AlbumPlayer(album) $close => @closed
+          end
         end
       end
     end
@@ -278,14 +282,14 @@ ui
 
     Stack
       AlbumHeader(album) $close => $close
-      when
-        ~tracks.loading => Text "Loading tracks…"
+      when ~tracks
+        loading { Text "Loading tracks…" }
       end
       list tracks as track
         TrackRow(track) $select(picked) => @playing(picked)
       end
-      when
-        @playing => Stack
+      when @
+        playing
           Text "{current.title}"
           Audio src=current.audio controls
         end
@@ -318,21 +322,23 @@ ui
       Text "{ticket.show.venue}"
       Text "{ticket.show.date}"
       Text "{ticket.quantity}"
-      when
-        ~cancelTicket.ready => Text "Cancelled"
-        else                => Button "Cancel" $click => @confirming
+      when ~cancelTicket
+        ready { Text "Cancelled" }
+        else  { Button "Cancel" $click => @confirming }
       end
-      when
-        ~cancelTicket.error => Text "Could not cancel."
+      when ~cancelTicket
+        error { Text "Could not cancel." }
       end
-      when
-        @confirming => modal
-          when
-            ~cancelTicket.loading => Text "Cancelling…"
-            else => Stack
-              Text "Cancel this ticket?"
-              Button "Keep it"           $click => @holding
-              Button "Cancel it" primary $click => ~cancelTicket
+      when @
+        confirming
+          modal
+            when ~cancelTicket
+              loading { Text "Cancelling…" }
+              else
+                Text "Cancel this ticket?"
+                Button "Keep it"           $click => @holding
+                Button "Cancel it" primary $click => ~cancelTicket
+              end
             end
           end
         end

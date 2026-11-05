@@ -82,7 +82,6 @@ describe("highlight", () => {
 		const src = read("ui");
 		expect(line(src, 'Button "Sign in" primary')).toEqual([
 			"keyword:else",
-			"operator:=>",
 			"type:Button",
 			'string:"Sign in"',
 			"property:primary",
@@ -138,6 +137,46 @@ describe("highlight", () => {
 			"operation:order",
 			"operation:saveProfile",
 			"operation:cancelTicket",
+		]);
+	});
+
+	test("ui: a when's subject and its case labels", () => {
+		const src = read("ui");
+		expect(line(src, "when ~band")).toEqual([
+			"keyword:when",
+			"operation:~band",
+		]);
+		expect(line(src, 'loading { Text "Loading…" }')).toEqual([
+			"mode:loading",
+			"type:Text",
+			'string:"Loading…"',
+		]);
+		expect(line(src, "    when @")).toEqual(["keyword:when", "mode:@"]);
+		expect(line(src, 'about { Text "{band.bio}" }')).toEqual([
+			"mode:about",
+			"type:Text",
+			'string:"',
+			"data:{band.bio}",
+			'string:"',
+		]);
+		expect(line(src, "shows  { #showsTab  selected }")).toEqual([
+			"mode:shows",
+			"handle:#showsTab",
+			"property:selected",
+		]);
+		expect(line(src, "Search  { #search  selected }")).toEqual([
+			"type:Search",
+			"handle:#search",
+			"property:selected",
+		]);
+		expect(line(src, 'true { Text "Sold out" }')).toEqual([
+			"data:true",
+			"type:Text",
+			'string:"Sold out"',
+		]);
+		expect(line(src, "when show.soldOut")).toEqual([
+			"keyword:when",
+			"data:show.soldOut",
 		]);
 	});
 

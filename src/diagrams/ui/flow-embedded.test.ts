@@ -112,8 +112,8 @@ ${screens}
       Link "About" #about to=About
     end
     when current
-      Home  => { #home selected }
-      About => { #about selected }
+      Home  { #home selected }
+      About { #about selected }
     end
   end
 end`;

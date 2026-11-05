@@ -52,7 +52,7 @@ These are extensions for diagram families Mermaid doesn't have, all introduced i
 - `ui`, the keyword introducing the UI diagram (§5.4).
 - `use "@module" as Alias` and `use "@module" Name1, Name2` JS-style imports, including the standard library `@hello10/diagrams/ui`; `api "@module" name, …` for operations.
 - `screen Name route=… layout=… end`, `layout Name(params) … end` with an `Outlet`, and `component Name(params) … end`, each with modes on its header (`@shows @albums`).
-- `in ~name(args)` and `out ~name(args)` operations with outcome blocks; `list data as item … end`; `modal … end`; `when … end` cases.
+- `in ~name(args)` and `out ~name(args)` operations with outcome blocks; `list data as item … end`; `modal … end`; `when @`, `when ~op`, and `when path` switches whose cases are blocks.
 - Sigils: `#id` handles, `@mode`, `$event`, `~operation`; handlers `$event => action` with the actions `@mode`, `$event(value)`, `~op`, and `go Screen(args)`.
 - `=>` as the ui arrow, distinct from the flowchart's `-->`.
 - Override blocks `{ #handle … ; #other … }` on one line, after Ruby's convention; `end` otherwise.
@@ -696,33 +696,41 @@ $event[(value)]       emit an event to the parent
 go Screen[(args)]     navigate; args are the screen's route params
 ```
 
-**Modes.** A mode is one discrete appearance of a component, declared on its header: `screen Band … @shows @albums @about`. The first declared is the start. A mode may take one parameter, `@playing(current)`, which is in scope inside `when @playing` and in that mode's overrides; entering it supplies the value, `=> @playing(picked)`. Modes are flat: a component with two independent axes of state is two components. Io modes are the reserved four and are never declared.
+**Modes.** A mode is one discrete appearance of a component, declared on its header: `screen Band … @shows @albums @about`. The first declared is the start. A mode may take one parameter, `@playing(current)`, which is in scope inside the `playing` case of `when @` and in that mode's overrides; entering it supplies the value, `=> @playing(picked)`. Modes are flat: a component with two independent axes of state is two components. Io modes are the reserved four and are never declared.
 
-**`when`.** The one conditional. In the tree it decides what is drawn; at component level it decides overrides.
+**`when`.** The one conditional, a switch. Its subject is the component's mode (`when @`), one operation's state (`when ~op`), or a data path (`when path`); each case is a label of that subject with a block: `label { … }` on one line, or the label, its lines, and `end`. In the tree a case holds tree lines, laid into the enclosing container where the `when` sits, with no wrapper; at component level it holds overrides. One `when` is one or the other.
 
 ```
-when                         % each case is a condition
-  ~signIn.error   => Text "Wrong email or password."
-  ~signIn.loading => Button "Signing in…" busy disabled
-  else            => Button "Sign in" primary $click => ~signIn
+when ~signIn                 % the operation's state
+  error   { Text "Wrong email or password." }
+  loading { Button "Signing in…" busy disabled }
+  else    { Button "Sign in" primary $click => ~signIn }
 end
 
-when current                 % each case is a value the subject is matched against
-  Search  => { #search selected }
-  Library => { #library selected }
+when current                 % a data path's value: a Name, "text", a number, true, false
+  Search  { #search  selected }
+  Library { #library selected }
 end
 
-when                         % a case's result is one statement, with its own block
-  @shows => Stack
+when show.soldOut
+  true { Text "Sold out" }
+  else { TicketPicker(show) }
+end
+
+when @                       % the component's mode; a case with several lines closes with end
+  shows
     list shows as show
       ShowRow(show) $open(picked) => go Show(id=picked.id)
     end
+    when ~shows
+      empty { Text "No upcoming shows." }
+    end
   end
-  @about => Text "{band.bio}"
+  about { Text "{band.bio}" }
 end
 ```
 
-A condition is a data path (true when it holds a value), a mode `@name`, or an io mode `~op.mode`. With a subject, cases are values: a string, a number, or a Name. The first matching case wins; `else` is the last. No match draws nothing. A case's result is exactly one statement: in the tree, one tree line with its own block when it has one (several lines group in a `Stack`); at component level, an override block. One `when` is one or the other. `when` is a block like every other, `when … end` or `when { … }`, and an override block is likewise `{ … }` or newline-to-`end`.
+Under `when @` the labels are the modes on the header; under `when ~op` they are `loading`, `error`, `ready`, `empty`; under `when path` they are values. The first matching case wins; `else` is the last. No match draws nothing. `=>` never appears in a case: it leads to an action, and a case leads to a block. A boolean field is switched on its values, `true` and `else`. `when` is a block like every other, `when @ … end` or `when @ { … }`, and so is each case.
 
 **Overrides.** `#handle ["content"] [key=value …] [flag …] [@mode[(value)]] [$event => action …]`: a change to an instance the tree declares, in a component-level `when` case. `#search selected` marks a link; `#nav @search` sets a component instance's mode; `#audio $pause => @paused` adds a handler in that mode only. Overrides never add nodes: everything drawable is in the tree.
 
@@ -740,7 +748,7 @@ A condition is a data path (true when it holds a value), a mode `@name`, or an i
 - an operation no `api` declares; an `~op` used in a component that neither declares it with `in`/`out` nor has it as document-level `in`
 - a handler for an event the element or component does not fire; a parameter bound on an event that carries no value; an event a child emits that the parent never handles
 - a data path whose head nothing supplies; an instance's value addressed bare (`q.value` for `#q.value`); a name declared twice
-- a mode that is not on the header; a value on a mode without a parameter, or none on a mode with one; `else` not last; a value case without a subject; a path case under a subject
+- a mode that is not on the header; a value on a mode without a parameter, or none on a mode with one; `else` not last; a `when` with no subject; a case that is not a label of its subject: a value under `when @` or `when ~op`, a mode or operation under `when path`; a case written with `=>`
 - `go` to something that is not a screen; route params missing or unknown, on `go` and on `to=`
 - an argument to a parameter the component does not declare; arguments on an element; attributes or children on a component
 - a layout without exactly one `Outlet`; an `Outlet` outside a layout; `layout=` naming something that is not a layout, or a parameter it does not declare; a screen naming no layout when several are declared
@@ -749,7 +757,7 @@ A condition is a data path (true when it holds a value), a mode `@name`, or an i
 - duplicate handles, modes, or declarations; no screen at `/`
 - retired words from earlier drafts (`state`, `entry`, `repeat`, `reads`, `writes`, `emits`, `on`, `if`, `data=`, `-->`), each with what replaced it
 
-**Recovery.** One mistake is one error. A line that fails is given up at the point of failure and the next line parses on its own; a check that would only follow from the dropped part (an emit the lost handler would have handled) is not made. Blocks recover by indentation: an `end` sits at the indent of the line that opened its block, so in an indented body a line that comes back to the opener's indent, or an `end` shallower than it, reports the opener as missing its `end` and leaves the line for the enclosing block; an `end` deeper than the opener is reported as extra and skipped. A standard leaf element (`Text`, `Button`, `Input`, …) has no body, so a line indented under one is the next line of the enclosing block. A second line under a `when` case is one error naming the rule. Editors can rely on each error pointing at the line to change.
+**Recovery.** One mistake is one error. A line that fails is given up at the point of failure and the next line parses on its own; a check that would only follow from the dropped part (an emit the lost handler would have handled) is not made. Blocks recover by indentation: an `end` sits at the indent of the line that opened its block, so in an indented body a line that comes back to the opener's indent, or an `end` shallower than it, reports the opener as missing its `end` and leaves the line for the enclosing block; an `end` deeper than the opener is reported as extra and skipped. A standard leaf element (`Text`, `Button`, `Input`, …) has no body, so a line indented under one is the next line of the enclosing block. A case written with `=>` is one error naming the block form. Editors can rely on each error pointing at the line to change.
 
 **Rendering.** One drawing, the storyboard, from `render()`:
 
@@ -786,7 +794,8 @@ type UiComponent = {
 };
 type UiIo = { kind: 'in' | 'out'; name: string; args: Record<string, string>; outcomes: { mode: UiIoMode; action: UiAction }[] };
 type UiNode = { kind: 'instance' | 'list' | 'modal' | 'when'; name?: string; ref?: UiRef; content?: string; id?: string;
-  args; attributes; flags; handlers: UiHandler[]; data?: string; item?: string; subject?: string; cases?: UiCase[]; children: UiNode[] };
+  args; attributes; flags; handlers: UiHandler[]; data?: string; item?: string; on?: UiSwitch; cases?: UiCase[]; children: UiNode[] };
+type UiSwitch = { kind: 'mode' } | { kind: 'io'; name: string } | { kind: 'path'; path: string };
 type UiHandler = { event: string; param?: string; action: UiAction };
 type UiAction = { kind: 'mode'; mode; value? } | { kind: 'emit'; event; value? } | { kind: 'io'; name } | { kind: 'go'; screen; args };
 type UiCase = { condition: UiCondition; nodes: UiNode[]; overrides: UiOverride[] };
@@ -829,7 +838,7 @@ Other modules are a project's own elements and components, mapped onto this set 
 - `Login` is an `out` and a form: the write takes `#email.value` and `#password.value`, its `ready` outcome goes to Search, and the tree says what the screen looks like while it is loading and when it fails, with two `when` blocks.
 - `Search` has two reads; `~results` takes the input and the select by handle and re-runs when either changes. Nothing in the tree triggers it.
 - `Band` declares three modes on its header, one per tab, and three reads. The tab links enter modes; the tab content sits under `when @shows` and the rest; the selected link is an override in a component-level `when`. Its frames are the three modes, then `~band.loading`, `~band.error`, and `~shows.empty`, each in the mode its condition sits in.
-- `Show` uses `when show.soldOut … else …` for a data condition; the frames show the `else` branch, since a diagram cannot know the data.
+- `Show` switches on a data path, `when show.soldOut` with `true` and `else` cases; the frames show the `else` branch, since a diagram cannot know the data.
 - `FollowButton` and `TicketPicker` own their writes, so `Band` and `Show` have no mode for them. `FollowButton`'s whole tree is one `when` with three cases.
 - `AlbumCard` owns the player modal: `@closed` and `@listening`, with the modal under `when @listening`. `AlbumPlayer` has a mode with a parameter, `@playing(current)`, entered from a track row with `=> @playing(picked)`, and draws the audio only under `when @playing`. Its header's `$close` is forwarded with `$close => $close`.
 - `TicketRow` is a confirmation flow: `@holding` and `@confirming`, the modal under `when @confirming`, and the write's outcomes returning to `@holding`.
@@ -838,7 +847,7 @@ Other modules are a project's own elements and components, mapped onto this set 
 
 **Data is names only.** `api "@gigs/api" band, shows` declares operations by name, and `band.image` is a path the document uses. Nothing in the language says what `band` contains, what an operation takes beyond the arguments a document passes, or a field's type. The checks cover what they can: every path's head is supplied. An agent building from a document takes its paths as the contract and fills in the shapes. A later step could bind `api` to a schema (OpenAPI, GraphQL, or a typed module) and check paths against it; the `api` declaration is the hook for that.
 
-**Language limits a spec author meets first.** Tabs are links with handlers and no `to=`. There is no `else if`; cases are flat. A `when` on a data path is drawn as false, so its `else` branch shows. The loading state of several reads is written against one of them.
+**Language limits a spec author meets first.** Tabs are links with handlers and no `to=`. There is no `else if`; cases are flat. `when path` matches no value in a frame, since a diagram cannot know the data, so its `else` case draws. The loading state of several reads is written against one of them.
 
 **Rendering limits.** Text widths are estimated per character class, not measured. The storyboard is a scroll, not a page: the example app's seven screens render about 10,000px tall, since each io condition a screen names is its own frame; if grouping is ever needed, the split is already there in the tiers (flow, N screens, M components). The flow is clean for a chain or a tree of twenty screens; a hub whose sections all link back to it stacks those back edges into one channel, which reads but is dense.
 

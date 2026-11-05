@@ -10,8 +10,8 @@ const SRC = `ui
     Stack
       Card(show=featured)
       Button "Open" $click => @open
-      when
-        @open => Player $close => @browsing
+      when @
+        open { Player $close => @browsing }
       end
     end
   end
@@ -30,9 +30,9 @@ const SRC = `ui
       Button "Close" $click => $close
       Audio #audio
     end
-    when
-      @playing => { #audio $pause => @paused }
-      @paused  => { #audio $play => @playing }
+    when @
+      playing { #audio $pause => @paused }
+      paused  { #audio $play => @playing }
     end
   end
 end`;
@@ -93,14 +93,14 @@ describe("io views list only what the condition adds", () => {
         Link "All" #all $click => @all
         Link "Mine" #mine $click => @mine
       end
-      when
-        ~items.error => Button "Retry" $click => ~items
-        ~items.empty => Text "Nothing here."
+      when ~items
+        error { Button "Retry" $click => ~items }
+        empty { Text "Nothing here." }
       end
     end
-    when
-      @all  => { #all selected }
-      @mine => { #mine selected }
+    when @
+      all  { #all selected }
+      mine { #mine selected }
     end
   end
 end`;

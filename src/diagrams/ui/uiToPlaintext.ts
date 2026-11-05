@@ -1,7 +1,8 @@
 import {
 	renderAction,
 	renderArgs,
-	renderCondition,
+	renderCaseLabel,
+	renderSwitch,
 	renderHandler,
 	type UiAST,
 	type UiCase,
@@ -138,24 +139,23 @@ export function renderNode(node: UiNode, indent: string): string[] {
 }
 
 function renderWhen(node: UiNode, indent: string): string[] {
-	const lines = [
-		`${indent}when${node.subject !== undefined ? ` ${node.subject}` : ""}`,
-	];
+	const lines = [`${indent}when ${renderSwitch(node.on)}`];
 	for (const kase of node.cases ?? [])
 		lines.push(...renderCase(kase, `${indent}  `));
 	lines.push(`${indent}end`);
 	return lines;
 }
 
+/** A case is `label { … }` when its body is one line (overrides, or one
+ * tree line without a block); otherwise the label, its lines, and `end`. */
 function renderCase(kase: UiCase, indent: string): string[] {
-	const head = `${indent}${renderCondition(kase.condition)} =>`;
+	const label = `${indent}${renderCaseLabel(kase.condition)}`;
 	if (kase.overrides.length > 0) {
-		return [`${head} { ${kase.overrides.map(renderOverride).join("; ")} }`];
+		return [`${label} { ${kase.overrides.map(renderOverride).join("; ")} }`];
 	}
-	const [only] = kase.nodes;
-	if (!only) return [head];
-	const [first, ...rest] = renderNode(only, indent);
-	return [`${head} ${(first ?? "").trim()}`, ...rest];
+	const body = kase.nodes.flatMap((n) => renderNode(n, `${indent}  `));
+	if (body.length === 1) return [`${label} { ${(body[0] ?? "").trim()} }`];
+	return [label, ...body, `${indent}end`];
 }
 
 function renderOverride(o: UiOverride): string {
