@@ -52,6 +52,7 @@
 	},
 	"devDependencies": {
 		"@hello10/config-typescript": "^1.0.0",
+		"@hello10/config-vite-plus": "^1.0.0",
 		"@types/node": "^26.2.0",
 		"typescript": "^7.0.2",
 		"vite-plus": "catalog:"

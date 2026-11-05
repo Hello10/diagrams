@@ -1,8 +1,16 @@
+import { fmt, lint, staged } from "@hello10/config-vite-plus/base";
 import { defineConfig } from "vite-plus";
 
 export default defineConfig({
-	staged: {
-		"*": "vp check --fix",
+	staged,
+	lint,
+	fmt: {
+		...fmt,
+		ignorePatterns: [
+			...fmt.ignorePatterns,
+			"src/__snapshots__/**",
+			"examples/index.html",
+		],
 	},
 	test: {
 		globals: true,
@@ -17,27 +25,5 @@ export default defineConfig({
 		// Keep dist/index.js and dist/index.d.ts, which package.json exports.
 		fixedExtension: false,
 		exports: true,
-	},
-	lint: {
-		jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
-		options: { typeAware: true, typeCheck: true },
-		rules: {
-			"vite-plus/prefer-vite-plus-imports": "error",
-			"no-unused-vars": [
-				"warn",
-				{
-					args: "all",
-					argsIgnorePattern: "^_",
-					varsIgnorePattern: "^_",
-				},
-			],
-		},
-	},
-	fmt: {
-		useTabs: true,
-		printWidth: 80,
-		sortImports: {},
-		sortPackageJson: false,
-		ignorePatterns: ["src/__snapshots__/**", "examples/index.html", "**/*.md"],
 	},
 });
