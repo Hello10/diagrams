@@ -178,6 +178,9 @@ importers:
       '@hello10/config-typescript':
         specifier: ^1.0.0
         version: 1.0.0
+      '@hello10/config-vite-plus':
+        specifier: ^1.0.0
+        version: 1.0.0(vite-plus@1.5.0(@types/node@26.6.4)(@vitest/ui@5.1.0)(typescript@7.0.2))
       '@types/node':
         specifier: ^26.2.0
         version: 26.6.4
@@ -207,6 +210,11 @@ packages:
 
   '@hello10/config-typescript@1.0.0':
     resolution: {integrity: sha512-b9F1cQE95Cwxr9oJLylN51Pn/7l8wmOlt31Xj2xVL16suCvRQPzG5V24U1vQx8/gpGfSHO6fKeAMnotDVr2w4A==}
+
+  '@hello10/config-vite-plus@1.0.0':
+    resolution: {integrity: sha512-MCD9dF82egKijT0TbheBvGs8/MSE3IijofN0EWPZ+TSNreFtGgeV0J70hSrcAcNxPqkZIcM4I/6oDlmIYlhOeA==}
+    peerDependencies:
+      vite-plus: '>=1.4.0'
 
   '@jridgewell/resolve-uri@3.1.2':
     resolution: {integrity: sha512-bRISgCIjP20/tbWSPWMEi54QVPRZExkuD9lJL+UIxUKtwVJA8wW1Trb1jMs1RFXo1CBTNZ/5hpC9QvmKWdopKw==}
@@ -1237,6 +1245,10 @@ snapshots:
   '@blazediff/core@1.10.0': {}
 
   '@hello10/config-typescript@1.0.0': {}
+
+  '@hello10/config-vite-plus@1.0.0(vite-plus@1.5.0(@types/node@26.6.4)(@vitest/ui@5.1.0)(typescript@7.0.2))':
+    dependencies:
+      vite-plus: 1.5.0(@types/node@26.6.4)(@vitest/ui@5.1.0)(typescript@7.0.2)
 
   '@jridgewell/resolve-uri@3.1.2': {}
 
