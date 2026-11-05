@@ -121,7 +121,7 @@ Example sources for every type are in [examples/diagrams/](examples/diagrams/).
 ## Examples viewer
 
 ```sh
-pnpm examples
+vp run examples
 ```
 
 Live editor with the rendered SVG beside it. Pick a diagram type from the dropdown; the URL hash tracks the selection.
@@ -129,17 +129,18 @@ Live editor with the rendered SVG beside it. Pick a diagram type from the dropdo
 ## Develop
 
 ```sh
-pnpm install     # also installs the pre-commit hook (vp staged)
-pnpm build       # vp pack: dist/ (ESM + .d.ts)
-pnpm test        # vp test
-pnpm check       # vp check: format, lint, and type checks
-pnpm fix         # vp check --fix
-pnpm verify      # build + check + test (the release gate)
+curl -fsSL https://vite.plus | bash   # once per machine; then `vp env on`
+vp install       # also installs the pre-commit hook (vp staged)
+vp pack          # dist/ (ESM + .d.ts)
+vp test
+vp check         # format, lint, and type checks
+vp check --fix
+vp run verify    # build + check + test (the release gate)
 ```
 
 Tests are colocated with source (`src/**/*.test.ts`).
 
-The toolchain is [Vite+](https://viteplus.dev/guide/); all of its configuration is in `vite.config.ts`. Node and pnpm are pinned in `devEngines` in `package.json`.
+The toolchain is [Vite+](https://viteplus.dev/guide/); all of its configuration is in `vite.config.ts`. Node and pnpm are pinned in `devEngines` in `package.json` and managed by the global `vp` CLI ([docs](https://viteplus.dev/guide/env)).
 
 ## License
 
