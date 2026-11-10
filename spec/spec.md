@@ -196,6 +196,7 @@ interface Diagram<AST extends DiagramAST = DiagramAST> {
   render(ast: AST): string;                                // SVG string
   toPlaintext(ast: AST): string;                           // canonical plaintext
   highlight?(tokens: Token[], lines: string[]): HighlightRange[]; // optional, see §4.9
+  diagnostics?(ast: AST): RenderDiagnostics;               // optional, see §6
 }
 ```
 
@@ -872,6 +873,8 @@ vp run examples
 ```
 
 A split-pane editor that renders as you type, highlighted by `highlight()` through CSS Custom Highlights over a plain-text `contenteditable` (`examples/editorHighlight.ts`), with the example for each type in a dropdown, the selection tracked in the URL hash, zoom controls, and a draggable divider. A source with hard errors renders its partial AST at half opacity. The sources in `examples/diagrams/*.txt` double as the round-trip corpus and the snapshot fixtures (`src/__snapshots__/*.svg`, approved with `vp test -u src/snapshots.test.ts`). The viewer is single-document; `examples/diagrams/ui/` holds the Gigs app split by capability for the set tests and the `ui-app.svg` snapshot, and a test pins it to the monolithic `ui.txt`. Treat the viewer as a development tool, not a public API.
+
+A snapshot only freezes what someone approved. `src/diagnostics.test.ts` checks the geometry instead: a diagram type that implements `diagnostics(ast)` (§4.3) reports its boxes, edge segments, labels, and arrowheads, and `findProblems` in `src/diagnostics.ts` lists every line through a box it does not connect, every label on a box, another label, or another edge's line, every pair of arrowheads at one point, and every pair of overlapping boxes. The check runs over each type's example and over the awkward inputs under `src/diagrams/<type>/fixtures/`, which exist to be checked rather than looked at, and it also round-trips each of them through `toPlaintext`. Today the class diagram implements it.
 
 ## 7. Library adapters
 

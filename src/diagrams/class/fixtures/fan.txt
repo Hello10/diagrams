@@ -1,0 +1,38 @@
+classDiagram
+  class Hub {
+    +String id
+    +dispatch(Event e) void
+  }
+  class Mail {
+    +send() void
+  }
+  class Sms {
+    +send() void
+  }
+  class Push {
+    +send() void
+  }
+  class Log {
+    +write() void
+  }
+  class Audit {
+    +record() void
+  }
+  class Metrics {
+    +count() void
+  }
+  class Webhook {
+    +post() void
+  }
+  Mail --> Hub : on mail
+  Sms --> Hub : on sms
+  Push --> Hub : on push
+  Log --> Hub : on log
+  Audit --> Hub : on audit
+  Metrics --> Hub : on metric
+  Webhook --> Hub : on hook
+  Hub --> Mail : mail
+  Hub --> Sms : sms
+  Hub --> Push : push
+  Hub --> Log : log
+  Hub --> Audit : audit

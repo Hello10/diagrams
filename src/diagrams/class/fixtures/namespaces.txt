@@ -1,0 +1,39 @@
+classDiagram
+  namespace Billing {
+    class Invoice {
+      <<aggregate root>>
+      +UUID id
+      +decimal total
+      +issue() void
+    }
+    class Line {
+      +String sku
+      +int qty
+    }
+    class Tax {
+      +decimal rate
+    }
+  }
+  namespace Inventory {
+    class Item {
+      +String sku
+      +int onHand
+      +reserve(int qty) bool
+    }
+    class Warehouse {
+      +String code
+    }
+  }
+  class Account {
+    +UUID id
+    +String name
+  }
+  Invoice "1" *-- "*" Line : lines
+  Line --> Tax : taxed by
+  Line --> Item : for
+  Item --> Invoice : last billed on
+  Warehouse "1" o-- "*" Item : holds
+  Account "1" --> "*" Invoice : owns
+  Account --> Warehouse : prefers
+  note for Line "A line is priced at issue time."
+  note for Item "Reservations expire after 15 minutes."

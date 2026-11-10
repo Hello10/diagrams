@@ -1,3 +1,4 @@
+import type { RenderDiagnostics } from "../../diagnostics.ts";
 import { Diagram } from "../../Diagram.ts";
 import type { HighlightRange } from "../../highlight.ts";
 import type { ParseResult, Token } from "../../types.ts";
@@ -27,6 +28,10 @@ export class ClassDiagram extends Diagram<ClassDiagramAST> {
 
 	toPlaintext(ast: ClassDiagramAST): string {
 		return new ClassRenderer(ast).toPlaintext();
+	}
+
+	override diagnostics(ast: ClassDiagramAST): RenderDiagnostics {
+		return new ClassRenderer(ast).diagnostics();
 	}
 
 	override highlight(tokens: Token[], lines: string[]): HighlightRange[] {

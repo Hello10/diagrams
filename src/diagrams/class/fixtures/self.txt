@@ -1,0 +1,16 @@
+classDiagram
+  class Node {
+    +String id
+    -Node next
+    +append(Node n) void
+  }
+  class Tree {
+    +String label
+    +walk() void
+  }
+  class Leaf {
+    +String value
+  }
+  Node --> Node : next
+  Tree "1" o-- "*" Tree : children
+  Tree "1" *-- "*" Leaf : leaves
