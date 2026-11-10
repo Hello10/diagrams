@@ -1,5 +1,16 @@
+import type { RenderDiagnostics } from "../../diagnostics.ts";
 import { DiagramRenderer } from "../../DiagramRenderer.ts";
+import { roundedPath } from "../../edgeRouter.ts";
 import { computeFanLanes } from "../../edges.ts";
+import {
+	inflate,
+	labelRect,
+	type Pt,
+	type Rect,
+	rectsOverlap,
+	segmentIntersectsRect,
+	segmentRect,
+} from "../../geometry.ts";
 import {
 	assignColumnPositions,
 	assignRanks,
@@ -110,8 +121,23 @@ interface InternalEdge {
 interface LayoutResult {
 	placements: Map<string, Placement>;
 	edges: InternalEdge[];
+	/** The footprint of the boxes alone. */
+	contentWidth: number;
+	/** With room on the right for back-edge channels and self loops. */
 	width: number;
 	height: number;
+}
+
+/** An edge's route: forward edges drop from source bottom to target top;
+ * back edges go up a channel beside their scope; self loops sit on the
+ * node's right. */
+interface EdgePath {
+	kind: "forward" | "back" | "self";
+	pts: Pt[];
+	/** The channel's x, for back edges, and the x right of every channel
+	 * of the scope, where its label goes. */
+	channelX?: number;
+	labelX?: number;
 }
 
 interface Placement {
@@ -132,12 +158,32 @@ interface NotePlacement {
 	height: number;
 }
 
-interface Rect {
+/** Text placed beside an edge: its label and cardinalities. */
+interface EdgeDecoration {
 	x: number;
 	y: number;
-	w: number;
-	h: number;
+	text: string;
+	anchor: "start" | "middle" | "end";
 }
+
+/** Something an edge must not pass through: a class box, or the label on
+ * a namespace header. In root coordinates. */
+interface Obstacle {
+	id: string;
+	rect: Rect;
+}
+
+/** How far an edge keeps from a box it routes beside. */
+const EDGE_CLEARANCE = 12;
+/** How far above a target (or below a source) the second jog of a detour
+ * runs. */
+const DETOUR_JOG = 14;
+/** Spacing between back-edge channels beside one scope. */
+const CHANNEL_STEP = 16;
+/** How far a self loop reaches out from its node. */
+const SELF_REACH = 24;
+/** Room kept right of a scope's boxes for its channels' labels. */
+const CHANNEL_LABEL_ROOM = 48;
 
 // ─── Renderer ────────────────────────────────────────────────────────────────
 
@@ -156,6 +202,21 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 	 * exit/entry X's don't collide. */
 	private readonly fanOutX: Map<ClassRelationship, number>;
 	private readonly fanInX: Map<ClassRelationship, number>;
+	/** Every class box and namespace label, in root coordinates. */
+	private readonly obstacles: Obstacle[];
+	/** Each relationship's path, in root coordinates, in paint order. */
+	private readonly edgeGeoms: Map<ClassRelationship, EdgePath>;
+	/** Each relationship's label and cardinalities, placed clear of boxes,
+	 * other labels, and other edges where there is room. */
+	private readonly decorations: Map<ClassRelationship, EdgeDecoration[]>;
+	/** Relationships the layout ranked against: drawn up a channel. */
+	private readonly backRels = new Set<ClassRelationship>();
+	/** The scope each relationship is routed in: its own, or the lowest
+	 * scope containing both ends. */
+	private readonly scopeOf = new Map<ClassRelationship, string>();
+	/** Channels handed out so far, per scope, and how many each has. */
+	private readonly channels = new Map<string, number>();
+	private readonly channelCount = new Map<string, number>();
 	protected readonly width: number;
 	protected readonly height: number;
 
@@ -174,6 +235,9 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 		const lanes = this.computeFanLanes();
 		this.fanOutX = lanes.out;
 		this.fanInX = lanes.in;
+		this.obstacles = this.collectObstacles(this.layout, 0, 0);
+		this.edgeGeoms = this.computeEdgeGeometry();
+		this.decorations = this.placeDecorations();
 		this.notePlacements = this.layoutNotes();
 		// Canvas takes the larger of the class layout's footprint and the
 		// notes band that sits beneath it.
@@ -183,7 +247,10 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 		);
 		this.width =
 			Math.max(this.layout.width, this.maxNoteRowWidth()) + PADDING_OUTER * 2;
-		this.height = notesBottom + this.topOffset() + PADDING_OUTER;
+		this.height =
+			Math.max(this.layout.height, notesBottom) +
+			this.topOffset() +
+			PADDING_OUTER;
 	}
 
 	/** Pre-computed positions for every note. Notes sit in a band below the
@@ -199,9 +266,9 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 		if (this.ast.notes.length === 0) return out;
 
 		// Occupied rectangles: every top-level class box and every namespace
-		// rectangle (namespaces cover their inner classes already). Notes are
-		// added as they're placed so subsequent notes can't overlap earlier
-		// ones.
+		// rectangle (namespaces cover their inner classes already), and every
+		// edge segment, so a note never sits on a line. Notes are added as
+		// they're placed so subsequent notes can't overlap earlier ones.
 		const occupied: Rect[] = [];
 		for (const p of this.layout.placements.values()) {
 			if (p.node.kind !== "class" && p.node.kind !== "namespace") continue;
@@ -212,10 +279,21 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 				h: p.node.height,
 			});
 		}
+		for (const { pts } of this.edgeGeoms.values()) {
+			for (let i = 1; i < pts.length; i++) {
+				const a = pts[i - 1] as Pt;
+				const b = pts[i] as Pt;
+				occupied.push(segmentRect(a, b, 6));
+			}
+		}
 
 		for (const note of this.ast.notes) {
 			const lines = wrapNoteText(note.text, NOTE_WIDTH - NOTE_PADDING * 2);
-			const h = lines.length * NOTE_LINE_HEIGHT + NOTE_PADDING * 2;
+			// A note for a class carries the class's name as a caption, so
+			// the tie reads wherever the note finds room.
+			const h =
+				(lines.length + (note.target ? 1 : 0)) * NOTE_LINE_HEIGHT +
+				NOTE_PADDING * 2;
 			const rect = this.findNotePlacement(note, h, occupied);
 			out.push({
 				note,
@@ -384,8 +462,7 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 		// Edges paint before boxes so the line endpoints tuck under the class
 		// outline; namespace cards paint first so everything sits on top.
 		this.renderCompoundBackgrounds(this.layout, 0, 0, inner);
-		this.renderEdgesRecursive(this.layout, 0, 0, inner);
-		this.renderCrossScopeEdges(inner);
+		for (const [r, path] of this.edgeGeoms) this.renderEdge(r, path, inner);
 		this.renderClassBoxesRecursive(this.layout, 0, 0, inner);
 		this.renderNotes(inner);
 
@@ -463,10 +540,16 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 
 		for (const c of this.ast.classes) {
 			if ((this.containing.get(c.id) ?? ROOT_SCOPE) !== scopeId) continue;
+			// Wide enough that every edge sharing its top or bottom gets a
+			// lane of its own (see `computeFanLanes`).
+			const degree = Math.max(
+				this.ast.relationships.filter((r) => r.to === c.id).length,
+				this.ast.relationships.filter((r) => r.from === c.id).length,
+			);
 			layoutNodes.push({
 				id: c.id,
 				kind: "class",
-				width: classWidth(c),
+				width: Math.max(classWidth(c), (degree - 1) * 18 + 12 * 2 + 8),
 				height: classHeight(c),
 				class: c,
 			});
@@ -515,6 +598,9 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 		const back = classifyBackEdges(layoutNodes, internalEdges);
 		for (const e of internalEdges) {
 			if (back.has(e) || e.from === e.to) e.isBack = true;
+			this.scopeOf.set(e.original, scopeId);
+			if (e.isBack && e.original.from !== e.original.to)
+				this.backRels.add(e.original);
 		}
 
 		const forward = internalEdges.filter((e) => !e.isBack);
@@ -547,8 +633,42 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 			NODE_GAP_X,
 		);
 		barycenterLoneRanks(placements, segmentEdges, sortedRanks, groups);
+		// Lone ranks may have moved past the column width.
+		let contentWidth = width;
+		for (const p of placements.values()) {
+			if (p.node.kind === "virtual") continue;
+			contentWidth = Math.max(contentWidth, p.x + p.node.width);
+		}
 
-		return { placements, edges: internalEdges, width, height };
+		// Back edges climb channels right of the boxes, with their labels
+		// beside them; self loops reach out from a node's right.
+		const backCount = internalEdges.filter(
+			(e) => e.isBack && e.from !== e.to,
+		).length;
+		this.channelCount.set(scopeId, backCount);
+		const selfCount = internalEdges.filter((e) => e.from === e.to).length;
+		const reserve = Math.max(
+			backCount > 0
+				? EDGE_CLEARANCE + backCount * CHANNEL_STEP + CHANNEL_LABEL_ROOM
+				: 0,
+			selfCount > 0 ? SELF_REACH + CHANNEL_LABEL_ROOM : 0,
+		);
+		return {
+			placements,
+			edges: internalEdges,
+			contentWidth,
+			width: contentWidth + reserve,
+			height,
+		};
+	}
+
+	/** The right edge of a scope's boxes, in root coordinates. */
+	private contentRight(scopeId: string): number {
+		if (scopeId === ROOT_SCOPE) return this.layout.contentWidth;
+		const p = this.findPlacement(this.layout, scopeId, 0, 0);
+		const inner = p?.node.innerLayout;
+		if (!p || !inner) return this.layout.contentWidth;
+		return p.x + COMPOUND_SIDE_PAD + inner.contentWidth;
 	}
 
 	/** Recursive placement lookup. Walks compound `innerLayout`s and returns
@@ -652,17 +772,179 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 		}
 	}
 
-	private renderEdgesRecursive(
+	/** Every class box and namespace label in `layout`, in root
+	 * coordinates. Namespace frames themselves are not obstacles: an edge
+	 * into a namespace has to cross its border somewhere. */
+	private collectObstacles(
 		layout: LayoutResult,
 		offsetX: number,
 		offsetY: number,
-		out: string[],
+	): Obstacle[] {
+		const out: Obstacle[] = [];
+		for (const p of layout.placements.values()) {
+			const x = p.x + offsetX;
+			const y = p.y + offsetY;
+			if (p.node.kind === "class") {
+				out.push({
+					id: p.node.id,
+					rect: { x, y, w: p.node.width, h: p.node.height },
+				});
+			} else if (p.node.kind === "namespace" && p.node.innerLayout) {
+				const label = p.node.label ?? p.node.id;
+				const labelW = Math.ceil(estimateTextWidth(label)) + 8;
+				out.push({
+					id: `${p.node.id}#label`,
+					rect: {
+						x: x + p.node.width / 2 - labelW / 2,
+						y,
+						w: labelW,
+						h: COMPOUND_HEADER,
+					},
+				});
+				// The frame itself: in the way of an edge that connects
+				// nothing inside it (see `blockers`).
+				out.push({
+					id: `${p.node.id}#frame`,
+					rect: { x, y, w: p.node.width, h: p.node.height },
+				});
+				out.push(
+					...this.collectObstacles(
+						p.node.innerLayout,
+						x + COMPOUND_SIDE_PAD,
+						y + COMPOUND_HEADER + COMPOUND_TOP_INNER_PAD,
+					),
+				);
+			}
+		}
+		return out;
+	}
+
+	/** The path of every relationship: same-scope edges first, inner scopes
+	 * before outer, then cross-scope edges. A path leaves the source's
+	 * bottom at its fan-out lane, jogs across, and enters the target's top
+	 * at its fan-in lane; where a vertical would cut through a class or a
+	 * namespace label, it detours beside it. */
+	private computeEdgeGeometry(): Map<ClassRelationship, EdgePath> {
+		const forward = new Map<ClassRelationship, Pt[]>();
+		this.scopeEdgeGeometry(this.layout, 0, 0, forward);
+		this.crossScopeEdgeGeometry(forward);
+		// Forward edges first, so back edges and self loops paint over them
+		// and their labels give way.
+		const out = new Map<ClassRelationship, EdgePath>();
+		const later: ClassRelationship[] = [];
+		for (const [r, pts] of forward) {
+			if (r.from === r.to || this.backRels.has(r)) later.push(r);
+			else out.set(r, { kind: "forward", pts });
+		}
+		for (const r of later) {
+			const path = r.from === r.to ? this.selfLoop(r) : this.backEdge(r);
+			if (path) out.set(r, path);
+		}
+		return out;
+	}
+
+	/** A loop on the node's side: out, down a little, back in. On the
+	 * right when the loop and its label have room there, else the left. */
+	private selfLoop(r: ClassRelationship): EdgePath | undefined {
+		const p = this.findPlacement(this.layout, r.from, 0, 0);
+		if (!p) return undefined;
+		const need =
+			SELF_REACH +
+			6 +
+			(r.label ? estimateTextWidth(r.label, FONT_SIZE_LABEL) : 0);
+		const right = p.x + p.node.width;
+		const room = (x: number, w: number) =>
+			!this.obstacles.some(
+				(o) =>
+					o.id !== r.from &&
+					!o.id.endsWith("#frame") &&
+					rectsOverlap(o.rect, { x, y: p.cy - 8, w, h: 24 }),
+			);
+		// The loop goes right when it fits there, else left when that is on
+		// the canvas; the label finds its own place around it.
+		const onRight =
+			room(right, SELF_REACH + 6) ||
+			p.x - SELF_REACH - need < 0 ||
+			!room(p.x - SELF_REACH - need, SELF_REACH + need);
+		const edge = onRight ? right : p.x;
+		const reach = onRight ? right + SELF_REACH : p.x - SELF_REACH;
+		return {
+			kind: "self",
+			pts: [
+				{ x: edge, y: p.cy - 8 },
+				{ x: reach, y: p.cy - 8 },
+				{ x: reach, y: p.cy + 8 },
+				{ x: edge, y: p.cy + 8 },
+			],
+		};
+	}
+
+	/** Up a channel right of the scope's boxes. The edge leaves the
+	 * source's right side and enters the target's right side when nothing
+	 * stands between them and the channel; otherwise it drops into the gap
+	 * below the box first, or comes in from below the target. */
+	private backEdge(r: ClassRelationship): EdgePath | undefined {
+		const from = this.findPlacement(this.layout, r.from, 0, 0);
+		const to = this.findPlacement(this.layout, r.to, 0, 0);
+		if (!from || !to) return undefined;
+		const scope = this.scopeOf.get(r) ?? ROOT_SCOPE;
+		const k = this.channels.get(scope) ?? 0;
+		this.channels.set(scope, k + 1);
+		const channelX =
+			this.contentRight(scope) + EDGE_CLEARANCE + k * CHANNEL_STEP;
+		const pts: Pt[] = [];
+
+		const fromRight = { x: from.x + from.node.width, y: from.cy };
+		if (this.blockers(fromRight, { x: channelX, y: from.cy }, r).length === 0) {
+			pts.push(fromRight);
+		} else {
+			const sx = this.fanOutX.get(r) ?? from.cx;
+			const gapY = from.y + from.node.height + DETOUR_JOG + k * 6;
+			pts.push({ x: sx, y: from.y + from.node.height }, { x: sx, y: gapY });
+		}
+		pts.push({ x: channelX, y: (pts[pts.length - 1] as Pt).y });
+
+		// Each channel enters the target at its own point, so two back
+		// edges into one box do not land their arrowheads together.
+		const count = this.channelCount.get(scope) ?? 1;
+		const entryY = Math.max(
+			to.y + 8,
+			Math.min(to.cy + (k - (count - 1) / 2) * 8, to.y + to.node.height - 8),
+		);
+		const toRight = { x: to.x + to.node.width, y: entryY };
+		if (this.blockers({ x: channelX, y: entryY }, toRight, r).length === 0) {
+			pts.push({ x: channelX, y: entryY }, toRight);
+		} else {
+			const gapY = to.y + to.node.height + DETOUR_JOG + k * 6;
+			const ex = to.x + to.node.width - 14 - k * 10;
+			pts.push(
+				{ x: channelX, y: gapY },
+				{ x: ex, y: gapY },
+				{ x: ex, y: to.y + to.node.height },
+			);
+		}
+		return {
+			kind: "back",
+			pts,
+			channelX,
+			labelX:
+				this.contentRight(scope) +
+				EDGE_CLEARANCE +
+				((this.channelCount.get(scope) ?? 1) - 1) * CHANNEL_STEP,
+		};
+	}
+
+	private scopeEdgeGeometry(
+		layout: LayoutResult,
+		offsetX: number,
+		offsetY: number,
+		out: Map<ClassRelationship, Pt[]>,
 	): void {
 		// Recurse into compound children first so the inner edges paint
 		// before their containing scope's edges.
 		for (const p of layout.placements.values()) {
 			if (p.node.kind === "namespace" && p.node.innerLayout) {
-				this.renderEdgesRecursive(
+				this.scopeEdgeGeometry(
 					p.node.innerLayout,
 					p.x + offsetX + COMPOUND_SIDE_PAD,
 					p.y + offsetY + COMPOUND_HEADER + COMPOUND_TOP_INNER_PAD,
@@ -673,30 +955,29 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 
 		// Edges in this scope. Phantoms are rank-only and skipped. Fan-out/
 		// fan-in X's come from the top-level precomputed lane maps so they're
-		// consistent with the cross-scope renderer.
-		const seen = new Set<ClassRelationship>();
+		// consistent with the cross-scope paths.
 		for (const e of layout.edges) {
 			if (e.phantom) continue;
-			if (seen.has(e.original)) continue;
-			seen.add(e.original);
+			if (out.has(e.original)) continue;
 			const fromP = layout.placements.get(e.from);
 			const toP = layout.placements.get(e.to);
 			if (!fromP || !toP) continue;
-			this.renderEdge(
+			const sx = this.fanOutX.get(e.original) ?? fromP.cx + offsetX;
+			const sy = fromP.y + offsetY + fromP.node.height;
+			const ex = this.fanInX.get(e.original) ?? toP.cx + offsetX;
+			const ey = toP.y + offsetY;
+			out.set(
 				e.original,
-				{
-					sx: this.fanOutX.get(e.original) ?? fromP.cx + offsetX,
-					sy: fromP.y + offsetY + fromP.node.height,
-					ex: this.fanInX.get(e.original) ?? toP.cx + offsetX,
-					ey: toP.y + offsetY,
-				},
-				out,
+				this.routeAround(
+					lPath(sx, sy, ex, ey, (sy + ey) / 2),
+					e.original,
+					(sy + ey) / 2,
+				),
 			);
 		}
 	}
 
-	private renderCrossScopeEdges(out: string[]): void {
-		const CLEARANCE = 12;
+	private crossScopeEdgeGeometry(out: Map<ClassRelationship, Pt[]>): void {
 		for (const r of this.crossScopeEdges) {
 			const fromP = this.findPlacement(this.layout, r.from, 0, 0);
 			const toP = this.findPlacement(this.layout, r.to, 0, 0);
@@ -716,7 +997,7 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 				if (compoundP) {
 					minJogY = Math.max(
 						minJogY,
-						compoundP.y + compoundP.node.height + CLEARANCE,
+						compoundP.y + compoundP.node.height + EDGE_CLEARANCE,
 					);
 				}
 			}
@@ -731,14 +1012,137 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 				if (compoundP) {
 					maxJogY = Math.min(
 						maxJogY,
-						compoundP.y - CLEARANCE - (r.label ? LABEL_RESERVE : 0),
+						compoundP.y - EDGE_CLEARANCE - (r.label ? LABEL_RESERVE : 0),
 					);
 				}
 			}
 			const preferredJogY = ey - 28;
 			const jogY = Math.max(minJogY, Math.min(maxJogY, preferredJogY));
-			this.renderEdge(r, { sx, sy, ex, ey, jogY }, out);
+			out.set(r, this.routeAround(lPath(sx, sy, ex, ey, jogY), r, jogY));
 		}
+	}
+
+	/** Boxes a segment cuts through, other than the edge's own ends and
+	 * the namespaces they sit in. */
+	private blockers(a: Pt, b: Pt, r: ClassRelationship): Obstacle[] {
+		return this.obstacles.filter(
+			(o) =>
+				o.id !== r.from &&
+				o.id !== r.to &&
+				!(o.id.endsWith("#frame") && this.enclosesAnEnd(o.id, r)) &&
+				segmentIntersectsRect(a, b, inflate(o.rect, 3)),
+		);
+	}
+
+	/** Does the namespace behind a `#frame` obstacle contain either end of
+	 * the relationship, at any depth? */
+	private enclosesAnEnd(frameId: string, r: ClassRelationship): boolean {
+		const ns = frameId.slice(0, -"#frame".length);
+		const inside = (id: string) => {
+			let scope = this.containing.get(id);
+			while (scope && scope !== ROOT_SCOPE) {
+				if (scope === ns) return true;
+				scope = this.containing.get(scope);
+			}
+			return false;
+		};
+		return inside(r.from) || inside(r.to);
+	}
+
+	/** Detour a path's first and last verticals around whatever they would
+	 * cut through: the descent into a target inside a namespace may cross a
+	 * class ranked above it, or the namespace's label. The vertical moves to
+	 * a corridor beside the obstacle, the nearest clear one; when the
+	 * corridor is within the end box's width the edge lands there, otherwise
+	 * a second jog just above the target (or below the source) brings it
+	 * back to its lane. A path nothing blocks comes back unchanged. */
+	private routeAround(pts: Pt[], r: ClassRelationship, jogY: number): Pt[] {
+		let p = pts;
+		const first = p[0] as Pt;
+		const last = p[p.length - 1] as Pt;
+		if (p.length === 2 && this.blockers(first, last, r).length > 0) {
+			p = lPath(first.x, first.y, last.x, last.y, jogY, true);
+		}
+		if (p.length < 4) return p;
+
+		// Target side: the final descent.
+		{
+			const n = p.length;
+			const a = p[n - 2] as Pt;
+			const b = p[n - 1] as Pt;
+			const hit = this.blockers(a, b, r);
+			const target = this.findPlacement(this.layout, r.to, 0, 0);
+			if (hit.length > 0 && target) {
+				for (const cx of corridorCandidates(hit, a.x)) {
+					// Land where the target is nearest the corridor, so the
+					// way back in is as short as it can be.
+					const landX = clamp(
+						cx,
+						target.x + 10,
+						target.x + target.node.width - 10,
+					);
+					const inside = landX === cx;
+					const y2 = inside ? b.y : b.y - DETOUR_JOG;
+					if (this.blockers({ x: cx, y: a.y }, { x: cx, y: y2 }, r).length)
+						continue;
+					if (this.blockers(p[n - 3] as Pt, { x: cx, y: a.y }, r).length)
+						continue;
+					if (
+						!inside &&
+						this.blockers({ x: cx, y: y2 }, { x: landX, y: y2 }, r).length
+					)
+						continue;
+					p = inside
+						? [...p.slice(0, n - 2), { x: cx, y: a.y }, { x: cx, y: b.y }]
+						: [
+								...p.slice(0, n - 2),
+								{ x: cx, y: a.y },
+								{ x: cx, y: y2 },
+								{ x: landX, y: y2 },
+								{ x: landX, y: b.y },
+							];
+					break;
+				}
+			}
+		}
+
+		// Source side: the first descent.
+		{
+			const a = p[0] as Pt;
+			const b = p[1] as Pt;
+			const hit = this.blockers(a, b, r);
+			const source = this.findPlacement(this.layout, r.from, 0, 0);
+			if (hit.length > 0 && source) {
+				for (const cx of corridorCandidates(hit, b.x)) {
+					const leaveX = clamp(
+						cx,
+						source.x + 10,
+						source.x + source.node.width - 10,
+					);
+					const inside = leaveX === cx;
+					const y1 = inside ? a.y : a.y + DETOUR_JOG;
+					if (this.blockers({ x: cx, y: y1 }, { x: cx, y: b.y }, r).length)
+						continue;
+					if (this.blockers({ x: cx, y: b.y }, p[2] as Pt, r).length) continue;
+					if (
+						!inside &&
+						this.blockers({ x: leaveX, y: y1 }, { x: cx, y: y1 }, r).length
+					)
+						continue;
+					p = inside
+						? [{ x: cx, y: a.y }, { x: cx, y: b.y }, ...p.slice(2)]
+						: [
+								{ x: leaveX, y: a.y },
+								{ x: leaveX, y: y1 },
+								{ x: cx, y: y1 },
+								{ x: cx, y: b.y },
+								...p.slice(2),
+							];
+					break;
+				}
+			}
+		}
+		return p;
 	}
 
 	// ─── Class-box rendering ─────────────────────────────────────────────────
@@ -782,78 +1186,245 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 
 	private renderEdge(
 		orig: ClassRelationship,
-		geom: {
-			sx: number;
-			sy: number;
-			ex: number;
-			ey: number;
-			/** Y position of the horizontal jog for L-shape paths. Default is
-			 * the midpoint; cross-scope edges override it to clear compound
-			 * boundaries. */
-			jogY?: number;
-		},
+		path: EdgePath,
 		out: string[],
 	): void {
-		const { sx, sy, ex, ey } = geom;
+		const pts = path.pts;
+		const first = pts[0];
+		const last = pts[pts.length - 1];
+		if (!first || !last) return;
+		const sx = first.x;
+		const sy = first.y;
+		const ex = last.x;
+		const ey = last.y;
 		const kind = orig.kind;
 		const dashed =
 			kind === "dependency" || kind === "realization" || kind === "link";
 		const dashAttr = dashed ? ' stroke-dasharray="4,3"' : "";
-		const targetMarkerId = endMarker(kind);
-		const markerAttr = targetMarkerId
-			? ` marker-end="url(#${targetMarkerId})"`
+		// A composition or aggregation diamond sits on the whole, the
+		// source; every other marker is an arrowhead on the target.
+		const markerId = endMarker(kind);
+		const markerAttr = markerId
+			? isDiamond(kind)
+				? ` marker-start="url(#${markerId})"`
+				: ` marker-end="url(#${markerId})"`
 			: "";
 		const stroke = COLOR_EDGE;
 
-		const isStraightVertical = Math.abs(sx - ex) < 1;
-		const jogY = geom.jogY ?? (sy + ey) / 2;
-
-		if (isStraightVertical) {
+		if (pts.length === 2) {
 			out.push(
 				`<line x1="${sx}" y1="${sy}" x2="${ex}" y2="${ey}" stroke="${stroke}" stroke-width="1.2"${dashAttr}${markerAttr}/>`,
 			);
 		} else {
-			const r = 6;
-			const dir = ex > sx ? 1 : -1;
-			const path = [
-				`M ${sx} ${sy}`,
-				`L ${sx} ${jogY - r}`,
-				`Q ${sx} ${jogY} ${sx + dir * r} ${jogY}`,
-				`L ${ex - dir * r} ${jogY}`,
-				`Q ${ex} ${jogY} ${ex} ${jogY + r}`,
-				`L ${ex} ${ey}`,
-			].join(" ");
 			out.push(
-				`<path d="${path}" fill="none" stroke="${stroke}" stroke-width="1.2"${dashAttr}${markerAttr}/>`,
+				`<path d="${roundedPath(pts, 6)}" fill="none" stroke="${stroke}" stroke-width="1.2"${dashAttr}${markerAttr}/>`,
 			);
 		}
 
-		// Cardinalities sit just outside each class box on the side opposite
-		// to where the line turns, so they don't pile on top of the
-		// relationship label.
-		if (orig.fromCardinality) {
-			out.push(edgeLabel(sx + 6, sy + 14, orig.fromCardinality));
-		}
-		if (orig.toCardinality) {
-			out.push(edgeLabel(ex + 6, ey - 6, orig.toCardinality));
-		}
-		// Edge label rides on the descending segment near the top of the
-		// drop, source-facing side of the turn — same convention as
-		// flowchart. For straight verticals the label sits at the midpoint.
-		if (orig.label) {
-			if (isStraightVertical) {
-				const midY = (sy + ey) / 2;
-				out.push(edgeLabel(sx + 6, midY + 4, orig.label));
-			} else {
-				const labelY = jogY + 16;
-				const dir = ex > sx ? 1 : -1;
-				if (dir > 0) {
-					out.push(edgeLabel(ex - 6, labelY, orig.label, "end"));
-				} else {
-					out.push(edgeLabel(ex + 6, labelY, orig.label));
+		for (const d of this.decorations.get(orig) ?? [])
+			out.push(edgeLabel(d.x, d.y, d.text, d.anchor));
+	}
+
+	/** Where every edge's label and cardinalities go. Each has a list of
+	 * places it could sit, best first; the first that lands on no box, no
+	 * placed text, and no other edge's line wins, and the first candidate
+	 * is the fallback. Cardinalities go first, since they have the least
+	 * room to move. */
+	private placeDecorations(): Map<ClassRelationship, EdgeDecoration[]> {
+		const out = new Map<ClassRelationship, EdgeDecoration[]>();
+		const placed: Rect[] = [];
+		const free = (rect: Rect, own: ClassRelationship): boolean => {
+			const r = inflate(rect, 2);
+			if (
+				this.obstacles.some(
+					(o) => !o.id.endsWith("#frame") && rectsOverlap(r, o.rect),
+				)
+			)
+				return false;
+			if (placed.some((p) => rectsOverlap(r, p))) return false;
+			for (const [other, path] of this.edgeGeoms) {
+				if (other === own) continue;
+				for (let i = 1; i < path.pts.length; i++) {
+					if (
+						segmentIntersectsRect(path.pts[i - 1] as Pt, path.pts[i] as Pt, r)
+					)
+						return false;
 				}
 			}
+			return true;
+		};
+		const choose = (
+			own: ClassRelationship,
+			candidates: EdgeDecoration[],
+		): EdgeDecoration | undefined => {
+			const first = candidates[0];
+			if (!first) return undefined;
+			const pick =
+				candidates.find((c) =>
+					free(labelRect(c.text, c.x, c.y, c.anchor), own),
+				) ?? first;
+			placed.push(labelRect(pick.text, pick.x, pick.y, pick.anchor));
+			return pick;
+		};
+		const around = (text: string, p: Pt, below: boolean): EdgeDecoration[] => {
+			const near = below ? 14 : -6;
+			const far = below ? -6 : 14;
+			return [
+				{ x: p.x + 8, y: p.y + near, text, anchor: "start" },
+				{ x: p.x - 8, y: p.y + near, text, anchor: "end" },
+				{ x: p.x + 8, y: p.y + far, text, anchor: "start" },
+				{ x: p.x - 8, y: p.y + far, text, anchor: "end" },
+			];
+		};
+		for (const [r, path] of this.edgeGeoms) {
+			const list: EdgeDecoration[] = [];
+			const first = path.pts[0] as Pt;
+			const last = path.pts[path.pts.length - 1] as Pt;
+			if (r.fromCardinality) {
+				const d = choose(r, around(r.fromCardinality, first, true));
+				if (d) list.push(d);
+			}
+			if (r.toCardinality) {
+				const d = choose(r, around(r.toCardinality, last, false));
+				if (d) list.push(d);
+			}
+			if (r.label) {
+				const d = choose(r, this.labelCandidates(r.label, path));
+				if (d) list.push(d);
+			}
+			out.set(r, list);
 		}
+		return out;
+	}
+
+	/** Where a label could sit, best first. On a forward edge: beside the
+	 * descent after the first turn on the side facing the source, as in
+	 * the flowchart, then the other side, lower, beside the final descent,
+	 * and over the first horizontal run. On a straight drop: beside the
+	 * midpoint. On a back edge: beside the channel at a few heights. On a
+	 * self loop: right of the loop. */
+	private labelCandidates(text: string, path: EdgePath): EdgeDecoration[] {
+		const pts = path.pts;
+		const out: EdgeDecoration[] = [];
+		const beside = (x: number, y: number, side: 1 | -1) =>
+			out.push(
+				side > 0
+					? { x: x + 6, y, text, anchor: "start" }
+					: { x: x - 6, y, text, anchor: "end" },
+			);
+		if (path.kind === "self") {
+			const edge = pts[0] as Pt;
+			const reach = pts[1] as Pt;
+			const side: 1 | -1 = reach.x > edge.x ? 1 : -1;
+			beside(reach.x, reach.y + 12, side);
+			// Below the loop, then above it, hugging the node.
+			beside(edge.x - side * 4, reach.y + 16 + 14, side);
+			beside(edge.x - side * 4, reach.y - 6, side);
+			return out;
+		}
+		if (path.kind === "back" && path.channelX !== undefined) {
+			const ys = pts.filter((p) => p.x === path.channelX).map((p) => p.y);
+			const top = Math.min(...ys);
+			const bottom = Math.max(...ys);
+			const lx = path.labelX ?? path.channelX;
+			for (const t of [0.5, 0.35, 0.65, 0.2, 0.8]) {
+				beside(lx, top + (bottom - top) * t + 4, 1);
+			}
+			return out;
+		}
+		if (pts.length === 2) {
+			const a = pts[0] as Pt;
+			const b = pts[1] as Pt;
+			const midY = (a.y + b.y) / 2 + 4;
+			beside(a.x, midY, 1);
+			beside(a.x, midY, -1);
+			beside(a.x, midY - 20, 1);
+			beside(a.x, midY + 20, 1);
+			return out;
+		}
+		const turn = pts[2] as Pt;
+		const across = turn.x - (pts[1] as Pt).x;
+		const descentEnd = pts[3] as Pt;
+		const facing: 1 | -1 = across > 0 ? -1 : 1;
+		const other: 1 | -1 = facing > 0 ? -1 : 1;
+		const y1 = Math.min(turn.y + 16, descentEnd.y - 6);
+		beside(turn.x, y1, facing);
+		beside(turn.x, y1, other);
+		if (descentEnd.y - turn.y > 44) {
+			beside(turn.x, turn.y + 30, facing);
+			beside(turn.x, turn.y + 30, other);
+		}
+		const n = pts.length;
+		if (n > 4) {
+			const d = pts[n - 2] as Pt;
+			const e = pts[n - 1] as Pt;
+			const y = Math.min(d.y + 16, e.y - 6);
+			beside(d.x, y, facing);
+			beside(d.x, y, other);
+		}
+		const start = pts[0] as Pt;
+		if ((pts[1] as Pt).y - start.y > 24) {
+			beside(start.x, start.y + 16, facing);
+			beside(start.x, start.y + 16, other);
+		}
+		const run = pts[1] as Pt;
+		if (Math.abs(across) > estimateTextWidth(text, FONT_SIZE_LABEL) + 12) {
+			out.push({
+				x: (run.x + turn.x) / 2,
+				y: run.y - 4,
+				text,
+				anchor: "middle",
+			});
+		}
+		return out;
+	}
+
+	/** The drawing as geometry, for the overlap check. */
+	diagnostics(): RenderDiagnostics {
+		const key = (r: ClassRelationship) =>
+			`${r.from} ${arrowForKind(r.kind)} ${r.to}`;
+		const d: RenderDiagnostics = {
+			boxes: [],
+			segments: [],
+			labels: [],
+			markers: [],
+		};
+		for (const o of this.obstacles)
+			d.boxes.push({
+				id: o.id,
+				rect: o.rect,
+				solid: !o.id.endsWith("#frame"),
+			});
+		for (const [i, np] of this.notePlacements.entries()) {
+			d.boxes.push({
+				id: `note ${i + 1}`,
+				rect: { x: np.x, y: np.y, w: np.width, h: np.height },
+				solid: true,
+			});
+		}
+		for (const [r, { pts }] of this.edgeGeoms) {
+			const k = key(r);
+			for (let i = 1; i < pts.length; i++) {
+				d.segments.push({
+					edge: k,
+					ends: [r.from, r.to],
+					a: pts[i - 1] as Pt,
+					b: pts[i] as Pt,
+				});
+			}
+			for (const dec of this.decorations.get(r) ?? []) {
+				d.labels.push({
+					text: dec.text,
+					rect: labelRect(dec.text, dec.x, dec.y, dec.anchor),
+					edge: k,
+				});
+			}
+			if (endMarker(r.kind)) {
+				const m = isDiamond(r.kind) ? pts[0] : pts[pts.length - 1];
+				if (m) d.markers.push({ edge: k, x: m.x, y: m.y });
+			}
+		}
+		return d;
 	}
 
 	// ─── Note rendering ──────────────────────────────────────────────────────
@@ -883,6 +1454,12 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 				}),
 			);
 			let lineY = np.y + NOTE_PADDING + NOTE_LINE_HEIGHT - 4;
+			if (np.note.target) {
+				out.push(
+					`<text x="${np.x + NOTE_PADDING}" y="${lineY}" font-size="${FONT_SIZE_LABEL}" font-weight="600" fill="${COLOR_EDGE}">${svgEsc(np.note.target)}</text>`,
+				);
+				lineY += NOTE_LINE_HEIGHT;
+			}
 			for (const ln of np.bodyLines) {
 				out.push(
 					`<text x="${np.x + NOTE_PADDING}" y="${lineY}" font-size="${FONT_SIZE_LABEL}" fill="${COLOR_EDGE}">${svgEsc(ln)}</text>`,
@@ -921,9 +1498,12 @@ export class ClassRenderer extends DiagramRenderer<ClassDiagramAST> {
 			targetRect,
 		);
 		// Skip if the leader segment would pass through any box other than
-		// the target. Note rects themselves are already in `boxes`.
+		// the target and the namespace around it. Note rects themselves are
+		// already in `boxes`.
+		const scopeRect = this.outerBoxFor(target);
 		for (const b of boxes) {
 			if (rectsAreSame(b, targetRect)) continue;
+			if (scopeRect && rectsAreSame(b, scopeRect)) continue;
 			if (segmentIntersectsRect(ends.start, ends.end, b)) return;
 		}
 		out.push(
@@ -1047,9 +1627,9 @@ function formatRelationship(r: ClassRelationship): string {
 function arrowForKind(k: ClassRelationshipKind): string {
 	switch (k) {
 		case "inheritance":
-			return "<|--";
+			return "--|>";
 		case "realization":
-			return "<|..";
+			return "..|>";
 		case "composition":
 			return "*--";
 		case "aggregation":
@@ -1069,8 +1649,49 @@ function markerTriangle(id: string): string {
 	return `<marker id="${id}" markerWidth="14" markerHeight="14" refX="14" refY="7" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 14 7 L 0 14 z" fill="white" stroke="${COLOR_EDGE}" stroke-width="1.2"/></marker>`;
 }
 
+/** A diamond for the start of a path: its near tip at the path's first
+ * point, the rest along the line. */
 function markerDiamond(id: string, fill: string): string {
-	return `<marker id="${id}" markerWidth="16" markerHeight="10" refX="16" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 5 L 8 0 L 16 5 L 8 10 z" fill="${fill}" stroke="${COLOR_EDGE}" stroke-width="1.2"/></marker>`;
+	return `<marker id="${id}" markerWidth="16" markerHeight="10" refX="0" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 5 L 8 0 L 16 5 L 8 10 z" fill="${fill}" stroke="${COLOR_EDGE}" stroke-width="1.2"/></marker>`;
+}
+
+function isDiamond(kind: ClassRelationshipKind): boolean {
+	return kind === "composition" || kind === "aggregation";
+}
+
+/** Source bottom to target top: a straight drop when they share an x,
+ * otherwise down, across at `jogY`, down. `forceJog` makes the four-point
+ * form even for a shared x, so a detour has a horizontal to extend. */
+function lPath(
+	sx: number,
+	sy: number,
+	ex: number,
+	ey: number,
+	jogY: number,
+	forceJog = false,
+): Pt[] {
+	if (!forceJog && Math.abs(sx - ex) < 1) {
+		return [
+			{ x: sx, y: sy },
+			{ x: ex, y: ey },
+		];
+	}
+	return [
+		{ x: sx, y: sy },
+		{ x: sx, y: jogY },
+		{ x: ex, y: jogY },
+		{ x: ex, y: ey },
+	];
+}
+
+/** Corridor x positions beside each obstacle, nearest to `x` first; a tie
+ * goes left. */
+function corridorCandidates(hit: Obstacle[], x: number): number[] {
+	const out: number[] = [];
+	for (const o of hit) {
+		out.push(o.rect.x - EDGE_CLEARANCE, o.rect.x + o.rect.w + EDGE_CLEARANCE);
+	}
+	return out.sort((a, b) => Math.abs(a - x) - Math.abs(b - x) || a - b);
 }
 
 // ─── Geometry helpers ────────────────────────────────────────────────────────
@@ -1147,41 +1768,4 @@ function nearestEdges(
 
 function clamp(v: number, lo: number, hi: number): number {
 	return Math.max(lo, Math.min(hi, v));
-}
-
-/** Liang–Barsky-style segment vs axis-aligned-rect intersection. Returns
- * true if the open segment passes through any interior point of the rect. */
-function segmentIntersectsRect(
-	p: { x: number; y: number },
-	q: { x: number; y: number },
-	rect: Rect,
-): boolean {
-	const dx = q.x - p.x;
-	const dy = q.y - p.y;
-	let tEnter = 0;
-	let tExit = 1;
-	const slabs: Array<[number, number, number]> = [
-		[-dx, p.x - rect.x, 0],
-		[dx, rect.x + rect.w - p.x, 0],
-		[-dy, p.y - rect.y, 0],
-		[dy, rect.y + rect.h - p.y, 0],
-	];
-	for (const [pi, qi] of slabs) {
-		if (pi === 0) {
-			if (qi < 0) return false;
-		} else {
-			const t = qi / pi;
-			if (pi < 0) {
-				if (t > tExit) return false;
-				if (t > tEnter) tEnter = t;
-			} else {
-				if (t < tEnter) return false;
-				if (t < tExit) tExit = t;
-			}
-		}
-	}
-	// Treat touching the boundary as "not crossing" — leader endpoints on
-	// the target's edge shouldn't count as an intersection with the
-	// target rect.
-	return tEnter < tExit && tExit > 0 && tEnter < 1;
 }

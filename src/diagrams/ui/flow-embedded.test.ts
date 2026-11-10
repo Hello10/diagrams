@@ -35,9 +35,15 @@ const WITH_LAYOUT = `ui
 end`;
 
 describe("layouts", () => {
-	test("a screen uses the layout it names; with one layout, every screen uses it", () => {
+	test("a screen uses the layout it names, and only that", () => {
 		const ast = assertOk<UiAST>(parse(WITH_LAYOUT));
 		expect(ast.components.Login?.usesLayout).toBe("Bare");
+		expect(ast.components.Home?.usesLayout).toBe("Shell");
+	});
+
+	test("a screen that names no layout has none, even when one layout is declared", () => {
+		const ast = assertOk<UiAST>(parse(oneLayout()));
+		expect(ast.components.Login?.usesLayout).toBeUndefined();
 		expect(ast.components.Home?.usesLayout).toBe("Shell");
 	});
 
@@ -68,7 +74,7 @@ describe("layouts", () => {
 		expect(svg).not.toContain("· layout");
 	});
 
-	test("checks: one Outlet per layout, Outlet only in layouts, layout= must name a layout, ambiguity", () => {
+	test("checks: one Outlet per layout, Outlet only in layouts, layout= must name a layout", () => {
 		const errors = (src: string) => {
 			const r = parse(src);
 			return r.ok ? [] : r.errors.map((e) => e.message);
@@ -90,9 +96,8 @@ describe("layouts", () => {
 				`ui\n  use "@hello10/diagrams/ui" Text\n  screen Home route=/ layout=Nope\n    Text "h"\n  end\nend`,
 			),
 		).toContainEqual("layout=Nope does not name a layout");
-		expect(errors(WITH_LAYOUT.replace(/ layout=\w+/g, ""))).toContainEqual(
-			"Login must say which layout wraps it (layout=Shell|Bare); the document declares more than one",
-		);
+		// Nothing is implicit: with no layout named, no layout wraps.
+		expect(errors(WITH_LAYOUT.replace(/ layout=\w+/g, ""))).toEqual([]);
 	});
 });
 

@@ -1,0 +1,3570 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2620" height="10751" viewBox="0 0 2620 10751">
+<style>text { font-family: ui-sans-serif, system-ui, sans-serif; font-size: 12px; cursor: default; user-select: none; }</style>
+<defs><marker id="ui-arr" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 10 5 L 0 10 z" fill="#1f2937"/></marker><marker id="state-arr" markerWidth="10" markerHeight="10" refX="10" refY="5" orient="auto" markerUnits="strokeWidth"><path d="M 0 0 L 10 5 L 0 10 z" fill="#333"/></marker><filter id="ui-shadow" x="-10%" y="-10%" width="120%" height="130%"><feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#111827" flood-opacity="0.25"/></filter></defs>
+<text x="40" y="60" font-size="24" font-weight="700" fill="#1f2937">Flow</text>
+<line x1="40" y1="72" x2="2580" y2="72" stroke="#d1d5db" stroke-width="1"/>
+<g transform="translate(40, 88)"><path d="M 112 378.5 L 112 464" fill="none" stroke="#333" stroke-width="1" marker-end="url(#ui-arr)"/><text x="118" y="396.5" text-anchor="start" font-size="11" fill="#444">~signIn.ready</text>
+<path d="M 112 673 L 112 745" fill="none" stroke="#333" stroke-width="1" marker-end="url(#ui-arr)"/><text x="118" y="691" text-anchor="start" font-size="11" fill="#444">open BandResult</text>
+<path d="M 112 918 Q 64 954 112 990" fill="none" stroke="#333" stroke-width="1" marker-end="url(#ui-arr)"/><text x="82" y="958" text-anchor="end" font-size="11" fill="#444">open ShowRow</text>
+<path d="M 112 990 Q 160 954 112 918" fill="none" stroke="#333" stroke-width="1" marker-end="url(#ui-arr)"/><text x="142" y="958" text-anchor="start" font-size="11" fill="#444">click {show.band.name}</text>
+<path d="M 112 1153 L 112 1225" fill="none" stroke="#333" stroke-width="1" marker-end="url(#ui-arr)"/><text x="118" y="1171" text-anchor="start" font-size="11" fill="#444">TicketPicker · ~order.ready</text>
+<path d="M 112 1379 L 112 1392.2 Q 112 1398.2 118 1398.2 L 146 1398.2 Q 152 1398.2 152 1404.2 L 152 1451" fill="none" stroke="#333" stroke-width="1" marker-end="url(#ui-arr)"/><text x="158" y="1416.2" text-anchor="start" font-size="11" fill="#444">click Your tickets</text>
+<path d="M 64 157 L 64 193.8 Q 64 199.8 70 199.8 L 106 199.8 Q 112 199.8 112 205.8 L 112 242.5" fill="none" stroke="#333" stroke-width="1" marker-end="url(#ui-arr)"/><text x="118" y="217.75" text-anchor="start" font-size="11" fill="#444">Nav · ~signOut.ready</text>
+<path d="M 162 157 L 162 164.2 Q 162 170.2 168 170.2 L 382 170.2 Q 388 170.2 388 176.2 L 388 310.5 L 388 405.2 Q 388 411.2 382 411.2 L 216 411.2 Q 210 411.2 210 417.2 L 210 464" fill="none" stroke="#333" stroke-width="1" marker-end="url(#ui-arr)"/><text x="216" y="441.6" text-anchor="start" font-size="11" fill="#444">Nav · click Search</text>
+<path d="M 186 157 L 186 176.2 Q 186 182.2 192 182.2 L 439 182.2 Q 445 182.2 445 188.2 L 445 310.5 L 445 417.2 Q 445 423.2 439 423.2 L 394 423.2 Q 388 423.2 388 429.2 L 388 568.5 L 388 831.5 L 388 1071.5 L 388 1302 L 388 1404.2 Q 388 1410.2 382 1410.2 L 354 1410.2 Q 348 1410.2 348 1416.2 L 348 1451" fill="none" stroke="#333" stroke-width="1" marker-end="url(#ui-arr)"/><text x="354" y="1434.6" text-anchor="start" font-size="11" fill="#444">Nav · click Library</text>
+<path d="M 210 157 L 210 188.2 Q 210 194.2 216 194.2 L 605.5 194.2 Q 611.5 194.2 611.5 200.2 L 611.5 229" fill="none" stroke="#333" stroke-width="1" marker-end="url(#ui-arr)"/><text x="617.5" y="212.2" text-anchor="start" font-size="11" fill="#444">Nav · click Account</text>
+<path d="M 360 1551 L 764.9 1551 Q 770.9 1551 770.9 1545 L 770.9 837.5 Q 770.9 831.5 764.9 831.5 L 222 831.5" fill="none" stroke="#333" stroke-width="1" stroke-dasharray="5,3" marker-end="url(#ui-arr)"/><text x="776.9" y="1195.25" text-anchor="start" font-size="11" fill="#444">open BandResult</text>
+<g data-node="shell::ui::AppShell">
+<clipPath id="ui-flow-clip-shell__ui__AppShell"><rect x="2" y="0" width="220" height="135" rx="0"/></clipPath>
+<g clip-path="url(#ui-flow-clip-shell__ui__AppShell)"><g transform="translate(2, 0) scale(0.5641)"><g>
+<rect x="0" y="0" width="390" height="240" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-66"><rect x="0" y="0" width="390" height="240" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-66)">
+<g data-component="Stack">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="16" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="72" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="129" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="193" y="38.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="332" y="16" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="353" y="38.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+<g data-component="Outlet">
+<rect x="16" y="64" width="358" height="160" rx="0" fill="#ffffff" stroke="#9ca3af" stroke-dasharray="4,3"/>
+<text x="195" y="148" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563" text-anchor="middle">Outlet</text>
+
+</g>
+
+</g>
+</g>
+</g></g></g>
+<rect x="2" y="0" width="220" height="135" rx="0" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="112" y="150" text-anchor="middle" font-weight="600" fill="#1f2937">AppShell<tspan dx="8" font-family="ui-monospace, SFMono-Regular, monospace" font-weight="400" fill="#9ca3af">layout</tspan></text>
+</g>
+<g data-node="shell::ui::Bare">
+<clipPath id="ui-flow-clip-shell__ui__Bare"><rect x="278" y="13.5" width="220" height="108" rx="0"/></clipPath>
+<g clip-path="url(#ui-flow-clip-shell__ui__Bare)"><g transform="translate(278, 13.5) scale(0.5641)"><g>
+<rect x="0" y="0" width="390" height="192" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-65"><rect x="0" y="0" width="390" height="192" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-65)">
+<g data-component="Outlet">
+<rect x="16" y="16" width="358" height="160" rx="0" fill="#ffffff" stroke="#9ca3af" stroke-dasharray="4,3"/>
+<text x="195" y="100" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563" text-anchor="middle">Outlet</text>
+
+</g>
+</g>
+</g></g></g>
+<rect x="278" y="13.5" width="220" height="108" rx="0" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="388" y="136.5" text-anchor="middle" font-weight="600" fill="#1f2937">Bare<tspan dx="8" font-family="ui-monospace, SFMono-Regular, monospace" font-weight="400" fill="#9ca3af">layout</tspan></text>
+</g>
+<g data-node="shell::ui::Login">
+<clipPath id="ui-flow-clip-shell__ui__Login"><rect x="2" y="242.5" width="220" height="114" rx="0"/></clipPath>
+<g clip-path="url(#ui-flow-clip-shell__ui__Login)"><g transform="translate(2, 242.5) scale(0.5641)"><g>
+<rect x="0" y="0" width="390" height="202" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-58"><rect x="0" y="0" width="390" height="202" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-58)">
+<rect x="11" y="11" width="368" height="180" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="16" y="34.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">Sign in</text>
+
+</g>
+<g data-id="email" data-component="Input">
+<rect x="16" y="54" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="28" y="77" font-size="14" fill="#9ca3af">Email</text>
+
+</g>
+<g data-id="password" data-component="Input">
+<rect x="16" y="102" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="28" y="125" font-size="14" fill="#9ca3af">Password</text>
+
+</g>
+<g data-component="Button">
+<rect x="16" y="150" width="358" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="195" y="172.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Sign in</text>
+
+
+</g>
+
+</g>
+</g>
+</g></g></g>
+<rect x="2" y="242.5" width="220" height="114" rx="0" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="112" y="371.5" text-anchor="middle" font-weight="600" fill="#1f2937">Login<tspan dx="8" font-family="ui-monospace, SFMono-Regular, monospace" font-weight="400" fill="#9ca3af">/login</tspan></text>
+</g>
+
+
+<g data-node="account::ui::Account">
+<clipPath id="ui-flow-clip-account__ui__Account"><rect x="501.5" y="229" width="220" height="141" rx="0"/></clipPath>
+<g clip-path="url(#ui-flow-clip-account__ui__Account)"><g transform="translate(501.5, 229) scale(0.5641)"><g>
+<rect x="0" y="0" width="390" height="250" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-64"><rect x="0" y="0" width="390" height="250" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-64)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="16" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="72" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="129" y="38.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="193" y="38.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="332" y="16" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="353" y="38.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="11" y="59" width="368" height="180" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="16" y="82.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">Your profile</text>
+
+</g>
+<g data-id="name" data-component="Input" data-ref="profile.name">
+<rect x="16" y="102" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="28" y="125" font-size="14" fill="#1f2937">{profile.name}</text>
+
+</g>
+<g data-id="bio" data-component="Input" data-ref="profile.bio">
+<rect x="16" y="150" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="28" y="173" font-size="14" fill="#1f2937">{profile.bio}</text>
+
+</g>
+<g data-component="Button">
+<rect x="16" y="198" width="358" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="195" y="220.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Save</text>
+
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g></g></g>
+<rect x="501.5" y="229" width="220" height="141" rx="0" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="611.5" y="385" text-anchor="middle" font-weight="600" fill="#1f2937">Account<tspan dx="8" font-family="ui-monospace, SFMono-Regular, monospace" font-weight="400" fill="#9ca3af">/account</tspan></text>
+</g>
+<g data-node="discovery::ui::Search">
+<clipPath id="ui-flow-clip-discovery__ui__Search"><rect x="2" y="464" width="220" height="187" rx="0"/></clipPath>
+<g clip-path="url(#ui-flow-clip-discovery__ui__Search)"><g transform="translate(2, 464) scale(0.5641)"><g>
+<rect x="0" y="0" width="390" height="332" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-59"><rect x="0" y="0" width="390" height="332" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-59)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="16" y="38.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="72" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="129" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="193" y="38.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="332" y="16" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="353" y="38.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="11" y="59" width="368" height="262" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="query" data-component="Input">
+<rect x="16" y="64" width="173" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="28" y="87" font-size="14" fill="#9ca3af">Search bands</text>
+
+</g>
+<g data-id="genre" data-component="Select">
+<rect x="201" y="64" width="173" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="213" y="87" font-size="14" fill="#9ca3af">Any genre</text>
+<path d="M 351 80 L 356 85 L 361 80" fill="none" stroke="#4b5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+</g>
+
+</g>
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="16" y="112" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="41" y="127" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="50" cy="136" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 43.4 152.5 L 52.4 142 L 58.4 148.6 L 62 145 L 68.6 152.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="108" y="147.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="226" y="124" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="259.5" y="146.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+
+</g>
+
+</g>
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="16" y="184" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="41" y="199" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="50" cy="208" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 43.4 224.5 L 52.4 214 L 58.4 220.6 L 62 217 L 68.6 224.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="108" y="219.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="226" y="196" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="259.5" y="218.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+
+</g>
+
+</g>
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="16" y="256" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="41" y="271" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="50" cy="280" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 43.4 296.5 L 52.4 286 L 58.4 292.6 L 62 289 L 68.6 296.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="108" y="291.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="226" y="268" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="259.5" y="290.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g></g></g>
+<rect x="2" y="464" width="220" height="187" rx="0" fill="none" stroke="#1f2937" stroke-width="2.5"/>
+<text x="112" y="666" text-anchor="middle" font-weight="600" fill="#1f2937">Search<tspan dx="8" font-family="ui-monospace, SFMono-Regular, monospace" font-weight="400" fill="#9ca3af">/</tspan></text>
+</g>
+
+<g data-node="discovery::ui::Band">
+<clipPath id="ui-flow-clip-discovery__ui__Band"><rect x="2" y="745" width="220" height="151" rx="0"/></clipPath>
+<g clip-path="url(#ui-flow-clip-discovery__ui__Band)"><g transform="translate(2, 745) scale(0.5641)"><g>
+<rect x="0" y="0" width="390" height="268" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-60"><rect x="0" y="0" width="390" height="268" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-60)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="16" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="72" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="129" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="193" y="38.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="332" y="16" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="353" y="38.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="11" y="59" width="368" height="198" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-component="Image" data-ref="band.image">
+<rect x="16" y="64" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="41" y="79" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="50" cy="88" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 43.4 104.5 L 52.4 94 L 58.4 100.6 L 62 97 L 68.6 104.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="108" y="99.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="FollowButton">
+<rect x="226" y="76" width="79" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="265.5" y="98.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Follow</text>
+
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-id="showsTab" data-component="Link">
+<text x="16" y="150.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Shows</text>
+
+</g>
+<g data-id="albumsTab" data-component="Link">
+<text x="72" y="150.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Albums</text>
+
+</g>
+<g data-id="aboutTab" data-component="Link">
+<text x="132" y="150.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">About</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="16" y="182.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="113" y="182.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="16" y="214.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="113" y="214.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="16" y="246.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="113" y="246.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g></g></g>
+<rect x="2" y="745" width="220" height="151" rx="0" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="112" y="911" text-anchor="middle" font-weight="600" fill="#1f2937">Band<tspan dx="8" font-family="ui-monospace, SFMono-Regular, monospace" font-weight="400" fill="#9ca3af">/bands/:id</tspan></text>
+</g>
+
+<g data-node="tickets::ui::Show">
+<clipPath id="ui-flow-clip-tickets__ui__Show"><rect x="2" y="990" width="220" height="141" rx="0"/></clipPath>
+<g clip-path="url(#ui-flow-clip-tickets__ui__Show)"><g transform="translate(2, 990) scale(0.5641)"><g>
+<rect x="0" y="0" width="390" height="250" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-61"><rect x="0" y="0" width="390" height="250" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-61)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="16" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="72" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="129" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="193" y="38.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="332" y="16" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="353" y="38.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="11" y="59" width="368" height="180" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading" data-ref="show.venue">
+<text x="16" y="82.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="16" y="116.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+<g data-component="Link" data-ref="show.band.name">
+<text x="16" y="148.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start" text-decoration="underline">{show.band.name}</text>
+
+</g>
+<g data-component="Text" data-ref="show.price">
+<text x="16" y="180.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.price}</text>
+
+</g>
+<g data-component="TicketPicker">
+<g data-component="Stack">
+<g data-id="qty" data-component="Select">
+<rect x="16" y="198" width="200" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="28" y="221" font-size="14" fill="#1f2937">1</text>
+<path d="M 193 214 L 198 219 L 203 214" fill="none" stroke="#4b5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Text" data-ref="quote.total">
+<text x="228" y="220.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{quote.total}</text>
+
+</g>
+<g data-component="Button">
+<rect x="316" y="198" width="58" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="345" y="220.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Buy</text>
+
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g></g></g>
+<rect x="2" y="990" width="220" height="141" rx="0" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="112" y="1146" text-anchor="middle" font-weight="600" fill="#1f2937">Show<tspan dx="8" font-family="ui-monospace, SFMono-Regular, monospace" font-weight="400" fill="#9ca3af">/shows/:id</tspan></text>
+</g>
+
+<g data-node="tickets::ui::Ticket">
+<clipPath id="ui-flow-clip-tickets__ui__Ticket"><rect x="2" y="1225" width="220" height="132" rx="0"/></clipPath>
+<g clip-path="url(#ui-flow-clip-tickets__ui__Ticket)"><g transform="translate(2, 1225) scale(0.5641)"><g>
+<rect x="0" y="0" width="390" height="234" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-62"><rect x="0" y="0" width="390" height="234" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-62)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="16" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="72" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="129" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="193" y="38.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="332" y="16" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="353" y="38.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="11" y="59" width="368" height="164" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="16" y="82.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">You're going!</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.venue">
+<text x="16" y="116.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.date">
+<text x="16" y="148.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.date}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.quantity">
+<text x="16" y="180.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.quantity}</text>
+
+</g>
+<g data-component="Link">
+<text x="16" y="212.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Your tickets</text>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g></g></g>
+<rect x="2" y="1225" width="220" height="132" rx="0" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="112" y="1372" text-anchor="middle" font-weight="600" fill="#1f2937">Ticket<tspan dx="8" font-family="ui-monospace, SFMono-Regular, monospace" font-weight="400" fill="#9ca3af">/tickets/:id</tspan></text>
+</g>
+
+<g data-node="library::ui::Library">
+<clipPath id="ui-flow-clip-library__ui__Library"><rect x="140" y="1451" width="220" height="178" rx="0"/></clipPath>
+<g clip-path="url(#ui-flow-clip-library__ui__Library)"><g transform="translate(140, 1451) scale(0.5641)"><g>
+<rect x="0" y="0" width="390" height="316" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-63"><rect x="0" y="0" width="390" height="316" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-63)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="16" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="72" y="38.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="129" y="38.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="193" y="38.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="332" y="16" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="353" y="38.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="11" y="59" width="368" height="246" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="bandsTab" data-component="Link">
+<text x="16" y="78.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Bands</text>
+
+</g>
+<g data-id="ticketsTab" data-component="Link">
+<text x="67" y="78.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Tickets</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="16" y="96" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="41" y="111" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="50" cy="120" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 43.4 136.5 L 52.4 126 L 58.4 132.6 L 62 129 L 68.6 136.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="108" y="131.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="226" y="108" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="259.5" y="130.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+
+</g>
+
+</g>
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="16" y="168" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="41" y="183" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="50" cy="192" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 43.4 208.5 L 52.4 198 L 58.4 204.6 L 62 201 L 68.6 208.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="108" y="203.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="226" y="180" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="259.5" y="202.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+
+</g>
+
+</g>
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="16" y="240" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="41" y="255" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="50" cy="264" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 43.4 280.5 L 52.4 270 L 58.4 276.6 L 62 273 L 68.6 280.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="108" y="275.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="226" y="252" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="259.5" y="274.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g></g></g>
+<rect x="140" y="1451" width="220" height="178" rx="0" fill="none" stroke="#1f2937" stroke-width="1.2"/>
+<text x="250" y="1644" text-anchor="middle" font-weight="600" fill="#1f2937">Library<tspan dx="8" font-family="ui-monospace, SFMono-Regular, monospace" font-weight="400" fill="#9ca3af">/library</tspan></text>
+</g></g>
+<g data-document="shell::ui">
+<text x="40" y="1835" font-size="32" font-weight="700" fill="#1f2937">shell::ui</text>
+<line x1="40" y1="1849" x2="2580" y2="1849" stroke="#1f2937" stroke-width="2"/>
+</g>
+<text x="40" y="1887" font-size="24" font-weight="700" fill="#1f2937">Layouts</text>
+<line x1="40" y1="1899" x2="2580" y2="1899" stroke="#d1d5db" stroke-width="1"/>
+<text x="40" y="1931" font-size="18" font-weight="700" fill="#1f2937">Bare</text>
+<text x="91.3048" y="1931" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">layout</text>
+<g data-frame="shell::ui::Bare">
+<rect x="40" y="1947" width="390" height="192" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-67"><rect x="40" y="1947" width="390" height="192" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-67)">
+<g data-component="Outlet">
+<rect x="56" y="1963" width="358" height="160" rx="0" fill="#ffffff" stroke="#9ca3af" stroke-dasharray="4,3"/>
+<text x="235" y="2047" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563" text-anchor="middle">Outlet</text>
+
+</g>
+</g>
+</g>
+<text x="40" y="2231" font-size="18" font-weight="700" fill="#1f2937">AppShell</text>
+<text x="127.93840000000002" y="2231" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">layout</text>
+<g data-frame="shell::ui::AppShell">
+<rect x="40" y="2247" width="390" height="240" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-68"><rect x="40" y="2247" width="390" height="240" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-68)">
+<g data-component="Stack">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="56" y="2285.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+<circle cx="52" cy="2269" r="8" fill="#3299f6"/><text x="52" y="2273" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+<g data-id="library" data-component="Link">
+<text x="112" y="2285.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+<circle cx="108" cy="2269" r="8" fill="#3299f6"/><text x="108" y="2273" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+<g data-id="account" data-component="Link">
+<text x="169" y="2285.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+<circle cx="165" cy="2269" r="8" fill="#3299f6"/><text x="165" y="2273" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="233" y="2285.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="372" y="2263" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="393" y="2285.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+<circle cx="372" cy="2263" r="8" fill="#3299f6"/><text x="372" y="2267" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">4</text>
+</g>
+
+</g>
+<g data-component="Outlet">
+<rect x="56" y="2311" width="358" height="160" rx="0" fill="#ffffff" stroke="#9ca3af" stroke-dasharray="4,3"/>
+<text x="235" y="2395" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563" text-anchor="middle">Outlet</text>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="2515" r="8" fill="#3299f6"/><text x="48" y="2519" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="2519" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → go Search</text>
+<circle cx="48" cy="2537" r="8" fill="#3299f6"/><text x="48" y="2541" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="66" y="2541" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → go Library</text>
+<circle cx="48" cy="2559" r="8" fill="#3299f6"/><text x="48" y="2563" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+<text x="66" y="2563" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → go Account</text>
+<circle cx="48" cy="2581" r="8" fill="#3299f6"/><text x="48" y="2585" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">4</text>
+<text x="66" y="2585" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~signOut</text>
+<text x="40" y="2687" font-size="24" font-weight="700" fill="#1f2937">Screens</text>
+<line x1="40" y1="2699" x2="2580" y2="2699" stroke="#d1d5db" stroke-width="1"/>
+<text x="40" y="2731" font-size="18" font-weight="700" fill="#1f2937">Login</text>
+<text x="100.08160000000001" y="2731" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">/login</text>
+<g data-frame="shell::ui::Login">
+<rect x="40" y="2773" width="390" height="202" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-69"><rect x="40" y="2773" width="390" height="202" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-69)">
+<rect x="51" y="2784" width="368" height="180" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="56" y="2807.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">Sign in</text>
+
+</g>
+<g data-id="email" data-component="Input">
+<rect x="56" y="2827" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="68" y="2850" font-size="14" fill="#9ca3af">Email</text>
+
+</g>
+<g data-id="password" data-component="Input">
+<rect x="56" y="2875" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="68" y="2898" font-size="14" fill="#9ca3af">Password</text>
+
+</g>
+<g data-component="Button">
+<rect x="56" y="2923" width="358" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="235" y="2945.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Sign in</text>
+
+<circle cx="56" cy="2923" r="8" fill="#3299f6"/><text x="56" y="2927" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="3003" r="8" fill="#3299f6"/><text x="48" y="3007" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="3007" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~signIn</text>
+<text x="470" y="2764" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~signIn.error</text>
+<g data-frame="shell::ui::Login" data-view="~signIn.error">
+<rect x="470" y="2773" width="390" height="234" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-70"><rect x="470" y="2773" width="390" height="234" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-70)">
+<rect x="481" y="2784" width="368" height="212" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="486" y="2807.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">Sign in</text>
+
+</g>
+<g data-id="email" data-component="Input">
+<rect x="486" y="2827" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="498" y="2850" font-size="14" fill="#9ca3af">Email</text>
+
+</g>
+<g data-id="password" data-component="Input">
+<rect x="486" y="2875" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="498" y="2898" font-size="14" fill="#9ca3af">Password</text>
+
+</g>
+<g data-component="Text">
+<text x="486" y="2937.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Wrong email or password.</text>
+
+</g>
+<g data-component="Button">
+<rect x="486" y="2955" width="358" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="665" y="2977.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Sign in</text>
+
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="900" y="2764" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~signIn.loading</text>
+<g data-frame="shell::ui::Login" data-view="~signIn.loading">
+<rect x="900" y="2773" width="390" height="202" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-71"><rect x="900" y="2773" width="390" height="202" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-71)">
+<rect x="911" y="2784" width="368" height="180" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="916" y="2807.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">Sign in</text>
+
+</g>
+<g data-id="email" data-component="Input">
+<rect x="916" y="2827" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="928" y="2850" font-size="14" fill="#9ca3af">Email</text>
+
+</g>
+<g data-id="password" data-component="Input">
+<rect x="916" y="2875" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="928" y="2898" font-size="14" fill="#9ca3af">Password</text>
+
+</g>
+<g data-component="Button" opacity="0.45">
+<rect x="916" y="2923" width="358" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1095" y="2945.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Signing in…</text>
+<g data-busy="true">
+<circle cx="1260" cy="2941" r="6" fill="none" stroke="#d1d5db" stroke-width="2"/>
+<path d="M 1260 2935 A 6 6 0 1 1 1254 2941" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="40" y="3119" font-size="24" font-weight="700" fill="#1f2937">Components</text>
+<line x1="40" y1="3131" x2="2580" y2="3131" stroke="#d1d5db" stroke-width="1"/>
+<text x="40" y="3163" font-size="18" font-weight="700" fill="#1f2937">Nav</text>
+<text x="84.8176" y="3163" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">in AppShell</text>
+<g data-frame="shell::ui::Nav">
+<rect x="40" y="3179" width="320" height="100" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-72"><rect x="40" y="3179" width="320" height="100" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-72)">
+<g data-component="Stack">
+<g data-id="search" data-component="Link">
+<text x="56" y="3209.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+<circle cx="52" cy="3193" r="8" fill="#3299f6"/><text x="52" y="3197" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+<g data-id="library" data-component="Link">
+<text x="112" y="3209.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+<circle cx="108" cy="3193" r="8" fill="#3299f6"/><text x="108" y="3197" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+<g data-id="account" data-component="Link">
+<text x="169" y="3209.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+<circle cx="165" cy="3193" r="8" fill="#3299f6"/><text x="165" y="3197" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="56" y="3249.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="195" y="3227" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="216" y="3249.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+<circle cx="195" cy="3227" r="8" fill="#3299f6"/><text x="195" y="3231" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">4</text>
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="3307" r="8" fill="#3299f6"/><text x="48" y="3311" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="3311" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → go Search</text>
+<circle cx="48" cy="3329" r="8" fill="#3299f6"/><text x="48" y="3333" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="66" y="3333" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → go Library</text>
+<circle cx="48" cy="3351" r="8" fill="#3299f6"/><text x="48" y="3355" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+<text x="66" y="3355" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → go Account</text>
+<circle cx="48" cy="3373" r="8" fill="#3299f6"/><text x="48" y="3377" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">4</text>
+<text x="66" y="3377" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~signOut</text>
+<g data-document="discovery::ui">
+<text x="40" y="3483" font-size="32" font-weight="700" fill="#1f2937">discovery::ui</text>
+<line x1="40" y1="3497" x2="2580" y2="3497" stroke="#1f2937" stroke-width="2"/>
+</g>
+<text x="40" y="3535" font-size="24" font-weight="700" fill="#1f2937">Screens</text>
+<line x1="40" y1="3547" x2="2580" y2="3547" stroke="#d1d5db" stroke-width="1"/>
+<text x="40" y="3579" font-size="18" font-weight="700" fill="#1f2937">Search</text>
+<text x="111.52960000000002" y="3579" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">/</text>
+<g data-frame="discovery::ui::Search">
+<rect x="40" y="3621" width="390" height="332" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-73"><rect x="40" y="3621" width="390" height="332" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-73)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="56" y="3659.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="112" y="3659.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="169" y="3659.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="233" y="3659.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="372" y="3637" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="393" y="3659.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="51" y="3680" width="368" height="262" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="query" data-component="Input">
+<rect x="56" y="3685" width="173" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="68" y="3708" font-size="14" fill="#9ca3af">Search bands</text>
+
+</g>
+<g data-id="genre" data-component="Select">
+<rect x="241" y="3685" width="173" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="253" y="3708" font-size="14" fill="#9ca3af">Any genre</text>
+<path d="M 391 3701 L 396 3706 L 401 3701" fill="none" stroke="#4b5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+</g>
+
+</g>
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="56" y="3733" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="81" y="3748" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="90" cy="3757" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 83.4 3773.5 L 92.4 3763 L 98.4 3769.6 L 102 3766 L 108.6 3773.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="148" y="3768.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="266" y="3745" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="299.5" y="3767.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+<circle cx="266" cy="3745" r="8" fill="#3299f6"/><text x="266" y="3749" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="56" y="3805" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="81" y="3820" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="90" cy="3829" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 83.4 3845.5 L 92.4 3835 L 98.4 3841.6 L 102 3838 L 108.6 3845.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="148" y="3840.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="266" y="3817" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="299.5" y="3839.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+
+</g>
+
+</g>
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="56" y="3877" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="81" y="3892" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="90" cy="3901" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 83.4 3917.5 L 92.4 3907 L 98.4 3913.6 L 102 3910 L 108.6 3917.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="148" y="3912.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="266" y="3889" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="299.5" y="3911.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="3981" r="8" fill="#3299f6"/><text x="48" y="3985" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="3985" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">open(picked) → go Band(id=picked.id)</text>
+<text x="470" y="3612" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~results.empty</text>
+<g data-frame="discovery::ui::Search" data-view="~results.empty">
+<rect x="470" y="3621" width="390" height="200" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-74"><rect x="470" y="3621" width="390" height="200" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-74)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="486" y="3659.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="542" y="3659.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="599" y="3659.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="663" y="3659.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="802" y="3637" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="823" y="3659.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="481" y="3680" width="368" height="78" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="query" data-component="Input">
+<rect x="486" y="3685" width="173" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="498" y="3708" font-size="14" fill="#9ca3af">Search bands</text>
+
+</g>
+<g data-id="genre" data-component="Select">
+<rect x="671" y="3685" width="173" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="683" y="3708" font-size="14" fill="#9ca3af">Any genre</text>
+<path d="M 821 3701 L 826 3706 L 831 3701" fill="none" stroke="#4b5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+</g>
+
+</g>
+<g data-component="Text">
+<text x="486" y="3747.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">No bands match.</text>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="40" y="4067" font-size="18" font-weight="700" fill="#1f2937">Band</text>
+<text x="94.93" y="4067" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">/bands/:id</text>
+<g transform="translate(40, 4083)"><g transform="translate(40, 40)">
+
+<path d="M 156.3 184 Q 184.3 110 156.3 36" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="176.25" y="91.8" font-size="11" fill="#444">click Shows</text>
+<path d="M 132.3 36 L 132.3 49.8 Q 132.3 55.8 126.3 55.8 L 48 55.8 Q 42 55.8 42 61.8 L 42 92" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="48" y="73.775" font-size="11" fill="#444">click Albums</text>
+<path d="M 156.3 36 Q 128.3 110 156.3 184" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="176.25" y="136.2" font-size="11" fill="#444">click About</text>
+<path d="M 42 128 L 42 141.6 Q 42 147.6 48 147.6 L 126.3 147.6 Q 132.3 147.6 132.3 153.6 L 132.3 184" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="126.25" y="165.6" text-anchor="end" font-size="11" fill="#444">click About</text>
+<path d="M 82 110 L 266.9 110 Q 272.9 110 272.9 104 L 272.9 24 Q 272.9 18 266.9 18 L 192.3 18" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="278.85" y="68" font-size="11" fill="#444">click Shows</text>
+<path d="M 192.3 202 L 280.9 202 Q 286.9 202 286.9 196 L 286.9 116 Q 286.9 110 280.9 110 L 82 110" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="292.85" y="160" font-size="11" fill="#444">click Albums</text>
+<rect x="120.25" y="0" width="72" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="156.25" y="22" text-anchor="middle" fill="white" font-weight="600">shows</text>
+<rect x="2" y="92" width="80" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="42" y="114" text-anchor="middle" fill="white" font-weight="600">albums</text>
+<rect x="120.25" y="184" width="72" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="156.25" y="206" text-anchor="middle" fill="white" font-weight="600">about</text>
+</g></g>
+<text x="40" y="4426" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@shows</text>
+<g data-frame="discovery::ui::Band" data-view="@shows">
+<rect x="40" y="4435" width="390" height="268" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-75"><rect x="40" y="4435" width="390" height="268" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-75)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="56" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="112" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="169" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="233" y="4473.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="372" y="4451" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="393" y="4473.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="51" y="4494" width="368" height="198" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-component="Image" data-ref="band.image">
+<rect x="56" y="4499" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="81" y="4514" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="90" cy="4523" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 83.4 4539.5 L 92.4 4529 L 98.4 4535.6 L 102 4532 L 108.6 4539.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="148" y="4534.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="FollowButton">
+<rect x="266" y="4511" width="79" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="305.5" y="4533.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Follow</text>
+
+<circle cx="266" cy="4511" r="8" fill="#3299f6"/><text x="266" y="4515" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-id="showsTab" data-component="Link">
+<text x="56" y="4585.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Shows</text>
+
+</g>
+<g data-id="albumsTab" data-component="Link">
+<text x="112" y="4585.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Albums</text>
+<circle cx="108" cy="4569" r="8" fill="#3299f6"/><text x="108" y="4573" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+<g data-id="aboutTab" data-component="Link">
+<text x="172" y="4585.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">About</text>
+<circle cx="168" cy="4569" r="8" fill="#3299f6"/><text x="168" y="4573" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="56" y="4617.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="153" y="4617.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+<circle cx="56" cy="4603" r="8" fill="#3299f6"/><text x="56" y="4607" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">4</text>
+</g>
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="56" y="4649.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="153" y="4649.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="56" y="4681.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="153" y="4681.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="4731" r="8" fill="#3299f6"/><text x="48" y="4735" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="4735" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~follow</text>
+<circle cx="48" cy="4753" r="8" fill="#3299f6"/><text x="48" y="4757" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="66" y="4757" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @albums</text>
+<circle cx="48" cy="4775" r="8" fill="#3299f6"/><text x="48" y="4779" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+<text x="66" y="4779" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @about</text>
+<circle cx="48" cy="4797" r="8" fill="#3299f6"/><text x="48" y="4801" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">4</text>
+<text x="66" y="4801" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">open(picked) → go Show(id=picked.id)</text>
+<text x="470" y="4426" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@albums</text>
+<g data-frame="discovery::ui::Band" data-view="@albums">
+<rect x="470" y="4435" width="390" height="348" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-76"><rect x="470" y="4435" width="390" height="348" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-76)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="486" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="542" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="599" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="663" y="4473.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="802" y="4451" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="823" y="4473.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="481" y="4494" width="368" height="278" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-component="Image" data-ref="band.image">
+<rect x="486" y="4499" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="511" y="4514" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="520" cy="4523" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 513.4 4539.5 L 522.4 4529 L 528.4 4535.6 L 532 4532 L 538.6 4539.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="578" y="4534.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="FollowButton">
+<rect x="696" y="4511" width="79" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="735.5" y="4533.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Follow</text>
+
+<circle cx="696" cy="4511" r="8" fill="#3299f6"/><text x="696" y="4515" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-id="showsTab" data-component="Link">
+<text x="486" y="4585.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Shows</text>
+<circle cx="482" cy="4569" r="8" fill="#3299f6"/><text x="482" y="4573" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+<g data-id="albumsTab" data-component="Link">
+<text x="542" y="4585.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Albums</text>
+
+</g>
+<g data-id="aboutTab" data-component="Link">
+<text x="602" y="4585.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">About</text>
+<circle cx="598" cy="4569" r="8" fill="#3299f6"/><text x="598" y="4573" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+</g>
+
+</g>
+<g data-component="AlbumCard">
+<g data-component="Image" data-ref="album.cover">
+<rect x="486" y="4603" width="111.33333333333333" height="84" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="521.6666666666666" y="4625" width="40" height="40" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="533.6666666666666" cy="4637" r="3.5999999999999996" fill="#9ca3af"/>
+<path d="M 524.8666666666667 4659 L 536.8666666666667 4645 L 544.8666666666667 4653.8 L 549.6666666666666 4649 L 558.4666666666666 4659" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Text" data-ref="album.title">
+<text x="486" y="4713.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{album.title}</text>
+
+</g>
+<g data-component="Button">
+<rect x="486" y="4731" width="111.33333333333333" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="541.6666666666666" y="4753.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Play</text>
+
+<circle cx="486" cy="4731" r="8" fill="#3299f6"/><text x="486" y="4735" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">4</text>
+</g>
+
+</g>
+<g data-component="AlbumCard">
+<g data-component="Image" data-ref="album.cover">
+<rect x="609.3333333333334" y="4603" width="111.33333333333333" height="84" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="645" y="4625" width="40" height="40" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="657" cy="4637" r="3.5999999999999996" fill="#9ca3af"/>
+<path d="M 648.2 4659 L 660.2 4645 L 668.2 4653.8 L 673 4649 L 681.8 4659" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Text" data-ref="album.title">
+<text x="609.3333333333334" y="4713.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{album.title}</text>
+
+</g>
+<g data-component="Button">
+<rect x="609.3333333333334" y="4731" width="111.33333333333333" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="665" y="4753.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Play</text>
+
+
+</g>
+
+</g>
+<g data-component="AlbumCard">
+<g data-component="Image" data-ref="album.cover">
+<rect x="732.6666666666667" y="4603" width="111.33333333333333" height="84" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="768.3333333333334" y="4625" width="40" height="40" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="780.3333333333334" cy="4637" r="3.5999999999999996" fill="#9ca3af"/>
+<path d="M 771.5333333333334 4659 L 783.5333333333334 4645 L 791.5333333333334 4653.8 L 796.3333333333334 4649 L 805.1333333333333 4659" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Text" data-ref="album.title">
+<text x="732.6666666666667" y="4713.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{album.title}</text>
+
+</g>
+<g data-component="Button">
+<rect x="732.6666666666667" y="4731" width="111.33333333333333" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="788.3333333333334" y="4753.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Play</text>
+
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="478" cy="4811" r="8" fill="#3299f6"/><text x="478" y="4815" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="496" y="4815" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~follow</text>
+<circle cx="478" cy="4833" r="8" fill="#3299f6"/><text x="478" y="4837" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="496" y="4837" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @shows</text>
+<circle cx="478" cy="4855" r="8" fill="#3299f6"/><text x="478" y="4859" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+<text x="496" y="4859" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @about</text>
+<circle cx="478" cy="4877" r="8" fill="#3299f6"/><text x="478" y="4881" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">4</text>
+<text x="496" y="4881" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @listening</text>
+<text x="900" y="4426" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@about</text>
+<g data-frame="discovery::ui::Band" data-view="@about">
+<rect x="900" y="4435" width="390" height="204" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-77"><rect x="900" y="4435" width="390" height="204" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-77)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="916" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="972" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="1029" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="1093" y="4473.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="1232" y="4451" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1253" y="4473.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="911" y="4494" width="368" height="134" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-component="Image" data-ref="band.image">
+<rect x="916" y="4499" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="941" y="4514" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="950" cy="4523" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 943.4 4539.5 L 952.4 4529 L 958.4 4535.6 L 962 4532 L 968.6 4539.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="1008" y="4534.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="FollowButton">
+<rect x="1126" y="4511" width="79" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1165.5" y="4533.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Follow</text>
+
+<circle cx="1126" cy="4511" r="8" fill="#3299f6"/><text x="1126" y="4515" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-id="showsTab" data-component="Link">
+<text x="916" y="4585.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Shows</text>
+<circle cx="912" cy="4569" r="8" fill="#3299f6"/><text x="912" y="4573" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+<g data-id="albumsTab" data-component="Link">
+<text x="972" y="4585.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Albums</text>
+<circle cx="968" cy="4569" r="8" fill="#3299f6"/><text x="968" y="4573" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+</g>
+<g data-id="aboutTab" data-component="Link">
+<text x="1032" y="4585.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">About</text>
+
+</g>
+
+</g>
+<g data-component="Text" data-ref="band.bio">
+<text x="916" y="4617.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{band.bio}</text>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="908" cy="4667" r="8" fill="#3299f6"/><text x="908" y="4671" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="926" y="4671" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~follow</text>
+<circle cx="908" cy="4689" r="8" fill="#3299f6"/><text x="908" y="4693" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="926" y="4693" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @shows</text>
+<circle cx="908" cy="4711" r="8" fill="#3299f6"/><text x="908" y="4715" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">3</text>
+<text x="926" y="4715" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @albums</text>
+<text x="1330" y="4426" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@shows ~band.loading</text>
+<g data-frame="discovery::ui::Band" data-view="@shows ~band.loading">
+<rect x="1330" y="4435" width="390" height="240" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-78"><rect x="1330" y="4435" width="390" height="240" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-78)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="1346" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="1402" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="1459" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="1523" y="4473.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="1662" y="4451" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1683" y="4473.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="1341" y="4494" width="368" height="170" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Text">
+<text x="1346" y="4513.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Loading…</text>
+
+</g>
+<g data-component="Stack">
+
+
+</g>
+<g data-component="Stack">
+<g data-id="showsTab" data-component="Link">
+<text x="1346" y="4557.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Shows</text>
+
+</g>
+<g data-id="albumsTab" data-component="Link">
+<text x="1402" y="4557.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Albums</text>
+
+</g>
+<g data-id="aboutTab" data-component="Link">
+<text x="1462" y="4557.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">About</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="1346" y="4589.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="1443" y="4589.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="1346" y="4621.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="1443" y="4621.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="1346" y="4653.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="1443" y="4653.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="1760" y="4426" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@shows ~band.error</text>
+<g data-frame="discovery::ui::Band" data-view="@shows ~band.error">
+<rect x="1760" y="4435" width="390" height="240" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-79"><rect x="1760" y="4435" width="390" height="240" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-79)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="1776" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="1832" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="1889" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="1953" y="4473.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="2092" y="4451" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="2113" y="4473.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="1771" y="4494" width="368" height="170" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Text">
+<text x="1776" y="4513.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not load this band.</text>
+
+</g>
+<g data-component="Stack">
+
+
+</g>
+<g data-component="Stack">
+<g data-id="showsTab" data-component="Link">
+<text x="1776" y="4557.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Shows</text>
+
+</g>
+<g data-id="albumsTab" data-component="Link">
+<text x="1832" y="4557.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Albums</text>
+
+</g>
+<g data-id="aboutTab" data-component="Link">
+<text x="1892" y="4557.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">About</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="1776" y="4589.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="1873" y="4589.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="1776" y="4621.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="1873" y="4621.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+<g data-component="ShowRow">
+<g data-component="Text" data-ref="show.venue">
+<text x="1776" y="4653.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="1873" y="4653.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="2190" y="4426" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@shows ~shows.empty</text>
+<g data-frame="discovery::ui::Band" data-view="@shows ~shows.empty">
+<rect x="2190" y="4435" width="390" height="204" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-80"><rect x="2190" y="4435" width="390" height="204" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-80)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="2206" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="2262" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="2319" y="4473.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="2383" y="4473.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="2522" y="4451" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="2543" y="4473.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="2201" y="4494" width="368" height="134" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-component="Image" data-ref="band.image">
+<rect x="2206" y="4499" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="2231" y="4514" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="2240" cy="4523" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 2233.4 4539.5 L 2242.4 4529 L 2248.4 4535.6 L 2252 4532 L 2258.6 4539.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="2298" y="4534.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="FollowButton">
+<rect x="2416" y="4511" width="79" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="2455.5" y="4533.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Follow</text>
+
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-id="showsTab" data-component="Link">
+<text x="2206" y="4585.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Shows</text>
+
+</g>
+<g data-id="albumsTab" data-component="Link">
+<text x="2262" y="4585.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Albums</text>
+
+</g>
+<g data-id="aboutTab" data-component="Link">
+<text x="2322" y="4585.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">About</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="Text">
+<text x="2206" y="4617.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">No upcoming shows.</text>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="40" y="4983" font-size="24" font-weight="700" fill="#1f2937">Components</text>
+<line x1="40" y1="4995" x2="2580" y2="4995" stroke="#d1d5db" stroke-width="1"/>
+<text x="40" y="5027" font-size="18" font-weight="700" fill="#1f2937">BandResult</text>
+<text x="149.49880000000002" y="5027" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">in Search</text>
+<g data-frame="discovery::ui::BandResult">
+<rect x="40" y="5043" width="320" height="92" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-81"><rect x="40" y="5043" width="320" height="92" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-81)">
+<g data-component="Stack">
+<g data-component="Image" data-ref="band.image">
+<rect x="56" y="5059" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="81" y="5074" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="90" cy="5083" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 83.4 5099.5 L 92.4 5089 L 98.4 5095.6 L 102 5092 L 108.6 5099.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="148" y="5094.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="266" y="5071" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="299.5" y="5093.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+<circle cx="266" cy="5071" r="8" fill="#3299f6"/><text x="266" y="5075" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="5163" r="8" fill="#3299f6"/><text x="48" y="5167" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="5167" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → $open(band)</text>
+<text x="40" y="5249" font-size="18" font-weight="700" fill="#1f2937">FollowButton</text>
+<text x="167.2432" y="5249" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">in Band</text>
+<g data-frame="discovery::ui::FollowButton">
+<rect x="40" y="5291" width="320" height="68" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-82"><rect x="40" y="5291" width="320" height="68" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-82)">
+<g data-component="Button">
+<rect x="56" y="5307" width="288" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="200" y="5329.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Follow</text>
+
+<circle cx="56" cy="5307" r="8" fill="#3299f6"/><text x="56" y="5311" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+</g>
+</g>
+<circle cx="48" cy="5387" r="8" fill="#3299f6"/><text x="48" y="5391" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="5391" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~follow</text>
+<text x="400" y="5282" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~follow.ready</text>
+<g data-frame="discovery::ui::FollowButton" data-view="~follow.ready">
+<rect x="400" y="5291" width="320" height="68" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-83"><rect x="400" y="5291" width="320" height="68" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-83)">
+<g data-component="Button" opacity="0.45">
+<rect x="416" y="5307" width="288" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="560" y="5329.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Following</text>
+
+
+</g>
+</g>
+</g>
+<text x="760" y="5282" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~follow.loading</text>
+<g data-frame="discovery::ui::FollowButton" data-view="~follow.loading">
+<rect x="760" y="5291" width="320" height="68" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-84"><rect x="760" y="5291" width="320" height="68" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-84)">
+<g data-component="Button" opacity="0.45">
+<rect x="776" y="5307" width="288" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="920" y="5329.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Following…</text>
+<g data-busy="true">
+<circle cx="1050" cy="5325" r="6" fill="none" stroke="#d1d5db" stroke-width="2"/>
+<path d="M 1050 5319 A 6 6 0 1 1 1044 5325" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+</g>
+
+</g>
+</g>
+</g>
+<text x="40" y="5473" font-size="18" font-weight="700" fill="#1f2937">ShowRow</text>
+<text x="139.9588" y="5473" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">in Band @shows</text>
+<g data-frame="discovery::ui::ShowRow">
+<rect x="40" y="5489" width="320" height="52" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-85"><rect x="40" y="5489" width="320" height="52" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-85)">
+<g data-component="Stack">
+<g data-component="Text" data-ref="show.venue">
+<text x="56" y="5519.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="153" y="5519.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+<circle cx="56" cy="5505" r="8" fill="#3299f6"/><text x="56" y="5509" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+</g>
+</g>
+<circle cx="48" cy="5569" r="8" fill="#3299f6"/><text x="48" y="5573" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="5573" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → $open(show)</text>
+<text x="40" y="5655" font-size="18" font-weight="700" fill="#1f2937">AlbumCard</text>
+<text x="145.49200000000002" y="5655" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">in Band @albums</text>
+<g transform="translate(40, 5671)"><g transform="translate(40, 40)">
+
+<path d="M 86 36 Q 58 64 86 92" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="66" y="68" text-anchor="end" font-size="11" fill="#444">click Play</text>
+<path d="M 86 92 Q 114 64 86 36" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="106" y="68" font-size="11" fill="#444">close AlbumPlayer</text>
+<rect x="46" y="0" width="80" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="86" y="22" text-anchor="middle" fill="white" font-weight="600">closed</text>
+<rect x="35.5" y="92" width="101" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="86" y="114" text-anchor="middle" fill="white" font-weight="600">listening</text>
+</g></g>
+<text x="40" y="5922" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@closed</text>
+<g data-frame="discovery::ui::AlbumCard" data-view="@closed">
+<rect x="40" y="5931" width="320" height="328" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-86"><rect x="40" y="5931" width="320" height="328" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-86)">
+<g data-component="Stack">
+<g data-component="Image" data-ref="album.cover">
+<rect x="56" y="5947" width="288" height="216" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="180" y="6035" width="40" height="40" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="192" cy="6047" r="3.5999999999999996" fill="#9ca3af"/>
+<path d="M 183.2 6069 L 195.2 6055 L 203.2 6063.8 L 208 6059 L 216.8 6069" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+<text x="64" y="6155" font-size="11" fill="#9ca3af">{album.cover}</text>
+
+</g>
+<g data-component="Text" data-ref="album.title">
+<text x="56" y="6189.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{album.title}</text>
+
+</g>
+<g data-component="Button">
+<rect x="56" y="6207" width="288" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="200" y="6229.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Play</text>
+
+<circle cx="56" cy="6207" r="8" fill="#3299f6"/><text x="56" y="6211" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="6287" r="8" fill="#3299f6"/><text x="48" y="6291" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="6291" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @listening</text>
+<text x="400" y="5922" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@listening</text>
+<g data-frame="discovery::ui::AlbumCard" data-view="@listening">
+<rect x="400" y="5931" width="320" height="328" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-87"><rect x="400" y="5931" width="320" height="328" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-87)">
+<g data-component="Stack">
+<g data-component="Image" data-ref="album.cover">
+<rect x="416" y="5947" width="288" height="216" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="540" y="6035" width="40" height="40" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="552" cy="6047" r="3.5999999999999996" fill="#9ca3af"/>
+<path d="M 543.2 6069 L 555.2 6055 L 563.2 6063.8 L 568 6059 L 576.8 6069" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+<text x="424" y="6155" font-size="11" fill="#9ca3af">{album.cover}</text>
+
+</g>
+<g data-component="Text" data-ref="album.title">
+<text x="416" y="6189.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{album.title}</text>
+
+</g>
+<g data-component="Button">
+<rect x="416" y="6207" width="288" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="560" y="6229.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Play</text>
+
+
+</g>
+
+</g>
+<rect x="400" y="5931" width="320" height="328" fill="rgba(17, 24, 39, 0.45)"/>
+<g filter="url(#ui-shadow)"><rect x="424" y="5977" width="272" height="236" rx="0" fill="#ffffff"/></g>
+<g data-component="AlbumPlayer">
+<g data-component="AlbumHeader">
+<g data-component="Image" data-ref="album.cover">
+<rect x="440" y="5993" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="465" y="6008" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="474" cy="6017" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 467.4 6033.5 L 476.4 6023 L 482.4 6029.6 L 486 6026 L 492.6 6033.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="album.title">
+<text x="532" y="6028.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{album.title}</text>
+
+</g>
+<g data-component="Button">
+<rect x="440" y="6065" width="70" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="475" y="6087.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Close</text>
+
+<circle cx="440" cy="6065" r="8" fill="#3299f6"/><text x="440" y="6069" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+<g data-component="TrackRow">
+<g data-component="Text" data-ref="track.title">
+<text x="440" y="6127.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.title}</text>
+
+</g>
+<g data-component="Text" data-ref="track.length">
+<text x="522" y="6127.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.length}</text>
+
+</g>
+<circle cx="440" cy="6113" r="8" fill="#3299f6"/><text x="440" y="6117" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+<g data-component="TrackRow">
+<g data-component="Text" data-ref="track.title">
+<text x="440" y="6159.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.title}</text>
+
+</g>
+<g data-component="Text" data-ref="track.length">
+<text x="522" y="6159.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.length}</text>
+
+</g>
+
+</g>
+<g data-component="TrackRow">
+<g data-component="Text" data-ref="track.title">
+<text x="440" y="6191.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.title}</text>
+
+</g>
+<g data-component="Text" data-ref="track.length">
+<text x="522" y="6191.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.length}</text>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="408" cy="6287" r="8" fill="#3299f6"/><text x="408" y="6291" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="426" y="6291" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">close → @closed</text>
+<circle cx="408" cy="6309" r="8" fill="#3299f6"/><text x="408" y="6313" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="426" y="6313" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">select(picked) → @playing(picked)</text>
+<text x="40" y="6395" font-size="18" font-weight="700" fill="#1f2937">AlbumPlayer</text>
+<text x="160.75600000000003" y="6395" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">in AlbumCard @listening, modal</text>
+<g transform="translate(40, 6411)"><g transform="translate(40, 40)">
+
+<path d="M 45.5 36 L 45.5 92" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="51.5" y="54" font-size="11" fill="#444">select TrackRow</text>
+<rect x="2" y="0" width="87" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="45.5" y="22" text-anchor="middle" fill="white" font-weight="600">stopped</text>
+<rect x="2" y="92" width="87" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="45.5" y="114" text-anchor="middle" fill="white" font-weight="600">playing</text>
+</g></g>
+<text x="40" y="6662" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@stopped</text>
+<g data-frame="discovery::ui::AlbumPlayer" data-view="@stopped">
+<rect x="40" y="6671" width="320" height="188" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-88"><rect x="40" y="6671" width="320" height="188" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-88)">
+<g data-component="Stack">
+<g data-component="AlbumHeader">
+<g data-component="Image" data-ref="album.cover">
+<rect x="56" y="6687" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="81" y="6702" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="90" cy="6711" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 83.4 6727.5 L 92.4 6717 L 98.4 6723.6 L 102 6720 L 108.6 6727.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="album.title">
+<text x="148" y="6722.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{album.title}</text>
+
+</g>
+<g data-component="Button">
+<rect x="264" y="6699" width="70" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="299" y="6721.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Close</text>
+
+<circle cx="264" cy="6699" r="8" fill="#3299f6"/><text x="264" y="6703" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+<g data-component="TrackRow">
+<g data-component="Text" data-ref="track.title">
+<text x="56" y="6773.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.title}</text>
+
+</g>
+<g data-component="Text" data-ref="track.length">
+<text x="138" y="6773.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.length}</text>
+
+</g>
+<circle cx="56" cy="6759" r="8" fill="#3299f6"/><text x="56" y="6763" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+<g data-component="TrackRow">
+<g data-component="Text" data-ref="track.title">
+<text x="56" y="6805.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.title}</text>
+
+</g>
+<g data-component="Text" data-ref="track.length">
+<text x="138" y="6805.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.length}</text>
+
+</g>
+
+</g>
+<g data-component="TrackRow">
+<g data-component="Text" data-ref="track.title">
+<text x="56" y="6837.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.title}</text>
+
+</g>
+<g data-component="Text" data-ref="track.length">
+<text x="138" y="6837.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.length}</text>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="6887" r="8" fill="#3299f6"/><text x="48" y="6891" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="6891" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">close → $close</text>
+<circle cx="48" cy="6909" r="8" fill="#3299f6"/><text x="48" y="6913" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="66" y="6913" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">select(picked) → @playing(picked)</text>
+<text x="400" y="6662" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@playing</text>
+<g data-frame="discovery::ui::AlbumPlayer" data-view="@playing">
+<rect x="400" y="6671" width="320" height="272" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-89"><rect x="400" y="6671" width="320" height="272" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-89)">
+<g data-component="Stack">
+<g data-component="AlbumHeader">
+<g data-component="Image" data-ref="album.cover">
+<rect x="416" y="6687" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="441" y="6702" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="450" cy="6711" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 443.4 6727.5 L 452.4 6717 L 458.4 6723.6 L 462 6720 L 468.6 6727.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="album.title">
+<text x="508" y="6722.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{album.title}</text>
+
+</g>
+<g data-component="Button">
+<rect x="624" y="6699" width="70" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="659" y="6721.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Close</text>
+
+<circle cx="624" cy="6699" r="8" fill="#3299f6"/><text x="624" y="6703" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+<g data-component="TrackRow">
+<g data-component="Text" data-ref="track.title">
+<text x="416" y="6773.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.title}</text>
+
+</g>
+<g data-component="Text" data-ref="track.length">
+<text x="498" y="6773.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.length}</text>
+
+</g>
+<circle cx="416" cy="6759" r="8" fill="#3299f6"/><text x="416" y="6763" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+<g data-component="TrackRow">
+<g data-component="Text" data-ref="track.title">
+<text x="416" y="6805.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.title}</text>
+
+</g>
+<g data-component="Text" data-ref="track.length">
+<text x="498" y="6805.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.length}</text>
+
+</g>
+
+</g>
+<g data-component="TrackRow">
+<g data-component="Text" data-ref="track.title">
+<text x="416" y="6837.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.title}</text>
+
+</g>
+<g data-component="Text" data-ref="track.length">
+<text x="498" y="6837.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.length}</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="Text" data-ref="current.title">
+<text x="416" y="6869.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{current.title}</text>
+
+</g>
+<g data-component="Audio" data-ref="current.audio">
+<rect x="416" y="6887" width="288" height="40" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<circle cx="436" cy="6907" r="10" fill="#1f2937"/>
+<path d="M 433 6902 L 441 6907 L 433 6912 Z" fill="#ffffff"/>
+<line x1="456" y1="6907" x2="688" y2="6907" stroke="#d1d5db" stroke-width="3" stroke-linecap="round"/>
+<line x1="456" y1="6907" x2="537.2" y2="6907" stroke="#1f2937" stroke-width="3" stroke-linecap="round"/>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="408" cy="6971" r="8" fill="#3299f6"/><text x="408" y="6975" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="426" y="6975" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">close → $close</text>
+<circle cx="408" cy="6993" r="8" fill="#3299f6"/><text x="408" y="6997" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="426" y="6997" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">select(picked) → @playing(picked)</text>
+<text x="760" y="6662" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@stopped ~tracks.loading</text>
+<g data-frame="discovery::ui::AlbumPlayer" data-view="@stopped ~tracks.loading">
+<rect x="760" y="6671" width="320" height="124" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-90"><rect x="760" y="6671" width="320" height="124" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-90)">
+<g data-component="Stack">
+<g data-component="AlbumHeader">
+<g data-component="Image" data-ref="album.cover">
+<rect x="776" y="6687" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="801" y="6702" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="810" cy="6711" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 803.4 6727.5 L 812.4 6717 L 818.4 6723.6 L 822 6720 L 828.6 6727.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="album.title">
+<text x="868" y="6722.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{album.title}</text>
+
+</g>
+<g data-component="Button">
+<rect x="984" y="6699" width="70" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1019" y="6721.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Close</text>
+
+
+</g>
+
+</g>
+<g data-component="Text">
+<text x="776" y="6773.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Loading tracks…</text>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="40" y="7079" font-size="18" font-weight="700" fill="#1f2937">AlbumHeader</text>
+<text x="165.71680000000003" y="7079" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">in AlbumPlayer</text>
+<g data-frame="discovery::ui::AlbumHeader">
+<rect x="40" y="7095" width="320" height="92" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-91"><rect x="40" y="7095" width="320" height="92" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-91)">
+<g data-component="Stack">
+<g data-component="Image" data-ref="album.cover">
+<rect x="56" y="7111" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="81" y="7126" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="90" cy="7135" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 83.4 7151.5 L 92.4 7141 L 98.4 7147.6 L 102 7144 L 108.6 7151.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="album.title">
+<text x="148" y="7146.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{album.title}</text>
+
+</g>
+<g data-component="Button">
+<rect x="264" y="7123" width="70" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="299" y="7145.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Close</text>
+
+<circle cx="264" cy="7123" r="8" fill="#3299f6"/><text x="264" y="7127" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="7215" r="8" fill="#3299f6"/><text x="48" y="7219" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="7219" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → $close</text>
+<text x="40" y="7301" font-size="18" font-weight="700" fill="#1f2937">TrackRow</text>
+<text x="140.3404" y="7301" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">in AlbumPlayer</text>
+<g data-frame="discovery::ui::TrackRow">
+<rect x="40" y="7317" width="320" height="52" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-92"><rect x="40" y="7317" width="320" height="52" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-92)">
+<g data-component="Stack">
+<g data-component="Text" data-ref="track.title">
+<text x="56" y="7347.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.title}</text>
+
+</g>
+<g data-component="Text" data-ref="track.length">
+<text x="138" y="7347.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{track.length}</text>
+
+</g>
+<circle cx="56" cy="7333" r="8" fill="#3299f6"/><text x="56" y="7337" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+</g>
+</g>
+<circle cx="48" cy="7397" r="8" fill="#3299f6"/><text x="48" y="7401" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="7401" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → $select(track)</text>
+<g data-document="tickets::ui">
+<text x="40" y="7507" font-size="32" font-weight="700" fill="#1f2937">tickets::ui</text>
+<line x1="40" y1="7521" x2="2580" y2="7521" stroke="#1f2937" stroke-width="2"/>
+</g>
+<text x="40" y="7559" font-size="24" font-weight="700" fill="#1f2937">Screens</text>
+<line x1="40" y1="7571" x2="2580" y2="7571" stroke="#d1d5db" stroke-width="1"/>
+<text x="40" y="7603" font-size="18" font-weight="700" fill="#1f2937">Show</text>
+<text x="101.0356" y="7603" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">/shows/:id</text>
+<g data-frame="tickets::ui::Show">
+<rect x="40" y="7645" width="390" height="250" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-93"><rect x="40" y="7645" width="390" height="250" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-93)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="56" y="7683.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="112" y="7683.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="169" y="7683.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="233" y="7683.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="372" y="7661" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="393" y="7683.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="51" y="7704" width="368" height="180" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading" data-ref="show.venue">
+<text x="56" y="7727.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="show.date">
+<text x="56" y="7761.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.date}</text>
+
+</g>
+<g data-component="Link" data-ref="show.band.name">
+<text x="56" y="7793.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start" text-decoration="underline">{show.band.name}</text>
+<circle cx="52" cy="7777" r="8" fill="#3299f6"/><text x="52" y="7781" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+<g data-component="Text" data-ref="show.price">
+<text x="56" y="7825.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{show.price}</text>
+
+</g>
+<g data-component="TicketPicker">
+<g data-component="Stack">
+<g data-id="qty" data-component="Select">
+<rect x="56" y="7843" width="200" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="68" y="7866" font-size="14" fill="#1f2937">1</text>
+<path d="M 233 7859 L 238 7864 L 243 7859" fill="none" stroke="#4b5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Text" data-ref="quote.total">
+<text x="268" y="7865.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{quote.total}</text>
+
+</g>
+<g data-component="Button">
+<rect x="356" y="7843" width="58" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="385" y="7865.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Buy</text>
+
+<circle cx="356" cy="7843" r="8" fill="#3299f6"/><text x="356" y="7847" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="7923" r="8" fill="#3299f6"/><text x="48" y="7927" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="7927" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → go Band(id=show.band.id)</text>
+<circle cx="48" cy="7945" r="8" fill="#3299f6"/><text x="48" y="7949" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="66" y="7949" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~order</text>
+<text x="470" y="7636" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~show.error</text>
+<g data-frame="tickets::ui::Show" data-view="~show.error">
+<rect x="470" y="7645" width="390" height="200" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-94"><rect x="470" y="7645" width="390" height="200" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-94)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="486" y="7683.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="542" y="7683.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="599" y="7683.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="663" y="7683.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="802" y="7661" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="823" y="7683.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="481" y="7704" width="368" height="30" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Text">
+<text x="486" y="7723.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not load this show.</text>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="40" y="8031" font-size="18" font-weight="700" fill="#1f2937">Ticket</text>
+<text x="106.5688" y="8031" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">/tickets/:id</text>
+<g data-frame="tickets::ui::Ticket">
+<rect x="40" y="8073" width="390" height="234" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-95"><rect x="40" y="8073" width="390" height="234" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-95)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="56" y="8111.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="112" y="8111.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="169" y="8111.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="233" y="8111.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="372" y="8089" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="393" y="8111.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="51" y="8132" width="368" height="164" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="56" y="8155.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">You're going!</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.venue">
+<text x="56" y="8189.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.date">
+<text x="56" y="8221.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.date}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.quantity">
+<text x="56" y="8253.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.quantity}</text>
+
+</g>
+<g data-component="Link">
+<text x="56" y="8285.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Your tickets</text>
+<circle cx="52" cy="8269" r="8" fill="#3299f6"/><text x="52" y="8273" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="8335" r="8" fill="#3299f6"/><text x="48" y="8339" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="8339" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → go Library</text>
+<text x="470" y="8064" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~ticket.error</text>
+<g data-frame="tickets::ui::Ticket" data-view="~ticket.error">
+<rect x="470" y="8073" width="390" height="200" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-96"><rect x="470" y="8073" width="390" height="200" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-96)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="486" y="8111.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="542" y="8111.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="599" y="8111.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="663" y="8111.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="802" y="8089" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="823" y="8111.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="481" y="8132" width="368" height="100" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Text">
+<text x="486" y="8151.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not load this ticket.</text>
+
+</g>
+<g data-component="Heading">
+<text x="486" y="8187.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">You're going!</text>
+
+</g>
+<g data-component="Link">
+<text x="486" y="8221.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Your tickets</text>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="40" y="8441" font-size="24" font-weight="700" fill="#1f2937">Components</text>
+<line x1="40" y1="8453" x2="2580" y2="8453" stroke="#d1d5db" stroke-width="1"/>
+<text x="40" y="8485" font-size="18" font-weight="700" fill="#1f2937">TicketPicker</text>
+<text x="161.13760000000002" y="8485" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">in Show</text>
+<g data-frame="tickets::ui::TicketPicker">
+<rect x="40" y="8527" width="320" height="68" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-97"><rect x="40" y="8527" width="320" height="68" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-97)">
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="qty" data-component="Select">
+<rect x="56" y="8543" width="130" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="68" y="8566" font-size="14" fill="#1f2937">1</text>
+<path d="M 163 8559 L 168 8564 L 173 8559" fill="none" stroke="#4b5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Text" data-ref="quote.total">
+<text x="198" y="8565.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{quote.total}</text>
+
+</g>
+<g data-component="Button">
+<rect x="286" y="8543" width="58" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="315" y="8565.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Buy</text>
+
+<circle cx="286" cy="8543" r="8" fill="#3299f6"/><text x="286" y="8547" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="8623" r="8" fill="#3299f6"/><text x="48" y="8627" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="8627" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~order</text>
+<text x="400" y="8518" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~order.loading</text>
+<g data-frame="tickets::ui::TicketPicker" data-view="~order.loading">
+<rect x="400" y="8527" width="320" height="116" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-98"><rect x="400" y="8527" width="320" height="116" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-98)">
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="qty" data-component="Select">
+<rect x="416" y="8543" width="200" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="428" y="8566" font-size="14" fill="#1f2937">1</text>
+<path d="M 593 8559 L 598 8564 L 603 8559" fill="none" stroke="#4b5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Text" data-ref="quote.total">
+<text x="628" y="8565.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{quote.total}</text>
+
+</g>
+<g data-component="Button" opacity="0.45">
+<rect x="416" y="8591" width="93" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="462.5" y="8613.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Buyin…</text>
+<g data-busy="true">
+<circle cx="495" cy="8609" r="6" fill="none" stroke="#d1d5db" stroke-width="2"/>
+<path d="M 495 8603 A 6 6 0 1 1 489 8609" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="760" y="8518" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~order.error</text>
+<g data-frame="tickets::ui::TicketPicker" data-view="~order.error">
+<rect x="760" y="8527" width="320" height="100" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-99"><rect x="760" y="8527" width="320" height="100" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-99)">
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="qty" data-component="Select">
+<rect x="776" y="8543" width="130" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="788" y="8566" font-size="14" fill="#1f2937">1</text>
+<path d="M 883 8559 L 888 8564 L 893 8559" fill="none" stroke="#4b5563" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Text" data-ref="quote.total">
+<text x="918" y="8565.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{quote.total}</text>
+
+</g>
+<g data-component="Button">
+<rect x="1006" y="8543" width="58" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1035" y="8565.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Buy</text>
+
+
+</g>
+
+</g>
+<g data-component="Text">
+<text x="776" y="8605.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not complete your order.</text>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="40" y="8735" font-size="18" font-weight="700" fill="#1f2937">TicketRow</text>
+<text x="145.492" y="8735" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">in library::ui Library @tickets</text>
+<g transform="translate(40, 8751)"><g transform="translate(40, 40)">
+
+<path d="M 99.2 36 Q 71.2 64 99.2 92" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="79.2" y="68" text-anchor="end" font-size="11" fill="#444">click Cancel</text>
+<path d="M 99.2 92 Q 127.2 64 99.2 36" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="119.2" y="68" font-size="11" fill="#444">click Keep it, ~cancelTicket.ready, ~cancelTicket.error</text>
+<rect x="55.7" y="0" width="87" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="99.2" y="22" text-anchor="middle" fill="white" font-weight="600">holding</text>
+<rect x="45.2" y="92" width="108" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="99.2" y="114" text-anchor="middle" fill="white" font-weight="600">confirming</text>
+</g></g>
+<text x="40" y="9002" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@holding</text>
+<g data-frame="tickets::ui::TicketRow" data-view="@holding">
+<rect x="40" y="9011" width="320" height="100" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-100"><rect x="40" y="9011" width="320" height="100" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-100)">
+<g data-component="Stack">
+<g data-component="Text" data-ref="ticket.show.venue">
+<text x="56" y="9041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.date">
+<text x="192" y="9041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.date}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.quantity">
+<text x="56" y="9081.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.quantity}</text>
+
+</g>
+<g data-component="Button">
+<rect x="168" y="9059" width="78" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="207" y="9081.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Cancel</text>
+
+<circle cx="168" cy="9059" r="8" fill="#3299f6"/><text x="168" y="9063" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="9139" r="8" fill="#3299f6"/><text x="48" y="9143" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="9143" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @confirming</text>
+<text x="400" y="9002" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@confirming</text>
+<g data-frame="tickets::ui::TicketRow" data-view="@confirming">
+<rect x="400" y="9011" width="320" height="228" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-101"><rect x="400" y="9011" width="320" height="228" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-101)">
+<g data-component="Stack">
+<g data-component="Text" data-ref="ticket.show.venue">
+<text x="416" y="9041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.date">
+<text x="552" y="9041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.date}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.quantity">
+<text x="416" y="9081.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.quantity}</text>
+
+</g>
+<g data-component="Button">
+<rect x="528" y="9059" width="78" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="567" y="9081.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Cancel</text>
+
+
+</g>
+
+</g>
+<rect x="400" y="9011" width="320" height="228" fill="rgba(17, 24, 39, 0.45)"/>
+<g filter="url(#ui-shadow)"><rect x="424" y="9051" width="272" height="148" rx="0" fill="#ffffff"/></g>
+<g data-component="Stack">
+<g data-component="Text">
+<text x="440" y="9081.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Cancel this ticket?</text>
+
+</g>
+<g data-component="Button">
+<rect x="440" y="9099" width="240" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="560" y="9121.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Keep it</text>
+
+<circle cx="440" cy="9099" r="8" fill="#3299f6"/><text x="440" y="9103" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+<g data-component="Button">
+<rect x="440" y="9147" width="240" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="560" y="9169.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Cancel it</text>
+
+<circle cx="440" cy="9147" r="8" fill="#3299f6"/><text x="440" y="9151" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="408" cy="9267" r="8" fill="#3299f6"/><text x="408" y="9271" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="426" y="9271" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @holding</text>
+<circle cx="408" cy="9289" r="8" fill="#3299f6"/><text x="408" y="9293" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="426" y="9293" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~cancelTicket</text>
+<text x="760" y="9002" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@holding ~cancelTicket.ready</text>
+<g data-frame="tickets::ui::TicketRow" data-view="@holding ~cancelTicket.ready">
+<rect x="760" y="9011" width="320" height="84" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-102"><rect x="760" y="9011" width="320" height="84" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-102)">
+<g data-component="Stack">
+<g data-component="Text" data-ref="ticket.show.venue">
+<text x="776" y="9041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.date">
+<text x="912" y="9041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.date}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.quantity">
+<text x="776" y="9073.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.quantity}</text>
+
+</g>
+<g data-component="Text">
+<text x="888" y="9073.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Cancelled</text>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="1120" y="9002" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@holding ~cancelTicket.error</text>
+<g data-frame="tickets::ui::TicketRow" data-view="@holding ~cancelTicket.error">
+<rect x="1120" y="9011" width="320" height="132" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-103"><rect x="1120" y="9011" width="320" height="132" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-103)">
+<g data-component="Stack">
+<g data-component="Text" data-ref="ticket.show.venue">
+<text x="1136" y="9041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.date">
+<text x="1272" y="9041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.date}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.quantity">
+<text x="1136" y="9081.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.quantity}</text>
+
+</g>
+<g data-component="Button">
+<rect x="1248" y="9059" width="78" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1287" y="9081.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Cancel</text>
+
+
+</g>
+<g data-component="Text">
+<text x="1136" y="9121.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not cancel.</text>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="1480" y="9002" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@confirming ~cancelTicket.loading</text>
+<g data-frame="tickets::ui::TicketRow" data-view="@confirming ~cancelTicket.loading">
+<rect x="1480" y="9011" width="320" height="132" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-104"><rect x="1480" y="9011" width="320" height="132" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-104)">
+<g data-component="Stack">
+<g data-component="Text" data-ref="ticket.show.venue">
+<text x="1496" y="9041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.date">
+<text x="1632" y="9041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.date}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.quantity">
+<text x="1496" y="9081.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.quantity}</text>
+
+</g>
+<g data-component="Button">
+<rect x="1608" y="9059" width="78" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1647" y="9081.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Cancel</text>
+
+
+</g>
+
+</g>
+<rect x="1480" y="9011" width="320" height="132" fill="rgba(17, 24, 39, 0.45)"/>
+<g filter="url(#ui-shadow)"><rect x="1504" y="9051" width="272" height="52" rx="0" fill="#ffffff"/></g>
+<g data-component="Text">
+<text x="1520" y="9081.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Cancelling…</text>
+
+</g>
+</g>
+</g>
+<g data-document="library::ui">
+<text x="40" y="9399" font-size="32" font-weight="700" fill="#1f2937">library::ui</text>
+<line x1="40" y1="9413" x2="2580" y2="9413" stroke="#1f2937" stroke-width="2"/>
+</g>
+<text x="40" y="9451" font-size="24" font-weight="700" fill="#1f2937">Screens</text>
+<line x1="40" y1="9463" x2="2580" y2="9463" stroke="#d1d5db" stroke-width="1"/>
+<text x="40" y="9495" font-size="18" font-weight="700" fill="#1f2937">Library</text>
+<text x="113.05600000000001" y="9495" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">/library</text>
+<g transform="translate(40, 9511)"><g transform="translate(40, 40)">
+
+<path d="M 105.8 92 Q 133.8 64 105.8 36" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="125.8" y="68" font-size="11" fill="#444">click Bands</text>
+<path d="M 105.8 36 Q 77.8 64 105.8 92" fill="none" stroke="#333" stroke-width="1" marker-end="url(#state-arr)"/>
+<text x="85.8" y="68" text-anchor="end" font-size="11" fill="#444">click Tickets</text>
+<rect x="69.8" y="0" width="72" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="105.8" y="22" text-anchor="middle" fill="white" font-weight="600">bands</text>
+<rect x="62.3" y="92" width="87" height="36" rx="6" ry="6" fill="#1f2937"/>
+<text x="105.8" y="114" text-anchor="middle" fill="white" font-weight="600">tickets</text>
+</g></g>
+<text x="40" y="9762" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@bands</text>
+<g data-frame="library::ui::Library" data-view="@bands">
+<rect x="40" y="9771" width="390" height="316" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-105"><rect x="40" y="9771" width="390" height="316" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-105)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="56" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="112" y="9809.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="169" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="233" y="9809.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="372" y="9787" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="393" y="9809.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="51" y="9830" width="368" height="246" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="bandsTab" data-component="Link">
+<text x="56" y="9849.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Bands</text>
+
+</g>
+<g data-id="ticketsTab" data-component="Link">
+<text x="107" y="9849.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Tickets</text>
+<circle cx="103" cy="9833" r="8" fill="#3299f6"/><text x="103" y="9837" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="56" y="9867" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="81" y="9882" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="90" cy="9891" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 83.4 9907.5 L 92.4 9897 L 98.4 9903.6 L 102 9900 L 108.6 9907.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="148" y="9902.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="266" y="9879" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="299.5" y="9901.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+<circle cx="266" cy="9879" r="8" fill="#3299f6"/><text x="266" y="9883" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+
+</g>
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="56" y="9939" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="81" y="9954" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="90" cy="9963" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 83.4 9979.5 L 92.4 9969 L 98.4 9975.6 L 102 9972 L 108.6 9979.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="148" y="9974.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="266" y="9951" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="299.5" y="9973.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+
+</g>
+
+</g>
+<g data-component="BandResult">
+<g data-component="Image" data-ref="band.image">
+<rect x="56" y="10011" width="80" height="60" rx="0" fill="#f3f4f6" stroke="#d1d5db"/>
+<rect x="81" y="10026" width="30" height="30" rx="0" fill="none" stroke="#9ca3af" stroke-width="1.5"/>
+<circle cx="90" cy="10035" r="2.6999999999999997" fill="#9ca3af"/>
+<path d="M 83.4 10051.5 L 92.4 10041 L 98.4 10047.6 L 102 10044 L 108.6 10051.5" fill="none" stroke="#9ca3af" stroke-width="1.5" stroke-linejoin="round"/>
+
+</g>
+<g data-component="Heading" data-ref="band.name">
+<text x="148" y="10046.9" font-size="18" font-weight="700" fill="#9ca3af" text-anchor="start">{band.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="266" y="10023" width="67" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="299.5" y="10045.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">View</text>
+
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="10115" r="8" fill="#3299f6"/><text x="48" y="10119" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="10119" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @tickets</text>
+<circle cx="48" cy="10137" r="8" fill="#3299f6"/><text x="48" y="10141" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="66" y="10141" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">open(picked) → go Band(id=picked.id)</text>
+<text x="470" y="9762" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@tickets</text>
+<g data-frame="library::ui::Library" data-view="@tickets">
+<rect x="470" y="9771" width="390" height="340" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-106"><rect x="470" y="9771" width="390" height="340" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-106)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="486" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="542" y="9809.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="599" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="663" y="9809.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="802" y="9787" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="823" y="9809.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="481" y="9830" width="368" height="270" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="bandsTab" data-component="Link">
+<text x="486" y="9849.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Bands</text>
+<circle cx="482" cy="9833" r="8" fill="#3299f6"/><text x="482" y="9837" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+<g data-id="ticketsTab" data-component="Link">
+<text x="537" y="9849.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Tickets</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="TicketRow">
+<g data-component="Text" data-ref="ticket.show.venue">
+<text x="486" y="9881.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.date">
+<text x="622" y="9881.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.date}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.quantity">
+<text x="486" y="9921.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.quantity}</text>
+
+</g>
+<g data-component="Button">
+<rect x="598" y="9899" width="78" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="637" y="9921.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Cancel</text>
+
+<circle cx="598" cy="9899" r="8" fill="#3299f6"/><text x="598" y="9903" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+</g>
+
+</g>
+<g data-component="TicketRow">
+<g data-component="Text" data-ref="ticket.show.venue">
+<text x="486" y="9961.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.date">
+<text x="622" y="9961.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.date}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.quantity">
+<text x="486" y="10001.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.quantity}</text>
+
+</g>
+<g data-component="Button">
+<rect x="598" y="9979" width="78" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="637" y="10001.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Cancel</text>
+
+
+</g>
+
+</g>
+<g data-component="TicketRow">
+<g data-component="Text" data-ref="ticket.show.venue">
+<text x="486" y="10041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.venue}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.show.date">
+<text x="622" y="10041.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.show.date}</text>
+
+</g>
+<g data-component="Text" data-ref="ticket.quantity">
+<text x="486" y="10081.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{ticket.quantity}</text>
+
+</g>
+<g data-component="Button">
+<rect x="598" y="10059" width="78" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="637" y="10081.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Cancel</text>
+
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="478" cy="10139" r="8" fill="#3299f6"/><text x="478" y="10143" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="496" y="10143" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @bands</text>
+<circle cx="478" cy="10161" r="8" fill="#3299f6"/><text x="478" y="10165" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">2</text>
+<text x="496" y="10165" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → @confirming</text>
+<text x="900" y="9762" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@bands ~favorites.error</text>
+<g data-frame="library::ui::Library" data-view="@bands ~favorites.error">
+<rect x="900" y="9771" width="390" height="200" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-107"><rect x="900" y="9771" width="390" height="200" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-107)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="916" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="972" y="9809.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="1029" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="1093" y="9809.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="1232" y="9787" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1253" y="9809.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="911" y="9830" width="368" height="62" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="bandsTab" data-component="Link">
+<text x="916" y="9849.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Bands</text>
+
+</g>
+<g data-id="ticketsTab" data-component="Link">
+<text x="967" y="9849.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Tickets</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="Text">
+<text x="916" y="9881.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not load your bands.</text>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="1330" y="9762" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@bands ~favorites.empty</text>
+<g data-frame="library::ui::Library" data-view="@bands ~favorites.empty">
+<rect x="1330" y="9771" width="390" height="200" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-108"><rect x="1330" y="9771" width="390" height="200" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-108)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="1346" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="1402" y="9809.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="1459" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="1523" y="9809.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="1662" y="9787" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1683" y="9809.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="1341" y="9830" width="368" height="62" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="bandsTab" data-component="Link">
+<text x="1346" y="9849.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Bands</text>
+
+</g>
+<g data-id="ticketsTab" data-component="Link">
+<text x="1397" y="9849.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Tickets</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="Text">
+<text x="1346" y="9881.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">You haven't followed any bands yet.</text>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="1760" y="9762" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@tickets ~tickets.error</text>
+<g data-frame="library::ui::Library" data-view="@tickets ~tickets.error">
+<rect x="1760" y="9771" width="390" height="200" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-109"><rect x="1760" y="9771" width="390" height="200" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-109)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="1776" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="1832" y="9809.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="1889" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="1953" y="9809.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="2092" y="9787" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="2113" y="9809.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="1771" y="9830" width="368" height="62" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="bandsTab" data-component="Link">
+<text x="1776" y="9849.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Bands</text>
+
+</g>
+<g data-id="ticketsTab" data-component="Link">
+<text x="1827" y="9849.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Tickets</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="Text">
+<text x="1776" y="9881.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not load your tickets.</text>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="2190" y="9762" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">@tickets ~tickets.empty</text>
+<g data-frame="library::ui::Library" data-view="@tickets ~tickets.empty">
+<rect x="2190" y="9771" width="390" height="200" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-110"><rect x="2190" y="9771" width="390" height="200" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-110)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="2206" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="2262" y="9809.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="2319" y="9809.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="2383" y="9809.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="2522" y="9787" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="2543" y="9809.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="2201" y="9830" width="368" height="62" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Stack">
+<g data-id="bandsTab" data-component="Link">
+<text x="2206" y="9849.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Bands</text>
+
+</g>
+<g data-id="ticketsTab" data-component="Link">
+<text x="2257" y="9849.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Tickets</text>
+
+</g>
+
+</g>
+<g data-component="Stack">
+<g data-component="Text">
+<text x="2206" y="9881.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">No tickets yet.</text>
+
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<g data-document="account::ui">
+<text x="40" y="10271" font-size="32" font-weight="700" fill="#1f2937">account::ui</text>
+<line x1="40" y1="10285" x2="2580" y2="10285" stroke="#1f2937" stroke-width="2"/>
+</g>
+<text x="40" y="10323" font-size="24" font-weight="700" fill="#1f2937">Screens</text>
+<line x1="40" y1="10335" x2="2580" y2="10335" stroke="#d1d5db" stroke-width="1"/>
+<text x="40" y="10367" font-size="18" font-weight="700" fill="#1f2937">Account</text>
+<text x="121.64200000000001" y="10367" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#9ca3af">/account</text>
+<g data-frame="account::ui::Account">
+<rect x="40" y="10409" width="390" height="250" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-111"><rect x="40" y="10409" width="390" height="250" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-111)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="56" y="10447.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="112" y="10447.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="169" y="10447.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="233" y="10447.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="372" y="10425" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="393" y="10447.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="51" y="10468" width="368" height="180" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="56" y="10491.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">Your profile</text>
+
+</g>
+<g data-id="name" data-component="Input" data-ref="profile.name">
+<rect x="56" y="10511" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="68" y="10534" font-size="14" fill="#1f2937">{profile.name}</text>
+
+</g>
+<g data-id="bio" data-component="Input" data-ref="profile.bio">
+<rect x="56" y="10559" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="68" y="10582" font-size="14" fill="#1f2937">{profile.bio}</text>
+
+</g>
+<g data-component="Button">
+<rect x="56" y="10607" width="358" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="235" y="10629.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Save</text>
+
+<circle cx="56" cy="10607" r="8" fill="#3299f6"/><text x="56" y="10611" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<circle cx="48" cy="10687" r="8" fill="#3299f6"/><text x="48" y="10691" text-anchor="middle" font-size="10" font-weight="700" fill="#ffffff">1</text>
+<text x="66" y="10691" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">click → ~saveProfile</text>
+<text x="470" y="10400" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~profile.error</text>
+<g data-frame="account::ui::Account" data-view="~profile.error">
+<rect x="470" y="10409" width="390" height="200" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-112"><rect x="470" y="10409" width="390" height="200" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-112)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="486" y="10447.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="542" y="10447.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="599" y="10447.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="663" y="10447.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="802" y="10425" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="823" y="10447.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="481" y="10468" width="368" height="116" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="486" y="10491.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">Your profile</text>
+
+</g>
+<g data-component="Text">
+<text x="486" y="10525.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not load your profile.</text>
+
+</g>
+<g data-component="Button">
+<rect x="486" y="10543" width="358" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="665" y="10565.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Save</text>
+
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="900" y="10400" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~saveProfile.error</text>
+<g data-frame="account::ui::Account" data-view="~saveProfile.error">
+<rect x="900" y="10409" width="390" height="282" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-113"><rect x="900" y="10409" width="390" height="282" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-113)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="916" y="10447.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="972" y="10447.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="1029" y="10447.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="1093" y="10447.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="1232" y="10425" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1253" y="10447.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="911" y="10468" width="368" height="212" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="916" y="10491.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">Your profile</text>
+
+</g>
+<g data-id="name" data-component="Input" data-ref="profile.name">
+<rect x="916" y="10511" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="928" y="10534" font-size="14" fill="#1f2937">{profile.name}</text>
+
+</g>
+<g data-id="bio" data-component="Input" data-ref="profile.bio">
+<rect x="916" y="10559" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="928" y="10582" font-size="14" fill="#1f2937">{profile.bio}</text>
+
+</g>
+<g data-component="Text">
+<text x="916" y="10621.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Could not save your profile.</text>
+
+</g>
+<g data-component="Button">
+<rect x="916" y="10639" width="358" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1095" y="10661.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Save</text>
+
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="1330" y="10400" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~saveProfile.ready</text>
+<g data-frame="account::ui::Account" data-view="~saveProfile.ready">
+<rect x="1330" y="10409" width="390" height="282" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-114"><rect x="1330" y="10409" width="390" height="282" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-114)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="1346" y="10447.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="1402" y="10447.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="1459" y="10447.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="1523" y="10447.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="1662" y="10425" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1683" y="10447.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="1341" y="10468" width="368" height="212" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="1346" y="10491.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">Your profile</text>
+
+</g>
+<g data-id="name" data-component="Input" data-ref="profile.name">
+<rect x="1346" y="10511" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="1358" y="10534" font-size="14" fill="#1f2937">{profile.name}</text>
+
+</g>
+<g data-id="bio" data-component="Input" data-ref="profile.bio">
+<rect x="1346" y="10559" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="1358" y="10582" font-size="14" fill="#1f2937">{profile.bio}</text>
+
+</g>
+<g data-component="Text">
+<text x="1346" y="10621.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start">Saved.</text>
+
+</g>
+<g data-component="Button">
+<rect x="1346" y="10639" width="358" height="36" rx="0" fill="#1f2937" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1525" y="10661.9" font-size="14" font-weight="600" fill="#ffffff" text-anchor="middle">Save</text>
+
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+<text x="1760" y="10400" font-family="ui-monospace, SFMono-Regular, monospace" font-size="12" fill="#4b5563">~saveProfile.loading</text>
+<g data-frame="account::ui::Account" data-view="~saveProfile.loading">
+<rect x="1760" y="10409" width="390" height="250" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.5"/>
+<clipPath id="ui-clip-115"><rect x="1760" y="10409" width="390" height="250" rx="0"/></clipPath>
+<g clip-path="url(#ui-clip-115)">
+<g data-component="Stack">
+<g data-chrome="true" opacity="0.4">
+<g data-component="Nav">
+<g data-id="search" data-component="Link">
+<text x="1776" y="10447.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Search</text>
+
+</g>
+<g data-id="library" data-component="Link">
+<text x="1832" y="10447.7" font-size="14" font-weight="400" fill="#1f2937" text-anchor="start" text-decoration="underline">Library</text>
+
+</g>
+<g data-id="account" data-component="Link">
+<text x="1889" y="10447.7" font-size="14" font-weight="700" fill="#1f2937" text-anchor="start">Account</text>
+
+</g>
+<g data-component="Text" data-ref="session.user.name">
+<text x="1953" y="10447.7" font-size="14" font-weight="400" fill="#9ca3af" text-anchor="start">{session.user.name}</text>
+
+</g>
+<g data-component="Button">
+<rect x="2092" y="10425" width="42" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="2113" y="10447.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">X</text>
+
+
+</g>
+
+</g>
+</g>
+<rect x="1771" y="10468" width="368" height="180" fill="none" stroke="#9ca3af" stroke-dasharray="4,3" opacity="0.5"/>
+<g data-component="Stack">
+<g data-component="Heading">
+<text x="1776" y="10491.9" font-size="18" font-weight="700" fill="#1f2937" text-anchor="start">Your profile</text>
+
+</g>
+<g data-id="name" data-component="Input" data-ref="profile.name">
+<rect x="1776" y="10511" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="1788" y="10534" font-size="14" fill="#1f2937">{profile.name}</text>
+
+</g>
+<g data-id="bio" data-component="Input" data-ref="profile.bio">
+<rect x="1776" y="10559" width="358" height="36" rx="0" fill="#ffffff" stroke="#d1d5db"/>
+<text x="1788" y="10582" font-size="14" fill="#1f2937">{profile.bio}</text>
+
+</g>
+<g data-component="Button" opacity="0.45">
+<rect x="1776" y="10607" width="358" height="36" rx="0" fill="#ffffff" stroke="#1f2937" stroke-width="1.2"/>
+<text x="1955" y="10629.9" font-size="14" font-weight="600" fill="#1f2937" text-anchor="middle">Saving…</text>
+<g data-busy="true">
+<circle cx="2120" cy="10625" r="6" fill="none" stroke="#d1d5db" stroke-width="2"/>
+<path d="M 2120 10619 A 6 6 0 1 1 2114 10625" fill="none" stroke="#1f2937" stroke-width="2" stroke-linecap="round"/>
+</g>
+
+</g>
+
+</g>
+
+</g>
+</g>
+</g>
+</svg>

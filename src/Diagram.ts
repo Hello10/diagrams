@@ -1,3 +1,4 @@
+import type { RenderDiagnostics } from "./diagnostics.ts";
 import type { HighlightRange } from "./highlight.ts";
 import type { DiagramAST, ParseResult, Token } from "./types.ts";
 
@@ -46,4 +47,8 @@ export abstract class Diagram<AST extends DiagramAST = DiagramAST> {
 	 * Without it a diagram still gets strings, comments, arrows, and the rest.
 	 */
 	highlight?(tokens: Token[], lines: string[]): HighlightRange[];
+
+	/** What `render` draws, as geometry, for the overlap check every
+	 * fixture runs through (see `diagnostics.ts`). */
+	diagnostics?(ast: AST): RenderDiagnostics;
 }

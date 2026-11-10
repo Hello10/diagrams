@@ -1,0 +1,94 @@
+ui
+  use "@hello10/diagrams/ui" Stack, Heading, Text, Link, Select, Button
+  use "shell::ui" AppShell
+  use "discovery::ui" Band
+  use "library::ui" Library
+  api "@gigs/api" show, quote, ticket
+  api "@gigs/api" order, cancelTicket
+
+  screen Show route=/shows/:id layout=AppShell
+    in ~show(id)
+
+    Stack
+      when
+        ~show.error => Text "Could not load this show."
+      end
+      Heading "{show.venue}"
+      Text "{show.date}"
+      Link "{show.band.name}" to=Band(id=show.band.id)
+      Text "{show.price}"
+      when
+        show.soldOut => Text "Sold out"
+        else         => TicketPicker(show)
+      end
+    end
+  end
+
+  screen Ticket route=/tickets/:id layout=AppShell
+    in ~ticket(id)
+
+    Stack
+      when
+        ~ticket.error => Text "Could not load this ticket."
+      end
+      Heading "You're going!"
+      Text "{ticket.show.venue}"
+      Text "{ticket.show.date}"
+      Text "{ticket.quantity}"
+      Link "Your tickets" to=Library
+    end
+  end
+
+  component TicketPicker(show)
+    in  ~quote(show=show.id, qty=#qty.value)
+    out ~order(show=show.id, qty=#qty.value)
+      ready => go Ticket(id=order.id)
+    end
+
+    Stack
+      Stack direction=row
+        Select #qty options=show.quantities value=1
+        Text "{quote.total}"
+        when
+          ~order.loading => Button "Buying…" busy disabled
+          else           => Button "Buy" primary $click => ~order
+        end
+      end
+      when
+        ~order.error => Text "Could not complete your order."
+      end
+    end
+  end
+
+  component TicketRow(ticket) @holding @confirming
+    out ~cancelTicket(ticket=ticket.id)
+      ready => @holding
+      error => @holding
+    end
+
+    Stack direction=row
+      Text "{ticket.show.venue}"
+      Text "{ticket.show.date}"
+      Text "{ticket.quantity}"
+      when
+        ~cancelTicket.ready => Text "Cancelled"
+        else                => Button "Cancel" $click => @confirming
+      end
+      when
+        ~cancelTicket.error => Text "Could not cancel."
+      end
+      when
+        @confirming => modal
+          when
+            ~cancelTicket.loading => Text "Cancelling…"
+            else => Stack
+              Text "Cancel this ticket?"
+              Button "Keep it"           $click => @holding
+              Button "Cancel it" primary $click => ~cancelTicket
+            end
+          end
+        end
+      end
+    end
+  end
+end

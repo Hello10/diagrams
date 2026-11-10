@@ -1,0 +1,28 @@
+ui
+  use "@hello10/diagrams/ui" Stack, Heading, Text, Input, Button
+  use "shell::ui" AppShell
+  api "@gigs/api" profile
+  api "@gigs/api" saveProfile
+
+  screen Account route=/account layout=AppShell(current=Account)
+    in  ~profile
+    out ~saveProfile(name=#name.value, bio=#bio.value)
+
+    Stack
+      Heading "Your profile"
+      when
+        ~profile.error => Text "Could not load your profile."
+      end
+      Input #name value=profile.name placeholder="Name"
+      Input #bio  value=profile.bio  placeholder="Bio"
+      when
+        ~saveProfile.error => Text "Could not save your profile."
+        ~saveProfile.ready => Text "Saved."
+      end
+      when
+        ~saveProfile.loading => Button "Saving…" busy disabled
+        else                 => Button "Save" primary $click => ~saveProfile
+      end
+    end
+  end
+end

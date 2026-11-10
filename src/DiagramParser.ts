@@ -134,6 +134,7 @@ export abstract class DiagramParser<AST extends DiagramAST> {
 		if (hardErrors.length > 0) {
 			return { ok: false, errors: this.errors, partialAst: ast };
 		}
+		if (this.errors.length > 0) return { ok: true, ast, warnings: this.errors };
 		return { ok: true, ast };
 	}
 

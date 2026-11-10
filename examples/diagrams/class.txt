@@ -129,13 +129,13 @@ classDiagram
   %% Bidirectional association with cardinalities + label.
   Category "1" -- "*" Product : groups
 
-  %% Plain composition without cardinalities.
-  Customer "1" *-- "1" Address
+  %% Composition written from the part's side: the diamond still sits
+  %% on the whole, Customer.
+  Address "1" --* "1" Customer
 
-  %% Realization (interface implementation).
+  %% Realization (interface implementation), in both written directions.
   PaymentMethod <|.. CreditCard
-  CreditCard ..|> PaymentMethod
-  PaymentMethod <|.. StoredCredit
+  StoredCredit ..|> PaymentMethod
 
   %% Inheritance.
   Order <|-- SubscriptionOrder
@@ -145,10 +145,6 @@ classDiagram
 
   %% Generic realization (parameterized interface).
   Repository~Order~ <|.. OrderRepository
-
-  %% Reverse-arrow forms (each diagram should round-trip both directions).
-  Address --* Customer
-  Product <-- LineItem
 
   %% Dashed undirected link (associates without direction or strength).
   OrderStatus .. Order

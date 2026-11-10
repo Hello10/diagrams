@@ -337,7 +337,7 @@ describe("ui checks", () => {
 		);
 	});
 
-	test("unresolved names, unknown namespaces, a screen without a route, no screen at /", () => {
+	test("unresolved names, unknown namespaces, a screen without a route", () => {
 		expectError(
 			doc(`  screen Home route=/\n    Widget\n  end`),
 			/Unresolved "Widget"/,
@@ -347,10 +347,13 @@ describe("ui checks", () => {
 			/Unknown namespace "App"/,
 		);
 		expectError(doc(`  screen Home\n    Text "x"\n  end`), /needs a route/);
-		expectError(
-			doc(`  screen Home route=/home\n    Text "x"\n  end`),
-			/No screen has route=\//,
+	});
+
+	test("a document need not open anywhere: the screen at / is the set's concern", () => {
+		const ast = assertOk<UiAST>(
+			parse(doc(`  screen Home route=/home\n    Text "x"\n  end`)),
 		);
+		expect(ast.entry).toBeUndefined();
 	});
 
 	test("operations must be declared by an api and by the component that uses them", () => {

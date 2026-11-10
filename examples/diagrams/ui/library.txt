@@ -1,0 +1,44 @@
+ui
+  use "@hello10/diagrams/ui" Stack, Text, Link
+  use "shell::ui" AppShell
+  use "discovery::ui" Band, BandResult
+  use "tickets::ui" TicketRow
+  api "@gigs/api" favorites, tickets
+
+  screen Library route=/library layout=AppShell(current=Library) @bands @tickets
+    in ~favorites
+    in ~tickets
+
+    Stack
+      Stack direction=row
+        Link "Bands"   #bandsTab   $click => @bands
+        Link "Tickets" #ticketsTab $click => @tickets
+      end
+      when
+        @bands => Stack
+          when
+            ~favorites.error => Text "Could not load your bands."
+            ~favorites.empty => Text "You haven't followed any bands yet."
+          end
+          list favorites as band
+            BandResult(band) $open(picked) => go Band(id=picked.id)
+          end
+        end
+        @tickets => Stack
+          when
+            ~tickets.error => Text "Could not load your tickets."
+            ~tickets.empty => Text "No tickets yet."
+          end
+          list tickets as ticket
+            TicketRow(ticket)
+          end
+        end
+      end
+    end
+
+    when
+      @bands   => { #bandsTab   selected }
+      @tickets => { #ticketsTab selected }
+    end
+  end
+end

@@ -26,8 +26,14 @@ import {
 import { arrowMarker, renderTitle, svgEsc } from "../../svg.ts";
 import { allNodes, type Navigation, navigations } from "./uiCallouts.ts";
 import { UiFrameEngine } from "./uiFrame.ts";
+import { targetId, targetLabel, UiScope, type UiTarget } from "./uiScope.ts";
 import { uiToPlaintext } from "./uiToPlaintext.ts";
-import { UI_DEFAULT_THEME, type UiAST } from "./uiTypes.ts";
+import {
+	UI_DEFAULT_THEME,
+	type UiAppAST,
+	type UiAST,
+	type UiComponent,
+} from "./uiTypes.ts";
 
 // ─── Layout constants ────────────────────────────────────────────────────────
 
@@ -42,6 +48,9 @@ const PLACEHOLDER_HEIGHT = 200;
 const THUMB_RADIUS = 0;
 const LABEL_HEIGHT = 22;
 
+/** A stub for a screen out of reach: labeled, no thumbnail. */
+const STUB_HEIGHT = 56;
+
 const RANK_GAP_Y = 72;
 const NODE_GAP_X = 56;
 const BACK_EDGE_OFFSET = 28;
@@ -52,11 +61,13 @@ const SURFACE = "#f3f4f6";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type NodeKind = "screen" | "layout" | "virtual";
+type NodeKind = "screen" | "layout" | "stub" | "virtual";
 
 interface LayoutNode {
 	id: string;
 	kind: NodeKind;
+	/** The document the screen or layout is declared in. */
+	doc?: UiAST;
 	width: number;
 	height: number;
 	label?: string;
@@ -79,10 +90,13 @@ interface InternalEdge {
 
 /** The flow view of a UI diagram: screens as thumbnails of their tree
  * joined by the transitions whose target is a screen. Transitions
- * between states of one screen belong to the frames view. */
+ * between states of one screen belong to the frames view. With `app`,
+ * the flow spans every document of the set; a screen out of reach is a
+ * stub. */
 export class UiFlowRenderer extends DiagramRenderer<UiAST> {
 	protected readonly width: number;
 	protected readonly height: number;
+	private readonly scope: UiScope;
 	private readonly placements: Map<string, Placement<LayoutNode>>;
 	private readonly edges: InternalEdge[];
 	private readonly layoutWidth: number;
@@ -93,8 +107,9 @@ export class UiFlowRenderer extends DiagramRenderer<UiAST> {
 	/** The interface's own color, from the document's theme. */
 	private readonly ink: string;
 
-	constructor(ast: UiAST) {
+	constructor({ ast, app }: { ast: UiAST; app?: UiAppAST }) {
 		super(ast);
+		this.scope = new UiScope({ ast, app });
 		this.ink = ast.theme?.ink ?? UI_DEFAULT_THEME.ink;
 		const nodes = this.buildNodes();
 		this.embeddedDefs = nodes.some((n) => n.thumb !== undefined);
@@ -171,8 +186,21 @@ export class UiFlowRenderer extends DiagramRenderer<UiAST> {
 	protected override renderDefs(): string {
 		return [
 			arrowMarker("ui-arr", this.ink),
-			this.embeddedDefs ? new UiFrameEngine(this.ast).frameDefs() : "",
+			this.embeddedDefs
+				? new UiFrameEngine({ ast: this.ast, app: this.scope.app }).frameDefs()
+				: "",
 		].join("");
+	}
+
+	/** The transitions drawn, by the names of the screens they join and
+	 * the label on the edge: what the flow says, without the geometry. */
+	transitions(): { from: string; to: string; label: string }[] {
+		const labelOf = (id: string) => this.placements.get(id)?.node.label ?? id;
+		return this.edges.map((e) => ({
+			from: labelOf(e.from),
+			to: labelOf(e.to),
+			label: e.label ?? "",
+		}));
 	}
 
 	/** The graph as a positioned group for embedding in another drawing. */
@@ -212,46 +240,93 @@ export class UiFlowRenderer extends DiagramRenderer<UiAST> {
 
 	private buildNodes(): LayoutNode[] {
 		const nodes: LayoutNode[] = [];
-		const frames = new UiFrameEngine(this.ast);
-		const layoutsInUse = new Set<string>();
-		for (const name of this.ast.order) {
-			const component = this.ast.components[name];
-			if (!component || component.route === undefined) continue;
-			if (component.usesLayout) layoutsInUse.add(component.usesLayout);
-			nodes.push({
-				id: name,
-				kind: "screen",
-				width: THUMB_WIDTH,
-				height: 0,
-				label: name,
-				sublabel: component.route,
-				thumb: this.thumbnail(frames, name),
-				initial: name === this.ast.entry,
-			});
+		const frames = new UiFrameEngine({ ast: this.ast, app: this.scope.app });
+		const app = this.scope.app;
+		const layoutsInUse = new Map<string, { doc: UiAST; name: string }>();
+		for (const doc of this.scope.documents()) {
+			for (const name of doc.order) {
+				const component = doc.components[name];
+				if (!component || component.route === undefined) continue;
+				if (component.usesLayout) {
+					const target = {
+						module: component.usesLayoutModule,
+						name: component.usesLayout,
+					};
+					const layoutDoc = this.scope.document(target.module, doc);
+					if (layoutDoc)
+						layoutsInUse.set(targetId(target, doc), {
+							doc: layoutDoc,
+							name: target.name,
+						});
+				}
+				nodes.push({
+					id: targetId({ name }, doc),
+					kind: "screen",
+					doc,
+					width: THUMB_WIDTH,
+					height: 0,
+					label: name,
+					sublabel: component.route,
+					thumb: this.thumbnail(frames, doc, name),
+					initial: app
+						? app.entry !== undefined &&
+							app.entry.module === doc.module &&
+							app.entry.screen === name
+						: name === this.ast.entry,
+				});
+			}
 		}
 		// A layout is a node like a screen: its tree with the Outlet as an
 		// empty slot, and its navigation drawn as edges from it.
-		for (const name of this.ast.order) {
-			const component = this.ast.components[name];
-			if (!component?.isLayout || !layoutsInUse.has(name)) continue;
+		for (const [id, { doc, name }] of layoutsInUse) {
 			nodes.push({
-				id: name,
+				id,
 				kind: "layout",
+				doc,
 				width: THUMB_WIDTH,
 				height: 0,
 				label: name,
 				sublabel: "layout",
-				thumb: this.thumbnail(frames, name),
+				thumb: this.thumbnail(frames, doc, name),
 			});
 		}
+		// A screen navigated to but out of reach: a stub, once.
+		const ids = new Set(nodes.map((n) => n.id));
+		// Stubs pushed along the way have no document, so the walk skips
+		// them.
+		for (const node of nodes) {
+			if (!node.doc) continue;
+			for (const owner of this.owners(node.doc, node.label ?? "")) {
+				for (const nav of navigations(owner.component)) {
+					const target = this.scope.resolve(nav.screen, owner.doc);
+					if (target.module === undefined) continue;
+					const id = targetId(target, owner.doc);
+					if (ids.has(id)) continue;
+					ids.add(id);
+					nodes.push({
+						id,
+						kind: "stub",
+						width: THUMB_WIDTH,
+						height: STUB_HEIGHT + LABEL_HEIGHT,
+						label: target.name,
+						sublabel: target.module,
+					});
+				}
+			}
+		}
 		for (const n of nodes) {
+			if (n.kind === "stub") continue;
 			n.height = (n.thumb?.height ?? PLACEHOLDER_HEIGHT) + LABEL_HEIGHT;
 		}
 		return nodes;
 	}
 
-	private thumbnail(frames: UiFrameEngine, name: string): LayoutNode["thumb"] {
-		const frame = frames.renderFrame(name);
+	private thumbnail(
+		frames: UiFrameEngine,
+		doc: UiAST,
+		name: string,
+	): LayoutNode["thumb"] {
+		const frame = frames.renderFrameIn({ doc, name });
 		if (!frame) return undefined;
 		const scale = THUMB_WIDTH / frame.width;
 		return {
@@ -267,14 +342,24 @@ export class UiFlowRenderer extends DiagramRenderer<UiAST> {
 		};
 	}
 
-	private embedded(name: string, seen = new Set<string>()): Set<string> {
-		const component = this.ast.components[name];
-		if (!component || seen.has(name)) return seen;
-		seen.add(name);
+	/** A component and every component it embeds, transitively, each with
+	 * the document it is declared in. Components out of reach are not
+	 * owners: nothing of theirs is known. */
+	private owners(
+		doc: UiAST,
+		name: string,
+		seen = new Map<string, { doc: UiAST; component: UiComponent }>(),
+	): { doc: UiAST; component: UiComponent }[] {
+		const id = targetId({ name }, doc);
+		const component = doc.components[name];
+		if (!component || seen.has(id)) return [...seen.values()];
+		seen.set(id, { doc, component });
 		for (const node of allNodes(component)) {
-			if (node.ref?.kind === "component") this.embedded(node.ref.name, seen);
+			if (node.ref?.kind !== "component") continue;
+			const childDoc = this.scope.document(node.ref.module, doc);
+			if (childDoc) this.owners(childDoc, node.ref.name, seen);
 		}
-		return seen;
+		return [...seen.values()];
 	}
 
 	/** Edges: every move to a screen declared by a node or by a component it
@@ -285,17 +370,26 @@ export class UiFlowRenderer extends DiagramRenderer<UiAST> {
 		const ids = new Set(nodes.map((n) => n.id));
 		const out: InternalEdge[] = [];
 		for (const node of nodes) {
-			const name = node.id;
-			for (const owner of this.embedded(name)) {
-				const declared = this.ast.components[owner];
-				if (!declared) continue;
-				for (const nav of navigations(declared)) {
-					if (!ids.has(nav.screen)) continue;
-					if (nav.screen === name) continue; // a self-loop says nothing
+			if (!node.doc) continue;
+			const name = node.label ?? "";
+			for (const owner of this.owners(node.doc, name)) {
+				for (const nav of navigations(owner.component)) {
+					const target: UiTarget = this.scope.resolve(nav.screen, owner.doc);
+					const to = targetId(target, owner.doc);
+					if (!ids.has(to)) continue;
+					if (to === node.id) continue; // a self-loop says nothing
+					const own = owner.doc === node.doc && owner.component.name === name;
+					const ownerLabel =
+						owner.doc === node.doc
+							? owner.component.name
+							: targetLabel({
+									module: owner.doc.module,
+									name: owner.component.name,
+								});
 					out.push({
-						from: name,
-						to: nav.screen,
-						label: owner === name ? nav.label : `${owner} · ${nav.label}`,
+						from: node.id,
+						to,
+						label: own ? nav.label : `${ownerLabel} · ${nav.label}`,
 						isBack: false,
 						original: nav,
 					});
@@ -390,7 +484,22 @@ export class UiFlowRenderer extends DiagramRenderer<UiAST> {
 			case "screen":
 			case "layout":
 				return this.drawScreen(p);
+			case "stub":
+				return this.drawStub(p);
 		}
+	}
+
+	/** A screen out of reach: a dashed box with its name and module. */
+	private drawStub(p: Placement<LayoutNode>): string {
+		const n = p.node;
+		const boxH = n.height - LABEL_HEIGHT;
+		return [
+			`<g data-node="${svgEsc(n.id)}" data-stub="true">`,
+			`<rect x="${p.x}" y="${p.y}" width="${n.width}" height="${boxH}" rx="${THUMB_RADIUS}" fill="white" stroke="${MUTED}" stroke-width="1.2" stroke-dasharray="6,4"/>`,
+			`<text x="${p.cx}" y="${p.y + boxH / 2 + 5}" text-anchor="middle" fill="${MUTED}">${svgEsc(n.label ?? n.id)}</text>`,
+			`<text x="${p.cx}" y="${p.y + boxH + 15}" text-anchor="middle" font-family="${FONT_MONO}" font-size="${FONT_SIZE_LABEL}" fill="${MUTED}">${svgEsc(n.sublabel ?? "")}</text>`,
+			"</g>",
+		].join("\n");
 	}
 
 	private drawScreen(p: Placement<LayoutNode>): string {

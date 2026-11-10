@@ -173,7 +173,9 @@ export const UI_DATA_ATTRIBUTES = new Set(["src", "options", "to"]);
 // ─── References ──────────────────────────────────────────────────────────────
 
 export type UiRef =
-	| { kind: "component"; name: string }
+	/** A component of this document, or, with `module`, one imported from
+	 * that document. `name` is the declared name, without any alias. */
+	| { kind: "component"; name: string; module?: string }
 	| { kind: "element"; module: string; name: string }
 	| { kind: "unknown"; module: string; name: string };
 
@@ -293,9 +295,11 @@ export type UiComponent = {
 	 * passes. */
 	layoutName?: string;
 	layoutArgs: Record<string, string>;
-	/** On a screen: the layout that wraps it, named or defaulted. Computed
-	 * after parsing. */
+	/** On a screen: the declared name of the layout that wraps it, once
+	 * `layout=` resolves. With `usesLayoutModule`, the layout is imported
+	 * from that document. Computed after parsing. */
 	usesLayout?: string;
+	usesLayoutModule?: string;
 	params: string[];
 	/** Declared on the header, in order. The first is where the component
 	 * starts. */
@@ -343,8 +347,24 @@ export function badgeInk(accent: string, ink: string): string {
 	return luminance < 0.4 ? "#ffffff" : ink;
 }
 
+/** What an imported name resolved to: a declaration of another document,
+ * or, when its module is neither an adapter nor a document in reach, an
+ * unresolved name accepted as it is used. */
+export type UiImportedDecl = {
+	module: string;
+	/** The declared name in its home document. */
+	name: string;
+	kind: "screen" | "layout" | "component" | "unresolved";
+	route?: string;
+	routeParams: string[];
+	params: string[];
+};
+
 export type UiAST = DiagramAST & {
 	type: "ui";
+	/** The module string this document is known by, when parsed as part
+	 * of a set. */
+	module?: string;
 	/** From a `theme` directive; defaults fill what it leaves out. */
 	theme?: Partial<UiTheme>;
 	uses: UiImport[];
@@ -356,6 +376,21 @@ export type UiAST = DiagramAST & {
 	components: Record<string, UiComponent>;
 	/** Declaration order. */
 	order: string[];
+	/** Names imported from documents, keyed as written (`Show`,
+	 * `Tickets.Show`). Element imports are not listed: they resolve on the
+	 * ref. Computed after parsing. */
+	imports: Record<string, UiImportedDecl>;
+};
+
+/** A set of documents rendered together. */
+export type UiAppAST = DiagramAST & {
+	type: "ui-app";
+	/** By module string; each document has `module` set. */
+	documents: Record<string, UiAST>;
+	/** The module strings, in the order given. */
+	order: string[];
+	/** The one screen at `/` across the set. */
+	entry?: { module: string; screen: string };
 };
 
 // ─── Adapters ────────────────────────────────────────────────────────────────

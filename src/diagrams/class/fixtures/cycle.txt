@@ -1,0 +1,26 @@
+classDiagram
+  class Draft {
+    +String body
+    +submit() Review
+  }
+  class Review {
+    +String reviewer
+    +approve() Published
+    +reject() Draft
+  }
+  class Published {
+    +DateTime at
+    +retract() Draft
+  }
+  class Editor {
+    +String name
+  }
+  class Author {
+    +String name
+  }
+  Draft --> Review : submit
+  Review --> Published : approve
+  Review --> Draft : reject
+  Published --> Draft : retract
+  Editor --> Author : edits
+  Author --> Editor : writes for

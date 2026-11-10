@@ -2,10 +2,12 @@ import { FONT_MONO } from "../../style.ts";
 import { arrowMarker, svgEsc } from "../../svg.ts";
 import { getUiLibraryAdapter } from "./uiAdapters.ts";
 import { interpolations, isDataPath, parseCall } from "./UiParser.ts";
+import { targetId, targetLabel, UiScope } from "./uiScope.ts";
 import {
 	badgeInk,
 	UI_DEFAULT_THEME,
 	UI_STANDARD_ELEMENTS,
+	type UiAppAST,
 	type UiAST,
 	type UiCase,
 	type UiComponent,
@@ -212,8 +214,10 @@ export interface LNode {
 }
 
 export interface BuildContext {
-	/** The component whose tree is being built, and the view it is in. */
+	/** The component whose tree is being built, the document it is
+	 * declared in (its names resolve there), and the view it is in. */
 	component: UiComponent;
+	doc: UiAST;
 	view: UiView;
 	/** Overrides by handle, from the component-level `when` cases that hold
 	 * in this view. */
@@ -239,6 +243,8 @@ export interface Size {
 
 export interface Frame {
 	component: UiComponent;
+	/** The document the component is declared in. */
+	doc: UiAST;
 	view: UiView;
 	width: number;
 	content: LNode;
@@ -254,11 +260,15 @@ let clipCounter = 0;
 export class UiFrameEngine {
 	readonly ast: UiAST;
 	readonly theme: UiTheme;
+	/** The documents an instance may expand from: this one, and the set
+	 * when the document is drawn in one. */
+	readonly scope: UiScope;
 	/** The interface's own color, from the theme. */
 	private readonly ink: string;
 
-	constructor(ast: UiAST) {
+	constructor({ ast, app }: { ast: UiAST; app?: UiAppAST }) {
 		this.ast = ast;
+		this.scope = new UiScope({ ast, app });
 		this.theme = { ...UI_DEFAULT_THEME, ...ast.theme };
 		this.ink = this.theme.ink;
 	}
@@ -273,7 +283,20 @@ export class UiFrameEngine {
 		name: string,
 		view?: UiView,
 	): { svg: string; width: number; height: number } | undefined {
-		const component = this.ast.components[name];
+		return this.renderFrameIn({ doc: this.ast, name, view });
+	}
+
+	/** The same, for a component of any document in scope. */
+	renderFrameIn({
+		doc,
+		name,
+		view,
+	}: {
+		doc: UiAST;
+		name: string;
+		view?: UiView;
+	}): { svg: string; width: number; height: number } | undefined {
+		const component = doc.components[name];
 		if (!component) return undefined;
 		const width =
 			component.route !== undefined || component.isLayout
@@ -281,8 +304,9 @@ export class UiFrameEngine {
 				: COMPONENT_WIDTH;
 		const frame = this.buildFrame(
 			component,
-			view ?? frameViews(component, this.ast)[0] ?? {},
+			view ?? frameViews(component, doc)[0] ?? {},
 			width,
+			doc,
 		);
 		return {
 			svg: this.drawFrameBody(frame, 0, 0),
@@ -291,29 +315,50 @@ export class UiFrameEngine {
 		};
 	}
 
-	buildFrame(component: UiComponent, view: UiView, width: number): Frame {
-		const ctx = this.context(component, view, new Map(), new Set(), [], false);
+	buildFrame(
+		component: UiComponent,
+		view: UiView,
+		width: number,
+		doc: UiAST = this.ast,
+	): Frame {
+		const ctx = this.context(
+			component,
+			doc,
+			view,
+			new Map(),
+			new Set(),
+			[],
+			false,
+		);
 		const own = this.syntheticStack(
 			this.buildMany(component.tree, ctx),
 			"column",
 			DEFAULT_GAP,
 		);
 		// A screen draws inside its layout, in the layout's Outlet, passing
-		// the layout the arguments named on `layout=`.
-		const layout =
+		// the layout the arguments named on `layout=`. A layout of a
+		// document out of reach leaves the screen bare.
+		const layoutTarget =
 			component.usesLayout !== undefined
-				? this.ast.components[component.usesLayout]
+				? { module: component.usesLayoutModule, name: component.usesLayout }
 				: undefined;
+		const layout = layoutTarget
+			? this.scope.component(layoutTarget, doc)
+			: undefined;
+		const layoutDoc = layoutTarget
+			? this.scope.document(layoutTarget.module, doc)
+			: undefined;
 		let content = own;
-		if (layout) {
+		if (layout && layoutDoc) {
 			const bindings = new Map<string, string>();
 			for (const [k, v] of Object.entries(component.layoutArgs))
 				bindings.set(k, v);
 			const wrap = this.context(
 				layout,
+				layoutDoc,
 				{ mode: layout.modes[0]?.name },
 				bindings,
-				new Set([component.name]),
+				new Set([targetId({ name: component.name }, doc)]),
 				ctx.modals,
 				true,
 			);
@@ -336,6 +381,7 @@ export class UiFrameEngine {
 		}
 		return {
 			component,
+			doc,
 			view,
 			width,
 			content,
@@ -347,6 +393,7 @@ export class UiFrameEngine {
 
 	private context(
 		component: UiComponent,
+		doc: UiAST,
 		view: UiView,
 		bindings: Map<string, string>,
 		trail: Set<string>,
@@ -355,10 +402,11 @@ export class UiFrameEngine {
 	): BuildContext {
 		const ctx: BuildContext = {
 			component,
+			doc,
 			view,
 			overrides: new Map(),
 			bindings,
-			trail: new Set([...trail, component.name]),
+			trail: new Set([...trail, targetId({ name: component.name }, doc)]),
 			modals,
 			chrome,
 		};
@@ -375,7 +423,7 @@ export class UiFrameEngine {
 		const clipId = `ui-clip-${clipCounter++}`;
 		const label = viewLabel(frame.view);
 		parts.push(
-			`<g data-frame="${svgEsc(frame.component.name)}"${label ? ` data-view="${svgEsc(label)}"` : ""}>`,
+			`<g data-frame="${svgEsc(targetId({ name: frame.component.name }, frame.doc))}"${label ? ` data-view="${svgEsc(label)}"` : ""}>`,
 			`<rect x="${x}" y="${fy}" width="${fw}" height="${fh}" rx="${FRAME_RADIUS}" fill="${WHITE}" stroke="${this.ink}" stroke-width="1.5"/>`,
 			`<clipPath id="${clipId}"><rect x="${x}" y="${fy}" width="${fw}" height="${fh}" rx="${FRAME_RADIUS}"/></clipPath>`,
 			`<g clip-path="url(#${clipId})">`,
@@ -435,7 +483,7 @@ export class UiFrameEngine {
 				if (ctx.view.io?.name === c.name) return ctx.view.io.mode === c.mode;
 				const kind =
 					ctx.component.io.find((io) => io.name === c.name)?.kind ??
-					this.ast.io.find((io) => io.name === c.name)?.kind;
+					ctx.doc.io.find((io) => io.name === c.name)?.kind;
 				return kind === "in" && c.mode === "ready";
 			}
 			case "path":
@@ -530,7 +578,12 @@ export class UiFrameEngine {
 		if (!eff.available) return undefined;
 
 		if (node.ref?.kind === "component")
-			return this.expand(node.ref.name, node, eff, ctx);
+			return this.expand(
+				{ module: node.ref.module, name: node.ref.name },
+				node,
+				eff,
+				ctx,
+			);
 
 		// A layout's Outlet is the screen being wrapped, when there is one.
 		if (
@@ -561,15 +614,29 @@ export class UiFrameEngine {
 	/** A component instance draws as its tree in the mode the parent set
 	 * (`#nav @search`) or its start mode, with its arguments bound. */
 	private expand(
-		name: string,
+		target: { module?: string; name: string },
 		use: UiNode,
 		eff: Effective,
 		ctx: BuildContext,
 	): LNode {
-		const component = this.ast.components[name];
-		if (!component || component.tree.length === 0 || ctx.trail.has(name)) {
+		const name = target.name;
+		const doc = this.scope.document(target.module, ctx.doc);
+		const component = doc?.components[name];
+		const id = targetId(target, ctx.doc);
+		// A component out of reach (its document is not in the set) draws
+		// as a placeholder box labeled with where it lives.
+		if (
+			!component ||
+			!doc ||
+			component.tree.length === 0 ||
+			ctx.trail.has(id)
+		) {
 			const box = this.boxNode(use, eff);
-			box.title = ctx.trail.has(name) ? `${name} (recursive)` : name;
+			box.title = ctx.trail.has(id)
+				? `${name} (recursive)`
+				: doc
+					? name
+					: targetLabel(target);
 			return box;
 		}
 		const bindings = new Map<string, string>();
@@ -577,6 +644,7 @@ export class UiFrameEngine {
 			bindings.set(param, this.substitute(value, ctx.bindings));
 		const inner = this.context(
 			component,
+			doc,
 			{ mode: eff.mode ?? component.modes[0]?.name },
 			bindings,
 			ctx.trail,
