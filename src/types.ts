@@ -39,10 +39,13 @@ export type ParseError = {
 	line: number;
 	col: number;
 	severity: "error" | "warning";
+	/** The document the error is in, when several are parsed together. */
+	module?: string;
 };
 
 export type ParseResult<T extends DiagramAST> =
-	| { ok: true; ast: T }
+	/** Warnings, when any, ride along with a successful parse. */
+	| { ok: true; ast: T; warnings?: ParseError[] }
 	| { ok: false; errors: ParseError[]; partialAst?: T };
 
 // ─── Base AST types ───────────────────────────────────────────────────────────

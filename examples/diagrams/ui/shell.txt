@@ -1,0 +1,60 @@
+ui
+  use "@hello10/diagrams/ui" Stack, Heading, Text, Link, Input, Button, Outlet
+  use "discovery::ui" Search
+  use "library::ui" Library
+  use "account::ui" Account
+  api "@gigs/api" session
+  api "@gigs/api" signIn, signOut
+
+  in ~session
+
+  layout Bare
+    Outlet
+  end
+
+  layout AppShell(current)
+    Stack
+      Nav(current)
+      Outlet
+    end
+  end
+
+  component Nav(current)
+    out ~signOut
+      ready => go Login
+    end
+
+    Stack direction=row
+      Link "Search"  #search  to=Search
+      Link "Library" #library to=Library
+      Link "Account" #account to=Account
+      Text "{session.user.name}"
+      Button "X" $click => ~signOut
+    end
+
+    when current
+      Search  => { #search  selected }
+      Library => { #library selected }
+      Account => { #account selected }
+    end
+  end
+
+  screen Login route=/login layout=Bare
+    out ~signIn(email=#email.value, password=#password.value)
+      ready => go Search
+    end
+
+    Stack
+      Heading "Sign in"
+      Input #email    placeholder="Email"
+      Input #password placeholder="Password"
+      when
+        ~signIn.error => Text "Wrong email or password."
+      end
+      when
+        ~signIn.loading => Button "Signing in…" busy disabled
+        else            => Button "Sign in" primary $click => ~signIn
+      end
+    end
+  end
+end

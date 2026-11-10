@@ -20,15 +20,19 @@ export type { StateDiagramAST } from "./diagrams/state/stateTypes.ts";
 export {
 	clearUiLibraryAdapters,
 	getUiLibraryAdapter,
+	parseUiApp,
 	registerUiLibraryAdapter,
+	renderUiApp,
 	renderUiAscii,
 	renderUiFlow,
 	renderUiStoryboard,
 	UiDiagram,
 } from "./diagrams/ui/index.ts";
 export type {
+	UiAppAST,
 	UiAST,
 	UiComponent,
+	UiImportedDecl,
 	UiNode,
 	UiTheme,
 } from "./diagrams/ui/uiTypes.ts";

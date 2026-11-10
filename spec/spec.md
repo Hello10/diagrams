@@ -223,6 +223,17 @@ highlight(source: string): HighlightSpan[]
 - `render()` and `toPlaintext()` look up the diagram by `ast.type` and dispatch. They throw if the type is unregistered, since the AST should not exist without a corresponding registration.
 - `toJSON` / `fromJSON` are thin `JSON.stringify` / `JSON.parse` wrappers. The AST is plain data and survives serialization without ceremony.
 
+The UI diagram adds a set form, for an app kept as several documents that import each other (§5.4.1, "Modules"). Each takes one argument:
+
+```ts
+parseUiApp({ documents: Record<string, string>, resolve?: (module: string) => string | undefined }): ParseResult<UiAppAST>
+renderUiApp(app: UiAppAST): string
+```
+
+- `parseUiApp` parses every document syntactically first, then checks each against the others' declarations, so documents may import each other in cycles. The keys of `documents` are the module strings the documents name each other by. `resolve` supplies documents the set refers to but does not draw: their declarations are checked against, and their screens draw as stubs. Every error carries the `module` it is in. The set must have exactly one screen at `/`.
+- `renderUiApp` draws the storyboard of the set: the flow across every document, then each document's layouts, screens, and components under its module name, in its own theme.
+- A `ParseResult` that is `ok` may carry `warnings`: a `use` of a module that is neither an adapter nor a document in reach is one.
+
 ### 4.5 AST shape
 
 ```ts
@@ -623,8 +634,8 @@ This section has three parts that are kept strictly apart. §5.4.1 is the langua
 
 ```
 ui
-  use "<module>" <Name>, <Name>, …     % element types, by name
-  use "<module>" as <Alias>            % element types, namespaced
+  use "<module>" <Name>, <Name>, …     % element types, or another document's declarations, by name
+  use "<module>" as <Alias>            % the same, namespaced
   api "<module>" <name>, <name>, …     % operations, by name
   api "<source>"                       % operations from a formal source
   in ~<name>                           % app data, in scope everywhere
@@ -635,6 +646,8 @@ end
 ```
 
 Nothing resolves without a declaration. Element types come from `use`; operations come from `api`. With names listed, every `in` and `out` must name one of them. With no names, the module is a formal source (an OpenAPI or GraphQL document) and any operation is accepted; checking those names against the source is a step outside this library.
+
+**Modules.** A `use` module is either an adapter module (element types, §7) or another `ui` document. The host decides what a module string means; the library treats it as opaque. An imported name is in scope as if declared here: an imported screen is a target for `go` and `to=`, with its route params checked; an imported layout is valid in `layout=`; an imported component is valid in a tree, with its parameter list. The alias form addresses them as `Alias.Name`. Imports are explicit and not transitive, and an imported declaration resolves its own names in its home document; nothing from the importer leaks in. A name both declared and imported is a duplicate. Documents may import each other in cycles. A document parsed alone (`parse`) accepts a `use` of a module it cannot see with a warning: those names are unchecked, an instance draws as a placeholder box, a `go` to one takes any arguments and ends at a stub in the flow, and a `layout=` naming one leaves the screen bare. The set form (`parseUiApp`, §4.4) resolves them.
 
 **Sigils.** Three, each marking one kind of thing. Position tells a declaration from a reference.
 
@@ -726,9 +739,9 @@ A condition is a data path (true when it holds a value), a mode `@name`, or an i
 
 **Overrides.** `#handle ["content"] [key=value …] [flag …] [@mode[(value)]] [$event => action …]`: a change to an instance the tree declares, in a component-level `when` case. `#search selected` marks a link; `#nav @search` sets a component instance's mode; `#audio $pause => @paused` adds a handler in that mode only. Overrides never add nodes: everything drawable is in the tree.
 
-**Layouts.** `layout Name(params) … end` is a component that wraps screens: its tree holds exactly one `Outlet`, where the screen goes, and whatever every wrapped screen shares. A screen names its layout with `layout=Name`, passing arguments like any component use, `layout=AppShell(current=Search)`; a parameter not passed is not in hand, so a `when` on it matches nothing. With exactly one layout declared, every screen that names none uses it; with several, every screen must name one. Navigation declared in a layout, or in a component it embeds, is available from every screen it wraps.
+**Layouts.** `layout Name(params) … end` is a component that wraps screens: its tree holds exactly one `Outlet`, where the screen goes, and whatever every wrapped screen shares. A screen names its layout with `layout=Name`, passing arguments like any component use, `layout=AppShell(current=Search)`; a parameter not passed is not in hand, so a `when` on it matches nothing. A screen that names no layout has none; nothing applies implicitly. Navigation declared in a layout, or in a component it embeds, is available from every screen it wraps.
 
-**Where the app opens.** The screen whose `route=/`. A document with screens and no `/` is an error.
+**Where the app opens.** The screen whose `route=/`. A document on its own need not have one; a set rendered together must have exactly one across its documents.
 
 **Theme.** `%%{theme ink=#002676 accent=#FDB515}%%` anywhere at document level sets the rendering colors, in the language's own `key=value` form. `ink` is the interface's own color: frame borders, buttons, headings, text, the flow's screen outlines. `accent` is the callout badges, which draw as an accent disc with a numeral in white or in the ink, whichever contrasts with the accent, so a badge is distinct from any control it sits on. Both are hex colors; either may be left out. The defaults are `ink=#1f2937 accent=#3299f6`. Grays for secondary text, lines, and surfaces are the renderer's and are not themed.
 
@@ -743,7 +756,8 @@ A condition is a data path (true when it holds a value), a mode `@name`, or an i
 - a mode that is not on the header; a value on a mode without a parameter, or none on a mode with one; `else` not last; a value case without a subject; a path case under a subject
 - `go` to something that is not a screen; route params missing or unknown, on `go` and on `to=`
 - an argument to a parameter the component does not declare; arguments on an element; attributes or children on a component
-- a layout without exactly one `Outlet`; an `Outlet` outside a layout; `layout=` naming something that is not a layout, or a parameter it does not declare; a screen naming no layout when several are declared
+- a layout without exactly one `Outlet`; an `Outlet` outside a layout; `layout=` naming something that is not a layout, or a parameter it does not declare
+- a `use` naming a document that does not declare the name; a screen or layout used in a tree
 - an override on a handle the tree does not declare; `@mode` on a handle that is not a component instance, or a mode that component does not declare
 - io declared after the tree; a tree line after a component-level `when`; `empty` on an `out`; anything but outcomes in an io block
 - duplicate handles, modes, or declarations; no screen at `/`
@@ -857,7 +871,7 @@ Mermaid class-diagram coverage: `class Name { … }` bodies and `Name : member` 
 vp run examples
 ```
 
-A split-pane editor that renders as you type, highlighted by `highlight()` through CSS Custom Highlights over a plain-text `contenteditable` (`examples/editorHighlight.ts`), with the example for each type in a dropdown, the selection tracked in the URL hash, zoom controls, and a draggable divider. A source with hard errors renders its partial AST at half opacity. The sources in `examples/diagrams/*.txt` double as the round-trip corpus and the snapshot fixtures (`src/__snapshots__/*.svg`, approved with `vp test -u src/snapshots.test.ts`). Treat the viewer as a development tool, not a public API.
+A split-pane editor that renders as you type, highlighted by `highlight()` through CSS Custom Highlights over a plain-text `contenteditable` (`examples/editorHighlight.ts`), with the example for each type in a dropdown, the selection tracked in the URL hash, zoom controls, and a draggable divider. A source with hard errors renders its partial AST at half opacity. The sources in `examples/diagrams/*.txt` double as the round-trip corpus and the snapshot fixtures (`src/__snapshots__/*.svg`, approved with `vp test -u src/snapshots.test.ts`). The viewer is single-document; `examples/diagrams/ui/` holds the Gigs app split by capability for the set tests and the `ui-app.svg` snapshot, and a test pins it to the monolithic `ui.txt`. Treat the viewer as a development tool, not a public API.
 
 ## 7. Library adapters
 
@@ -904,6 +918,8 @@ registerUiLibraryAdapter({
 
 ### 7.5 Resolution rules
 
+A `use` module string resolves in this order: a registered adapter (the standard library among them) claims it → element types; else a document in the set, or one the resolver supplies → that document's declarations (§5.4.1, "Modules"); else the names are accepted unchecked, with a warning.
+
 - Imported names without an adapter mapping fall back to a dashed labeled box.
 - Components declared in the document render by expanding their tree with the use site's bindings.
 - A component-level `renderSvg` overrides canonical-type rendering. It receives the measured box (`x`, `y`, `width`, `height`) and `childrenSvg`; height is the children's column height plus padding, at least 48px.
@@ -924,6 +940,7 @@ FlowchartDiagram, SequenceDiagram, StateDiagram, ClassDiagram, UiDiagram
 
 // UI diagram
 renderUiStoryboard, renderUiFlow, renderUiAscii
+parseUiApp, renderUiApp
 registerUiLibraryAdapter
 clearUiLibraryAdapters
 getUiLibraryAdapter
@@ -931,7 +948,7 @@ getUiLibraryAdapter
 // Types
 BaseElementNode, DiagramAST, ParseError, ParseResult, Token, TokenType
 HighlightKind, HighlightRange, HighlightSpan
-UiAST, UiComponent, UiNode, UiTheme
+UiAST, UiAppAST, UiComponent, UiImportedDecl, UiNode, UiTheme
 FlowchartAST, StateDiagramAST, SequenceDiagramAST, ClassDiagramAST
 ```
 

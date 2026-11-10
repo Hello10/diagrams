@@ -1,0 +1,141 @@
+ui
+  use "@hello10/diagrams/ui" Stack, Heading, Text, Link, Input, Select, Button, Image, Audio
+  use "shell::ui" AppShell
+  use "tickets::ui" Show
+  api "@gigs/api" genres, results, band, shows, albums, tracks
+  api "@gigs/api" follow
+
+  screen Search route=/ layout=AppShell(current=Search)
+    in ~genres
+    in ~results(query=#query.value, genre=#genre.value)
+
+    Stack
+      Stack direction=row
+        Input  #query placeholder="Search bands"
+        Select #genre options=genres placeholder="Any genre"
+      end
+      list results as band
+        BandResult(band) $open(picked) => go Band(id=picked.id)
+      end
+      when
+        ~results.empty => Text "No bands match."
+      end
+    end
+  end
+
+  screen Band route=/bands/:id layout=AppShell @shows @albums @about
+    in ~band(id)
+    in ~shows(id)
+    in ~albums(id)
+
+    Stack
+      when
+        ~band.loading => Text "Loading…"
+        ~band.error   => Text "Could not load this band."
+      end
+      Stack direction=row
+        Image src=band.image
+        Heading "{band.name}"
+        FollowButton(band)
+      end
+      Stack direction=row
+        Link "Shows"  #showsTab  $click => @shows
+        Link "Albums" #albumsTab $click => @albums
+        Link "About"  #aboutTab  $click => @about
+      end
+      when
+        @shows => Stack
+          list shows as show
+            ShowRow(show) $open(picked) => go Show(id=picked.id)
+          end
+          when
+            ~shows.empty => Text "No upcoming shows."
+          end
+        end
+        @albums => list albums as album direction=row
+          AlbumCard(album)
+        end
+        @about => Text "{band.bio}"
+      end
+    end
+
+    when
+      @shows  => { #showsTab  selected }
+      @albums => { #albumsTab selected }
+      @about  => { #aboutTab  selected }
+    end
+  end
+
+  component BandResult(band)
+    Stack direction=row
+      Image src=band.image
+      Heading "{band.name}"
+      Button "View" $click => $open(band)
+    end
+  end
+
+  component FollowButton(band)
+    out ~follow(band=band.id)
+
+    when
+      ~follow.ready   => Button "Following" disabled
+      ~follow.loading => Button "Following…" busy disabled
+      else            => Button "Follow" $click => ~follow
+    end
+  end
+
+  component ShowRow(show)
+    Stack direction=row $click => $open(show)
+      Text "{show.venue}"
+      Text "{show.date}"
+    end
+  end
+
+  component AlbumCard(album) @closed @listening
+    Stack
+      Image src=album.cover
+      Text "{album.title}"
+      Button "Play" $click => @listening
+      when
+        @listening => modal
+          AlbumPlayer(album) $close => @closed
+        end
+      end
+    end
+  end
+
+  component AlbumPlayer(album) @stopped @playing(current)
+    in ~tracks(album=album.id)
+
+    Stack
+      AlbumHeader(album) $close => $close
+      when
+        ~tracks.loading => Text "Loading tracks…"
+      end
+      list tracks as track
+        TrackRow(track) $select(picked) => @playing(picked)
+      end
+      when
+        @playing => Stack
+          Text "{current.title}"
+          Audio src=current.audio controls
+        end
+      end
+    end
+  end
+
+  component AlbumHeader(album)
+    Stack direction=row
+      Image src=album.cover
+      Heading "{album.title}"
+      Button "Close" $click => $close
+    end
+  end
+
+  component TrackRow(track)
+    Stack direction=row $click => $select(track)
+      Text "{track.title}"
+      Text "{track.length}"
+    end
+  end
+end

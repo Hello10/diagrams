@@ -1,5 +1,6 @@
 import { DiagramParser } from "../../DiagramParser.ts";
-import type { ParseResult, Token } from "../../types.ts";
+import type { ParseError, ParseResult, Token } from "../../types.ts";
+import { getUiLibraryAdapter } from "./uiAdapters.ts";
 import {
 	UI_DATA_ATTRIBUTES,
 	UI_IO_MODES,
@@ -15,6 +16,7 @@ import {
 	type UiCondition,
 	type UiHandler,
 	type UiImport,
+	type UiImportedDecl,
 	type UiIo,
 	type UiIoMode,
 	type UiMode,
@@ -70,6 +72,18 @@ const IO_MODES = new Set<string>(UI_IO_MODES);
 
 type Phase = "io" | "tree" | "whens";
 
+/** Another document's AST, as parsed before its checks, for the
+ * declarations an importer checks against. Undefined when the module is
+ * not a document in reach. */
+export type UiDocumentLookup = (module: string) => UiAST | undefined;
+
+/** A `use` target once its module is known: an element module (the
+ * standard library or a registered adapter), a document, or neither. */
+type ModuleKind =
+	| { kind: "elements" }
+	| { kind: "document"; ast: UiAST }
+	| { kind: "unresolved" };
+
 export class UiParser extends DiagramParser<UiAST> {
 	constructor(tokens: Token[]) {
 		super(tokens, { semicolons: true });
@@ -97,7 +111,18 @@ export class UiParser extends DiagramParser<UiAST> {
 	private layoutTokens = new Map<UiComponent, Token>();
 	private modeTokens = new Map<UiMode, Token>();
 
+	/** Parse and check a document on its own: imports from other documents
+	 * are accepted unresolved, with a warning on the `use` line. */
 	parse(): ParseResult<UiAST> {
+		const ast = this.parseDocument();
+		this.check(ast, () => undefined);
+		return this.result(ast);
+	}
+
+	/** The syntactic pass alone: declarations, trees, and what is local to
+	 * each component. Nothing here looks past this document, so a set of
+	 * documents can all be read before any is checked. */
+	parseDocument(): UiAST {
 		this.skipTrivia();
 		const first = this.peek();
 		if (first?.type === "identifier" && first.value.toLowerCase() === "ui") {
@@ -130,14 +155,32 @@ export class UiParser extends DiagramParser<UiAST> {
 			io: this.io,
 			components: this.components,
 			order: this.order,
+			imports: {},
 		};
 		if (this.theme) ast.theme = this.theme;
 		if (this.meta.title) ast.title = this.meta.title;
 		if (this.meta.accTitle) ast.accTitle = this.meta.accTitle;
 		if (this.meta.accDescr) ast.accDescr = this.meta.accDescr;
 
-		this.finish(ast);
-		return this.result(ast);
+		// What a component emits depends on its own actions alone, and an
+		// importer checks its handlers against it, so it is known here.
+		for (const name of ast.order) {
+			const component = ast.components[name];
+			if (component) this.computeEmits(component);
+		}
+		return ast;
+	}
+
+	/** The checks: every name resolves, every argument is supplied, every
+	 * emit is heard. `lookup` supplies the other documents a `use` line may
+	 * name; the errors land in this parser, for `result()`. */
+	check(ast: UiAST, lookup: UiDocumentLookup): void {
+		this.finish(ast, lookup);
+	}
+
+	/** Every error and warning so far. */
+	collect(): ParseError[] {
+		return this.errors;
 	}
 
 	// ─── Top level ─────────────────────────────────────────────────────────────
@@ -1637,10 +1680,88 @@ export class UiParser extends DiagramParser<UiAST> {
 
 	// ─── Resolution and checks ─────────────────────────────────────────────────
 
-	private finish(ast: UiAST): void {
+	/** The document ASTs a `use` line resolved to, and the modules that
+	 * resolved to nothing, for the checks. */
+	private modules = new Map<string, ModuleKind>();
+
+	private moduleKind(module: string, lookup: UiDocumentLookup): ModuleKind {
+		const known = this.modules.get(module);
+		if (known) return known;
+		let kind: ModuleKind;
+		if (module === UI_STANDARD_MODULE || getUiLibraryAdapter(module)) {
+			kind = { kind: "elements" };
+		} else {
+			const doc = lookup(module);
+			kind = doc ? { kind: "document", ast: doc } : { kind: "unresolved" };
+		}
+		this.modules.set(module, kind);
+		return kind;
+	}
+
+	/** An imported declaration as the importer sees it. */
+	private importedDecl(
+		module: string,
+		name: string,
+		doc: UiAST | undefined,
+	): UiImportedDecl | undefined {
+		if (!doc) {
+			return { module, name, kind: "unresolved", routeParams: [], params: [] };
+		}
+		const c = doc.components[name];
+		if (!c) return undefined;
+		const decl: UiImportedDecl = {
+			module,
+			name,
+			kind: c.isLayout
+				? "layout"
+				: c.route !== undefined
+					? "screen"
+					: "component",
+			routeParams: c.routeParams,
+			params: c.params,
+		};
+		if (c.route !== undefined) decl.route = c.route;
+		return decl;
+	}
+
+	/** The imported declaration a name as written refers to: `Show`, or
+	 * `Tickets.Show` through a namespace. Resolved on first use. */
+	private imported(
+		raw: string,
+		ast: UiAST,
+		namespaces: Map<string, string>,
+		named: Map<string, string>,
+	): UiImportedDecl | undefined {
+		const known = ast.imports[raw];
+		if (known) return known;
+		const dot = raw.indexOf(".");
+		const module =
+			dot === -1 ? named.get(raw) : namespaces.get(raw.slice(0, dot));
+		if (module === undefined) return undefined;
+		const kind = this.modules.get(module);
+		if (!kind || kind.kind === "elements") return undefined;
+		const name = dot === -1 ? raw : raw.slice(dot + 1);
+		const decl = this.importedDecl(
+			module,
+			name,
+			kind.kind === "document" ? kind.ast : undefined,
+		);
+		if (decl) ast.imports[raw] = decl;
+		return decl;
+	}
+
+	private finish(ast: UiAST, lookup: UiDocumentLookup): void {
 		const namespaces = new Map<string, string>();
 		const named = new Map<string, string>();
 		for (const use of ast.uses) {
+			const kind = this.moduleKind(use.module, lookup);
+			const useToken = this.findString(use.module);
+			if (kind.kind === "unresolved") {
+				this.warn(
+					`"${use.module}" is not a registered adapter or a document in this set; its names are accepted unchecked and draw as placeholders`,
+					useToken,
+				);
+			}
 			if (use.kind === "namespace") {
 				if (namespaces.has(use.alias))
 					this.error(
@@ -1654,6 +1775,23 @@ export class UiParser extends DiagramParser<UiAST> {
 				if (named.has(name))
 					this.error(`Duplicate import "${name}"`, this.findIdentifier(name));
 				named.set(name, use.module);
+				if (kind.kind === "document") {
+					const decl = this.importedDecl(use.module, name, kind.ast);
+					if (decl) ast.imports[name] = decl;
+					else
+						this.error(
+							`"${use.module}" declares no ${name}`,
+							this.findIdentifier(name) ?? useToken,
+						);
+				} else if (kind.kind === "unresolved") {
+					ast.imports[name] = {
+						module: use.module,
+						name,
+						kind: "unresolved",
+						routeParams: [],
+						params: [],
+					};
+				}
 			}
 		}
 		const operations = new Set<string>();
@@ -1674,6 +1812,16 @@ export class UiParser extends DiagramParser<UiAST> {
 			}
 			for (const node of this.allNodes(component))
 				this.resolveNode(node, ast, namespaces, named);
+		}
+		// Targets named outside the tree resolve here too, so the flow and
+		// the frames can read every imported name from `imports`.
+		for (const name of ast.order) {
+			const component = ast.components[name];
+			if (!component) continue;
+			if (component.layoutName !== undefined)
+				this.imported(component.layoutName, ast, namespaces, named);
+			for (const nav of this.navigationTargets(component))
+				this.imported(nav, ast, namespaces, named);
 		}
 
 		const checkOperation = (io: UiIo) => {
@@ -1697,10 +1845,6 @@ export class UiParser extends DiagramParser<UiAST> {
 
 		for (const name of ast.order) {
 			const component = ast.components[name];
-			if (component) this.computeEmits(component);
-		}
-		for (const name of ast.order) {
-			const component = ast.components[name];
 			if (component) this.computeScope(component, ast);
 		}
 		for (const name of ast.order) {
@@ -1710,19 +1854,29 @@ export class UiParser extends DiagramParser<UiAST> {
 
 		this.checkLayouts(ast);
 
-		// Where the app opens: the screen at `/`.
-		const screens = ast.order.filter(
-			(n) => ast.components[n]?.route !== undefined,
-		);
-		const entry = screens.find((n) => ast.components[n]?.route === "/");
+		// Where the app opens: the screen at `/`. A document need not have
+		// one; the set it is rendered in must have exactly one.
+		const entry = ast.order.find((n) => ast.components[n]?.route === "/");
 		if (entry) ast.entry = entry;
-		else if (screens.length > 0) {
-			const first = ast.components[screens[0] ?? ""];
-			this.error(
-				"No screen has route=/; that is where the app opens",
-				first ? this.componentTokens.get(first) : undefined,
-			);
+	}
+
+	/** Every screen name a component navigates to, as written. */
+	private navigationTargets(component: UiComponent): string[] {
+		const out: string[] = [];
+		for (const { action } of this.allActions(component))
+			if (action.kind === "go") out.push(action.screen);
+		for (const node of this.allNodes(component)) {
+			const to = node.pairs.to ?? node.attributes.to;
+			const call = to === undefined ? undefined : parseCall(to);
+			if (call) out.push(call.name);
 		}
+		for (const when of component.whens)
+			for (const kase of when.cases ?? [])
+				for (const o of kase.overrides) {
+					const call = o.attributes.to ? parseCall(o.attributes.to) : undefined;
+					if (call) out.push(call.name);
+				}
+		return out;
 	}
 
 	private resolveNode(
@@ -1745,7 +1899,20 @@ export class UiParser extends DiagramParser<UiAST> {
 			return;
 		}
 		const raw = node.name ?? "";
-		if (raw.includes(".")) {
+		const decl = this.imported(raw, ast, namespaces, named);
+		// A name of a module out of reach used with arguments is taken for
+		// a component; used otherwise, for an element an adapter may draw.
+		const outOfReach =
+			decl?.kind === "unresolved" && Object.keys(node.args).length > 0;
+		if (decl?.kind === "component" || (decl && outOfReach)) {
+			node.ref = { kind: "component", name: decl.name, module: decl.module };
+		} else if (decl?.kind === "screen" || decl?.kind === "layout") {
+			this.error(
+				`${raw} is a ${decl.kind} of "${decl.module}"; only components go in a tree`,
+				token,
+			);
+			return;
+		} else if (raw.includes(".")) {
 			const dot = raw.indexOf(".");
 			const alias = raw.slice(0, dot);
 			const name = raw.slice(dot + 1);
@@ -1785,10 +1952,11 @@ export class UiParser extends DiagramParser<UiAST> {
 		}
 
 		if (node.ref.kind === "component") {
-			const target = ast.components[node.ref.name];
-			const params = target?.params ?? [];
+			const params = decl
+				? decl.params
+				: (ast.components[node.ref.name]?.params ?? []);
 			for (const key of Object.keys(node.args)) {
-				if (!params.includes(key))
+				if (!outOfReach && !params.includes(key))
 					this.error(`${node.ref.name} has no parameter "${key}"`, token);
 			}
 			for (const word of node.words) {
@@ -2002,7 +2170,7 @@ export class UiParser extends DiagramParser<UiAST> {
 		// A child that emits must be heard.
 		for (const node of this.allNodes(component)) {
 			if (node.ref?.kind !== "component" || this.broken.has(node)) continue;
-			const child = ast.components[node.ref.name];
+			const child = this.componentOf(node, ast);
 			const handled = new Set(node.handlers.map((h) => h.event));
 			for (const event of Object.keys(child?.emits ?? {})) {
 				if (handled.has(event)) continue;
@@ -2079,7 +2247,11 @@ export class UiParser extends DiagramParser<UiAST> {
 					this.checkDataRef(c.path, component, locals, handles, ct);
 					break;
 				case "value":
-					if (isPascal(c.value) && !ast.components[c.value])
+					if (
+						isPascal(c.value) &&
+						!ast.components[c.value] &&
+						!ast.imports[c.value]
+					)
 						this.error(`"${c.value}" is not declared`, ct);
 					break;
 			}
@@ -2099,10 +2271,7 @@ export class UiParser extends DiagramParser<UiAST> {
 			this.error(`#${o.handle} is not a handle in ${component.name}`, token);
 			return;
 		}
-		const child =
-			node.ref?.kind === "component"
-				? ast.components[node.ref.name]
-				: undefined;
+		const child = this.componentOf(node, ast);
 		const contract =
 			node.ref?.kind === "element"
 				? UI_STANDARD_ELEMENTS[node.ref.name]
@@ -2147,10 +2316,11 @@ export class UiParser extends DiagramParser<UiAST> {
 		}
 		if (o.mode) {
 			if (!child) {
-				this.error(
-					`@${o.mode.mode} sets a component's mode; #${o.handle} is not a component instance`,
-					token,
-				);
+				if (node.ref?.kind !== "component")
+					this.error(
+						`@${o.mode.mode} sets a component's mode; #${o.handle} is not a component instance`,
+						token,
+					);
 			} else {
 				const mode = child.modes.find((m) => m.name === o.mode?.mode);
 				if (!mode)
@@ -2187,7 +2357,8 @@ export class UiParser extends DiagramParser<UiAST> {
 				token,
 			);
 		} else if (node.ref?.kind === "component") {
-			carries = ast.components[node.ref.name]?.emits[h.event] ?? false;
+			// A component out of reach carries whatever it is asked for.
+			carries = this.componentOf(node, ast)?.emits[h.event] ?? true;
 		}
 		if (h.param && !carries) {
 			this.error(
@@ -2296,35 +2467,46 @@ export class UiParser extends DiagramParser<UiAST> {
 		ast: UiAST,
 		token: Token | undefined,
 	): void {
-		const screen = ast.components[name];
-		if (!screen) {
+		const local = ast.components[name];
+		const decl = local
+			? {
+					kind: local.isLayout
+						? "layout"
+						: local.route !== undefined
+							? "screen"
+							: "component",
+					routeParams: local.routeParams,
+				}
+			: ast.imports[name];
+		if (!decl) {
 			this.error(`"${name}" is not declared`, token);
 			return;
 		}
-		if (screen.route === undefined) {
+		for (const value of Object.values(args))
+			this.checkDataRef(value, component, locals, handles, token);
+		// A screen of a module out of reach: nothing to check against.
+		if (decl.kind === "unresolved") return;
+		if (decl.kind !== "screen") {
 			this.error(
-				`${name} is a ${screen.isLayout ? "layout" : "component"}, not a screen; only screens are navigation targets`,
+				`${name} is a ${decl.kind}, not a screen; only screens are navigation targets`,
 				token,
 			);
 			return;
 		}
-		for (const param of screen.routeParams) {
+		for (const param of decl.routeParams) {
 			if (args[param] === undefined)
 				this.error(`${name} needs ${param}: \`${name}(${param}=…)\``, token);
 		}
 		for (const key of Object.keys(args)) {
-			if (!screen.routeParams.includes(key))
+			if (!decl.routeParams.includes(key))
 				this.error(`${name} has no route param "${key}"`, token);
 		}
-		for (const value of Object.values(args))
-			this.checkDataRef(value, component, locals, handles, token);
 	}
 
 	/** A layout has exactly one Outlet; nothing else has any. A screen's
-	 * `layout=` must name a layout; with one layout declared and none named,
-	 * every screen uses it. */
+	 * `layout=` must name a layout, local or imported; a screen that names
+	 * none has none. */
 	private checkLayouts(ast: UiAST): void {
-		const layouts = ast.order.filter((n) => ast.components[n]?.isLayout);
 		for (const name of ast.order) {
 			const component = ast.components[name];
 			if (!component) continue;
@@ -2345,32 +2527,28 @@ export class UiParser extends DiagramParser<UiAST> {
 					this.nodeTokens.get(outlets[0] as UiNode),
 				);
 			}
-			if (component.route === undefined) continue;
-			if (component.layoutName !== undefined) {
-				const layout = ast.components[component.layoutName];
-				const lt = this.layoutTokens.get(component);
-				if (!layout?.isLayout) {
-					this.error(
-						`layout=${component.layoutName} does not name a layout`,
-						lt,
-					);
-				} else {
-					component.usesLayout = component.layoutName;
-					for (const key of Object.keys(component.layoutArgs)) {
-						if (!layout.params.includes(key))
-							this.error(`${layout.name} has no parameter "${key}"`, lt);
-					}
-					const handles = this.handles(component);
-					for (const value of Object.values(component.layoutArgs))
-						this.checkDataRef(value, component, new Set(), handles, lt);
-				}
-			} else if (layouts.length === 1) {
-				component.usesLayout = layouts[0];
-			} else if (layouts.length > 1) {
-				this.error(
-					`${name} must say which layout wraps it (layout=${layouts.join("|")}); the document declares more than one`,
-					token,
-				);
+			if (component.route === undefined || component.layoutName === undefined)
+				continue;
+			const lt = this.layoutTokens.get(component);
+			const handles = this.handles(component);
+			for (const value of Object.values(component.layoutArgs))
+				this.checkDataRef(value, component, new Set(), handles, lt);
+			const local = ast.components[component.layoutName];
+			const decl = local
+				? { kind: local.isLayout ? "layout" : "other", params: local.params }
+				: ast.imports[component.layoutName];
+			if (decl?.kind === "unresolved") continue;
+			if (!decl || decl.kind !== "layout") {
+				this.error(`layout=${component.layoutName} does not name a layout`, lt);
+				continue;
+			}
+			component.usesLayout = local
+				? component.layoutName
+				: (decl as UiImportedDecl).name;
+			if (!local) component.usesLayoutModule = (decl as UiImportedDecl).module;
+			for (const key of Object.keys(component.layoutArgs)) {
+				if (!decl.params.includes(key))
+					this.error(`${component.layoutName} has no parameter "${key}"`, lt);
 			}
 		}
 	}
@@ -2433,10 +2611,26 @@ export class UiParser extends DiagramParser<UiAST> {
 		);
 	}
 
+	/** The component an instance refers to: declared here, or in the
+	 * document it is imported from. Undefined for an element, or for a
+	 * component of a module out of reach. */
+	private componentOf(node: UiNode, ast: UiAST): UiComponent | undefined {
+		if (node.ref?.kind !== "component") return undefined;
+		if (node.ref.module === undefined) return ast.components[node.ref.name];
+		const kind = this.modules.get(node.ref.module);
+		return kind?.kind === "document"
+			? kind.ast.components[node.ref.name]
+			: undefined;
+	}
+
 	private eventsOf(node: UiNode, ast: UiAST): string[] | undefined {
 		if (!node.ref) return undefined;
-		if (node.ref.kind === "component")
-			return Object.keys(ast.components[node.ref.name]?.emits ?? {});
+		if (node.ref.kind === "component") {
+			const child = this.componentOf(node, ast);
+			// An instance of a component out of reach fires what it is
+			// asked for.
+			return child ? Object.keys(child.emits) : undefined;
+		}
 		if (node.ref.kind === "element")
 			return [
 				UI_UNIVERSAL_EVENT,
@@ -2478,6 +2672,13 @@ export class UiParser extends DiagramParser<UiAST> {
 	private findIdentifier(value: string): Token | undefined {
 		return this.tokens.find(
 			(t) => t.type === "identifier" && t.value === value,
+		);
+	}
+
+	private findString(value: string): Token | undefined {
+		return this.tokens.find(
+			(t) =>
+				(t.type === "string" || t.type === "identifier") && t.value === value,
 		);
 	}
 }
@@ -2543,11 +2744,15 @@ function splitTopLevel(inner: string): string[] {
 	return out;
 }
 
-/** `Band(id=x)` → { name: "Band", args: "id=x" }; `Search` → args "". */
+/** `Band(id=x)` → { name: "Band", args: "id=x" }; `Search` → args "";
+ * `Tickets.Show(id=x)` keeps the namespace in the name. */
 export function parseCall(
 	value: string,
 ): { name: string; args: string } | undefined {
-	const m = /^([A-Z][A-Za-z0-9_]*)(?:\((.*)\))?$/s.exec(value.trim());
+	const m =
+		/^([A-Z][A-Za-z0-9_]*(?:\.[A-Z][A-Za-z0-9_]*)?)(?:\((.*)\))?$/s.exec(
+			value.trim(),
+		);
 	if (!m) return undefined;
 	return { name: m[1] ?? "", args: m[2] ?? "" };
 }

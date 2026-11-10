@@ -22,7 +22,7 @@ export class UiDiagram extends Diagram<UiAST> {
 	}
 
 	render(ast: UiAST): string {
-		return new UiStoryboardRenderer(ast).render();
+		return new UiStoryboardRenderer({ ast }).render();
 	}
 
 	toPlaintext(ast: UiAST): string {

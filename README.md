@@ -99,6 +99,19 @@ if (result.ok) {
 }
 ```
 
+An app can be kept as several documents that import each other's screens, layouts, and components with the same `use` line (`use "tickets::ui" Show, TicketRow`; the module string is the host's to interpret). Parse and render them as a set:
+
+```ts
+import { parseUiApp, renderUiApp } from "@hello10/diagrams";
+
+const app = parseUiApp({ documents: { "shell::ui": shell, "tickets::ui": tickets } });
+if (app.ok) {
+  const storyboard = renderUiApp(app.ast);  // the flow across the set, then each document's frames
+}
+```
+
+Documents may import each other in cycles. The set must have exactly one screen at `/`. A document parsed alone with `parse` still works: a `use` of a document it cannot see is a warning, and what it imports draws as placeholders. See [examples/diagrams/ui/](examples/diagrams/ui/) for the worked example split by capability.
+
 ## Syntax highlighting
 
 `highlight(source)` returns spans of source text with a kind, for any diagram type. It ships no colors or editor code, so any editor can use it, and half-typed source highlights too.

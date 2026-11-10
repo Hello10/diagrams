@@ -28,17 +28,18 @@ import {
 	type UiView,
 	viewLabel,
 } from "./uiFrame.ts";
+import { targetId, targetLabel, UiScope } from "./uiScope.ts";
 import {
 	modeTransitions,
 	renderStatechart,
 	statechartAst,
 } from "./uiStatechart.ts";
 import { uiToPlaintext } from "./uiToPlaintext.ts";
-import type { UiAST, UiComponent, UiNode } from "./uiTypes.ts";
+import type { UiAppAST, UiAST, UiComponent, UiNode } from "./uiTypes.ts";
 
 /** Placeholder for a tier rule's right end, filled in once the drawing's
  * width is known. */
-const TIER_RULE_END = "__TIER_RULE_END__";
+export const TIER_RULE_END = "__TIER_RULE_END__";
 
 /**
  * The storyboard: one drawing of a UI document in three tiers. The flow
@@ -49,12 +50,17 @@ const TIER_RULE_END = "__TIER_RULE_END__";
  * and the flow renderer; owns none of their logic.
  */
 export class UiStoryboardRenderer extends DiagramRenderer<UiAST> {
-	private readonly engine: UiFrameEngine;
+	readonly engine: UiFrameEngine;
+	private readonly scope: UiScope;
 	private built?: { width: number; height: number; body: string };
 
-	constructor(ast: UiAST) {
+	/** With `app`, the document is drawn as one of a set: its instances of
+	 * imported components expand, and the components tier lists where in
+	 * the whole app each of its components is first embedded. */
+	constructor({ ast, app }: { ast: UiAST; app?: UiAppAST }) {
 		super(ast);
-		this.engine = new UiFrameEngine(ast);
+		this.scope = new UiScope({ ast, app });
+		this.engine = new UiFrameEngine({ ast, app });
 	}
 
 	/** One component in one view, drawn at the origin without a caption. */
@@ -108,9 +114,48 @@ export class UiStoryboardRenderer extends DiagramRenderer<UiAST> {
 		const parts: string[] = [];
 		let cy = CANVAS_PAD;
 		let right = 0;
+		const flow = new UiFlowRenderer({ ast: this.ast }).inline();
+		if (flow.svg) {
+			parts.push(this.tierHeading("Flow", CANVAS_PAD, cy));
+			cy += TIER_HEADING_H;
+			parts.push(
+				`<g transform="translate(${CANVAS_PAD}, ${cy})">${flow.svg}</g>`,
+			);
+			cy += flow.height + SECTION_GAP;
+			right = Math.max(right, CANVAS_PAD + flow.width);
+		}
+		const tiers = this.tiers({ y0: cy, first: !flow.svg });
+		parts.push(tiers.svg);
+		cy = tiers.bottom;
+		right = Math.max(right, tiers.right);
+
+		const width = Math.max(right + CANVAS_PAD, 320);
+		return {
+			width,
+			height: Math.max(cy - SECTION_GAP + CANVAS_PAD, 160),
+			// Tier rules span the drawing, whose width is known only now.
+			body: parts
+				.join("\n")
+				.replaceAll(TIER_RULE_END, String(width - CANVAS_PAD)),
+		};
+	}
+
+	/** The document's frames: its layouts, screens, and components as
+	 * tiers from `y0` down. `bottom` is SECTION_GAP below the last row.
+	 * Tier rules end at `TIER_RULE_END`, for the caller to fill in once
+	 * the drawing's width is known. With `first`, the first tier gets no
+	 * gap above it. */
+	tiers({ y0, first = false }: { y0: number; first?: boolean }): {
+		svg: string;
+		bottom: number;
+		right: number;
+	} {
+		const parts: string[] = [];
+		let cy = y0;
+		let right = 0;
 		// Every tier ends SECTION_GAP below its last row; the next tier's
 		// heading sits TIER_GAP below that row.
-		let tiers = 0;
+		let tiers = first ? 0 : 1;
 		const tier = (title: string) => {
 			if (tiers > 0) cy += TIER_GAP - SECTION_GAP;
 			tiers++;
@@ -118,22 +163,11 @@ export class UiStoryboardRenderer extends DiagramRenderer<UiAST> {
 			cy += TIER_HEADING_H;
 		};
 
-		const flow = new UiFlowRenderer(this.ast).inline();
-		if (flow.svg) {
-			tier("Flow");
-			parts.push(
-				`<g transform="translate(${CANVAS_PAD}, ${cy})">${flow.svg}</g>`,
-			);
-			cy += flow.height + SECTION_GAP;
-			right = Math.max(right, CANVAS_PAD + flow.width);
-		}
-
 		// Layouts first: the common frame every wrapped screen shares, with
 		// its actions listed once, here. Then screens, in declaration order,
 		// each drawn inside its layout dimmed. Each component is listed for
-		// the components tier under the first layout or screen that embeds it.
-		const components: { component: UiComponent; where: string }[] = [];
-		const listed = new Set<string>();
+		// the components tier under the first layout or screen that embeds
+		// it, anywhere in scope.
 		const layouts = this.ast.order.filter(
 			(name) => this.ast.components[name]?.isLayout,
 		);
@@ -144,7 +178,6 @@ export class UiStoryboardRenderer extends DiagramRenderer<UiAST> {
 		for (const name of layouts) {
 			const layout = this.ast.components[name];
 			if (!layout) continue;
-			listed.add(name);
 			const row = this.viewRow(
 				layout,
 				SCREEN_WIDTH,
@@ -156,11 +189,6 @@ export class UiStoryboardRenderer extends DiagramRenderer<UiAST> {
 			parts.push(row.svg);
 			cy += row.height + SECTION_GAP;
 			right = Math.max(right, row.right);
-			for (const entry of this.embedded(layout)) {
-				if (listed.has(entry.component.name)) continue;
-				listed.add(entry.component.name);
-				components.push(entry);
-			}
 		}
 		if (screens.length > 0) tier("Screens");
 		for (const name of screens) {
@@ -177,22 +205,9 @@ export class UiStoryboardRenderer extends DiagramRenderer<UiAST> {
 			parts.push(row.svg);
 			cy += row.height + SECTION_GAP;
 			right = Math.max(right, row.right);
-			for (const entry of this.embedded(screen)) {
-				if (listed.has(entry.component.name)) continue;
-				listed.add(entry.component.name);
-				components.push(entry);
-			}
 		}
 
-		// Components no screen embeds still get a section.
-		for (const name of this.ast.order) {
-			const component = this.ast.components[name];
-			if (!component || component.route !== undefined || listed.has(name))
-				continue;
-			listed.add(name);
-			components.push({ component, where: "not embedded by any screen" });
-		}
-
+		const components = this.componentsTier();
 		if (components.length > 0) {
 			tier("Components");
 			for (const { component, where } of components) {
@@ -210,15 +225,35 @@ export class UiStoryboardRenderer extends DiagramRenderer<UiAST> {
 			}
 		}
 
-		const width = Math.max(right + CANVAS_PAD, 320);
-		return {
-			width,
-			height: Math.max(cy - SECTION_GAP + CANVAS_PAD, 160),
-			// Tier rules span the drawing, whose width is known only now.
-			body: parts
-				.join("\n")
-				.replaceAll(TIER_RULE_END, String(width - CANVAS_PAD)),
-		};
+		return { svg: parts.join("\n"), bottom: cy, right };
+	}
+
+	/** This document's components in the order they are first met walking
+	 * every layout and screen in scope, each with where that was; then
+	 * those nothing embeds. */
+	private componentsTier(): { component: UiComponent; where: string }[] {
+		const where = this.embeddings();
+		const out: { component: UiComponent; where: string }[] = [];
+		const listed = new Set<string>();
+		for (const [id, entry] of where) {
+			if (entry.doc !== this.ast) continue;
+			listed.add(id);
+			out.push({ component: entry.component, where: entry.where });
+		}
+		for (const name of this.ast.order) {
+			const component = this.ast.components[name];
+			const id = targetId({ name }, this.ast);
+			if (
+				!component ||
+				component.route !== undefined ||
+				component.isLayout ||
+				listed.has(id)
+			)
+				continue;
+			listed.add(id);
+			out.push({ component, where: "not embedded by any screen" });
+		}
+		return out;
 	}
 
 	/** A tier heading: Flow, Screens, Components. Larger than a section
@@ -247,30 +282,60 @@ export class UiStoryboardRenderer extends DiagramRenderer<UiAST> {
 		return parts.join("\n");
 	}
 
-	/** Components a screen or layout embeds, transitively, with where the
-	 * first embedding sits: the component whose tree holds the instance,
-	 * the mode that part of the tree is in, and whether it is in a modal
-	 * (`in AlbumCard @listening, modal`). */
-	private embedded(
-		screen: UiComponent,
-	): { component: UiComponent; where: string }[] {
-		const out: { component: UiComponent; where: string }[] = [];
-		const seen = new Set<string>([screen.name]);
-		const visit = (owner: UiComponent) => {
+	/** Every component embedded by a layout or screen in scope,
+	 * transitively, keyed by id in the order first met, with where that
+	 * was: the component whose tree holds the instance (qualified by its
+	 * module when it is in another document), the mode that part of the
+	 * tree is in, and whether it is in a modal (`in AlbumCard @listening,
+	 * modal`). Layouts of every document come first, then screens, in
+	 * declaration order. */
+	private embeddings(): Map<
+		string,
+		{ doc: UiAST; component: UiComponent; where: string }
+	> {
+		const out = new Map<
+			string,
+			{ doc: UiAST; component: UiComponent; where: string }
+		>();
+		const seen = new Set<string>();
+		const visit = (ownerDoc: UiAST, owner: UiComponent) => {
 			walkTree(owner.tree, (node, mode) => {
-				if (node.ref?.kind !== "component" || seen.has(node.ref.name)) return;
-				seen.add(node.ref.name);
-				const child = this.ast.components[node.ref.name];
+				if (node.ref?.kind !== "component") return;
+				const childDoc = this.scope.document(node.ref.module, ownerDoc);
+				if (!childDoc) return;
+				const id = targetId({ name: node.ref.name }, childDoc);
+				if (seen.has(id)) return;
+				seen.add(id);
+				const child = childDoc.components[node.ref.name];
 				if (!child) return;
 				const modal = inModalOf(owner.tree, node);
-				out.push({
+				const ownerName =
+					ownerDoc === this.ast
+						? owner.name
+						: targetLabel({ module: ownerDoc.module, name: owner.name });
+				out.set(id, {
+					doc: childDoc,
 					component: child,
-					where: `in ${owner.name}${mode === undefined ? "" : ` @${mode}`}${modal ? ", modal" : ""}`,
+					where: `in ${ownerName}${mode === undefined ? "" : ` @${mode}`}${modal ? ", modal" : ""}`,
 				});
-				visit(child);
+				visit(childDoc, child);
 			});
 		};
-		visit(screen);
+		const docs = this.scope.documents();
+		const roots = (pick: (c: UiComponent) => boolean) =>
+			docs.flatMap((doc) =>
+				doc.order.flatMap((name) => {
+					const c = doc.components[name];
+					return c && pick(c) ? [{ doc, component: c }] : [];
+				}),
+			);
+		for (const { doc, component } of [
+			...roots((c) => c.isLayout === true),
+			...roots((c) => c.route !== undefined),
+		]) {
+			seen.add(targetId({ name: component.name }, doc));
+			visit(doc, component);
+		}
 		return out;
 	}
 
