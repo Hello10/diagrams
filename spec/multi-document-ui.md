@@ -85,7 +85,7 @@ New, on the `use` line: a name not declared in a resolved document (error); a mo
 - §5.4.1: `use` target kinds; scope rules; "where the app opens" moves to the set; layouts are always named
 - §4.4: `parseUiApp` and `renderUiApp`
 - §7: adapters and document modules side by side under one resolution order
-- `examples/diagrams/ui.txt` stays the monolithic Gigs app: the viewer's example, the round-trip corpus, and the snapshot fixture. `examples/diagrams/ui/` holds the same app split by capability for tests: shell (AppShell, Bare, Nav, Login), discovery (Search, Band, BandResult, FollowButton, ShowRow, AlbumCard, AlbumPlayer, AlbumHeader, TrackRow), tickets (Show, Ticket, TicketPicker, TicketRow), library, account. Each imports what it navigates to. The viewer stays single-document.
+- `examples/diagrams/ui.dgrm` stays the monolithic Gigs app: the viewer's example, the round-trip corpus, and the snapshot fixture. `examples/diagrams/ui/` holds the same app split by capability for tests: shell (AppShell, Bare, Nav, Login), discovery (Search, Band, BandResult, FollowButton, ShowRow, AlbumCard, AlbumPlayer, AlbumHeader, TrackRow), tickets (Show, Ticket, TicketPicker, TicketRow), library, account. Each imports what it navigates to. The viewer stays single-document.
 - Fixtures: the split Gigs app (a cycle between shell and every other document, imported layouts, imported components); a set with zero and with two `/` screens; a document parsed alone with an unresolved module.
 - A test pins the two forms together: the split set and the monolith declare the same screens and components and draw the same flow edges.
 

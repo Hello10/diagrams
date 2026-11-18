@@ -17,7 +17,7 @@ const examples = resolve(
 );
 const NAMES = ["ui", "flowchart", "sequence", "state", "class"];
 const read = (name: string) =>
-	readFileSync(resolve(examples, `${name}.txt`), "utf8");
+	readFileSync(resolve(examples, `${name}.dgrm`), "utf8");
 
 /** Each span as `kind:text`, the way a reader would check it. */
 function spans(source: string): string[] {

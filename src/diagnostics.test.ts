@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { parse, toPlaintext } from "./api.ts";
 import { findProblems } from "./diagnostics.ts";
+import { isDiagramPath } from "./extensions.ts";
 import { getDiagram } from "./registry.ts";
 import { assertOk } from "./testUtils.ts";
 
@@ -17,11 +18,14 @@ import { assertOk } from "./testUtils.ts";
  */
 const here = dirname(fileURLToPath(import.meta.url));
 const cases: { name: string; path: string }[] = [
-	{ name: "class.txt", path: resolve(here, "../examples/diagrams/class.txt") },
+	{
+		name: "class.dgrm",
+		path: resolve(here, "../examples/diagrams/class.dgrm"),
+	},
 ];
 const classFixtures = resolve(here, "diagrams/class/fixtures");
 for (const file of readdirSync(classFixtures).sort()) {
-	if (file.endsWith(".txt"))
+	if (isDiagramPath(file))
 		cases.push({ name: `class/${file}`, path: resolve(classFixtures, file) });
 }
 

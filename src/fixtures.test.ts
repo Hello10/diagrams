@@ -16,7 +16,7 @@ const fixturesDir = resolve(
 );
 
 function readFixture(name: string): string {
-	return readFileSync(resolve(fixturesDir, `${name}.txt`), "utf8");
+	return readFileSync(resolve(fixturesDir, `${name}.dgrm`), "utf8");
 }
 
 /** Return any attribute occurrences in the SVG whose values aren't quoted with
@@ -73,7 +73,7 @@ describe("canonical example fixtures", () => {
 	];
 
 	for (const [fixtureName, expectedType] of cases) {
-		describe(`${fixtureName}.txt`, () => {
+		describe(`${fixtureName}.dgrm`, () => {
 			const src = readFixture(fixtureName);
 
 			test("parses without errors", () => {
@@ -135,7 +135,7 @@ describe("canonical example fixtures", () => {
 	}
 });
 
-describe("state.txt structural assertions", () => {
+describe("state.dgrm structural assertions", () => {
 	const ast = assertOk<StateDiagramAST>(parse(readFixture("state")));
 
 	test("captures accTitle", () => {
@@ -182,7 +182,7 @@ describe("state.txt structural assertions", () => {
 	});
 });
 
-describe("sequence.txt structural assertions", () => {
+describe("sequence.dgrm structural assertions", () => {
 	const ast = assertOk<SequenceDiagramAST>(parse(readFixture("sequence")));
 
 	test("captures title", () => {
@@ -244,7 +244,7 @@ describe("sequence.txt structural assertions", () => {
 });
 
 describe("rendered SVG content sanity (catches half-empty regressions)", () => {
-	test("state.txt SVG contains every top-level state label", () => {
+	test("state.dgrm SVG contains every top-level state label", () => {
 		const svg = render(assertOk(parse(readFixture("state"))));
 		for (const label of ["Active", "Done", "Cancelled", "Awaiting Approval"]) {
 			expect(svg).toContain(label);
@@ -263,7 +263,7 @@ describe("rendered SVG content sanity (catches half-empty regressions)", () => {
 		expect(svg).toContain("Initial state for all orders");
 	});
 
-	test("sequence.txt SVG contains every participant + every message label", () => {
+	test("sequence.dgrm SVG contains every participant + every message label", () => {
 		const svg = render(assertOk(parse(readFixture("sequence"))));
 		for (const alias of ["User", "Browser", "Auth Service", "Database"]) {
 			expect(svg).toContain(alias);
@@ -285,7 +285,7 @@ describe("rendered SVG content sanity (catches half-empty regressions)", () => {
 		}
 	});
 
-	test("flowchart.txt SVG contains every node label", () => {
+	test("flowchart.dgrm SVG contains every node label", () => {
 		const svg = render(assertOk(parse(readFixture("flowchart"))));
 		for (const label of [
 			"Incoming request",
@@ -304,7 +304,7 @@ describe("rendered SVG content sanity (catches half-empty regressions)", () => {
 	});
 });
 
-describe("ui.txt structural assertions", () => {
+describe("ui.dgrm structural assertions", () => {
 	const ast = assertOk<UiAST>(parse(readFixture("ui")));
 
 	test("the app opens at /, and declarations keep their order", () => {
@@ -496,7 +496,7 @@ describe("ui.txt structural assertions", () => {
 	});
 });
 
-describe("flowchart.txt structural assertions", () => {
+describe("flowchart.dgrm structural assertions", () => {
 	const ast = assertOk<FlowchartAST>(parse(readFixture("flowchart")));
 
 	test("direction is TB (TD alias)", () => {

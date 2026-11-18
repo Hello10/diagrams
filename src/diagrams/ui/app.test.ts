@@ -21,7 +21,7 @@ function gigs(): Record<string, string> {
 	return Object.fromEntries(
 		["shell", "discovery", "tickets", "library", "account"].map((name) => [
 			`${name}::ui`,
-			readFileSync(resolve(fixturesDir, `ui/${name}.txt`), "utf8"),
+			readFileSync(resolve(fixturesDir, `ui/${name}.dgrm`), "utf8"),
 		]),
 	);
 }
@@ -98,7 +98,7 @@ describe("a set of documents", () => {
 
 	test("the split app and the monolith declare the same things and draw the same flow", () => {
 		const mono = assertOk<UiAST>(
-			parse(readFileSync(resolve(fixturesDir, "ui.txt"), "utf8")),
+			parse(readFileSync(resolve(fixturesDir, "ui.dgrm"), "utf8")),
 		);
 		const app = assertOk<UiAppAST>(parseUiApp({ documents: gigs() }));
 		const docs = app.order.map((m) => app.documents[m] as UiAST);

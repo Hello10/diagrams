@@ -18,8 +18,8 @@ const fixturesDir = resolve(
 );
 
 for (const name of ["state", "flowchart", "class", "sequence", "ui"]) {
-	test(`${name}.txt renders the approved SVG`, async () => {
-		const src = readFileSync(resolve(fixturesDir, `${name}.txt`), "utf8");
+	test(`${name}.dgrm renders the approved SVG`, async () => {
+		const src = readFileSync(resolve(fixturesDir, `${name}.dgrm`), "utf8");
 		const svg = render(assertOk(parse(src)));
 		await expect(svg).toMatchFileSnapshot(`__snapshots__/${name}.svg`);
 	});
@@ -29,7 +29,7 @@ test("ui/ (the Gigs app split by capability) renders the approved SVG", async ()
 	const documents = Object.fromEntries(
 		["shell", "discovery", "tickets", "library", "account"].map((name) => [
 			`${name}::ui`,
-			readFileSync(resolve(fixturesDir, `ui/${name}.txt`), "utf8"),
+			readFileSync(resolve(fixturesDir, `ui/${name}.dgrm`), "utf8"),
 		]),
 	);
 	const svg = renderUiApp(assertOk(parseUiApp({ documents })));

@@ -36,6 +36,7 @@ export type {
 	UiNode,
 	UiTheme,
 } from "./diagrams/ui/uiTypes.ts";
+export { diagramExtensions, isDiagramPath } from "./extensions.ts";
 export type {
 	HighlightKind,
 	HighlightRange,
