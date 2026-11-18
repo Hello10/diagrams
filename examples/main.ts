@@ -1,9 +1,9 @@
 import { parse, render } from "../src/api.ts";
-import classSource from "./diagrams/class.txt?raw";
-import flowchartSource from "./diagrams/flowchart.txt?raw";
-import sequenceSource from "./diagrams/sequence.txt?raw";
-import stateSource from "./diagrams/state.txt?raw";
-import uiSource from "./diagrams/ui.txt?raw";
+import classSource from "./diagrams/class.dgrm?raw";
+import flowchartSource from "./diagrams/flowchart.dgrm?raw";
+import sequenceSource from "./diagrams/sequence.dgrm?raw";
+import stateSource from "./diagrams/state.dgrm?raw";
+import uiSource from "./diagrams/ui.dgrm?raw";
 import { editorText, paintHighlights } from "./editorHighlight.ts";
 
 const EXAMPLES: Record<string, string> = {

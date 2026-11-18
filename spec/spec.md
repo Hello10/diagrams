@@ -296,6 +296,14 @@ There are two layers. A lexical layer covers everything the token type settles f
 
 `Token.endCol` is what makes this exact: a token's `value` can be shorter than its source text, since strings lose their quotes, comments their `%%`, and handles and operations their sigil.
 
+### 4.10 File extension
+
+Diagram sources use `.dgrm`. `.dgrm.txt` is the same format under a second name, for places that accept only `.txt`, such as email attachments, upload forms, and default apps. The examples, fixtures, and docs use `.dgrm`.
+
+One extension covers every type, because the first line picks the type (§4.4). The API takes strings and never reads files, so the extension matters only to hosts and editors. `diagramExtensions` lists both, canonical first, and `isDiagramPath(path)` checks a path against them, ignoring case. Hosts and editor integrations use these instead of hard-coding either spelling.
+
+When the name was chosen, no other format used `.dgrm`: Linguist did not list it and GitHub code search found no files. `.diagram` was rejected because BOUML and HL7 FHIR already use it for their own diagram files. `.gram` was rejected because it is the extension for Python PEG grammars (CPython's `Grammar/python.gram`) and speech-recognition grammars. GitHub highlighting through Linguist comes only after wide use, so until then GitHub shows `.dgrm` as plain text, the same as `.txt`.
+
 ## 5. Diagram Types
 
 ### 5.1 State diagram
@@ -837,7 +845,7 @@ Other modules are a project's own elements and components, mapped onto this set 
 
 #### 5.4.3 Worked example
 
-`examples/diagrams/ui.txt`: seven screens of a gig-finding app (sign in, band search, a band page with shows, albums, and an album player, a show page with a ticket purchase, a ticket, a library of followed bands and tickets, and a profile), two layouts, and the components they use. It is the fixture for the type and the document the language was derived from. Read it against §5.4.1; a few places to look:
+`examples/diagrams/ui.dgrm`: seven screens of a gig-finding app (sign in, band search, a band page with shows, albums, and an album player, a show page with a ticket purchase, a ticket, a library of followed bands and tickets, and a profile), two layouts, and the components they use. It is the fixture for the type and the document the language was derived from. Read it against §5.4.1; a few places to look:
 
 - `api "@gigs/api" …` lists every operation the document uses; `in ~session` at document level is the signed-in user, read by `Nav` without being passed in.
 - `AppShell(current)` is the layout the signed-in screens name, passing what the nav needs: `layout=AppShell(current=Search)`. `Nav(current)` marks the matching link with a `when current` block; `Band` passes nothing, so there nothing is marked. `Login` uses `Bare`.
@@ -862,7 +870,7 @@ Other modules are a project's own elements and components, mapped onto this set 
 **Type key:** `classDiagram` (alias `class`)
 **Detection:** first line is `classDiagram` or `class` (case-insensitive)
 
-Mermaid class-diagram coverage: `class Name { … }` bodies and `Name : member` shorthand, visibility markers (`+ - # ~`), `<<stereotype>>`, generics (`List~Product~`, `class Repository~T~`), `namespace Name { … }` clusters, every relationship form in both arrow directions (`<|--`, `*--`, `o--`, `-->`, `--`, `..>`, `<|..`, `..`) with cardinalities and labels, `note for Class "…"` and standalone `note "…"`, `direction`, and `accTitle`. The fixture `examples/diagrams/class.txt` exercises each construct and is part of the round-trip corpus. The AST is in `src/diagrams/class/classTypes.ts`.
+Mermaid class-diagram coverage: `class Name { … }` bodies and `Name : member` shorthand, visibility markers (`+ - # ~`), `<<stereotype>>`, generics (`List~Product~`, `class Repository~T~`), `namespace Name { … }` clusters, every relationship form in both arrow directions (`<|--`, `*--`, `o--`, `-->`, `--`, `..>`, `<|..`, `..`) with cardinalities and labels, `note for Class "…"` and standalone `note "…"`, `direction`, and `accTitle`. The fixture `examples/diagrams/class.dgrm` exercises each construct and is part of the round-trip corpus. The AST is in `src/diagrams/class/classTypes.ts`.
 
 ## 6. Examples viewer
 
@@ -872,7 +880,7 @@ Mermaid class-diagram coverage: `class Name { … }` bodies and `Name : member` 
 vp run examples
 ```
 
-A split-pane editor that renders as you type, highlighted by `highlight()` through CSS Custom Highlights over a plain-text `contenteditable` (`examples/editorHighlight.ts`), with the example for each type in a dropdown, the selection tracked in the URL hash, zoom controls, and a draggable divider. A source with hard errors renders its partial AST at half opacity. The sources in `examples/diagrams/*.txt` double as the round-trip corpus and the snapshot fixtures (`src/__snapshots__/*.svg`, approved with `vp test -u src/snapshots.test.ts`). The viewer is single-document; `examples/diagrams/ui/` holds the Gigs app split by capability for the set tests and the `ui-app.svg` snapshot, and a test pins it to the monolithic `ui.txt`. Treat the viewer as a development tool, not a public API.
+A split-pane editor that renders as you type, highlighted by `highlight()` through CSS Custom Highlights over a plain-text `contenteditable` (`examples/editorHighlight.ts`), with the example for each type in a dropdown, the selection tracked in the URL hash, zoom controls, and a draggable divider. A source with hard errors renders its partial AST at half opacity. The sources in `examples/diagrams/*.dgrm` double as the round-trip corpus and the snapshot fixtures (`src/__snapshots__/*.svg`, approved with `vp test -u src/snapshots.test.ts`). The viewer is single-document; `examples/diagrams/ui/` holds the Gigs app split by capability for the set tests and the `ui-app.svg` snapshot, and a test pins it to the monolithic `ui.dgrm`. Treat the viewer as a development tool, not a public API.
 
 A snapshot only freezes what someone approved. `src/diagnostics.test.ts` checks the geometry instead: a diagram type that implements `diagnostics(ast)` (§4.3) reports its boxes, edge segments, labels, and arrowheads, and `findProblems` in `src/diagnostics.ts` lists every line through a box it does not connect, every label on a box, another label, or another edge's line, every pair of arrowheads at one point, and every pair of overlapping boxes. The check runs over each type's example and over the awkward inputs under `src/diagrams/<type>/fixtures/`, which exist to be checked rather than looked at, and it also round-trips each of them through `toPlaintext`. Today the class diagram implements it.
 
@@ -936,6 +944,9 @@ Exported from `@hello10/diagrams`:
 // Core
 parse, render, toJSON, fromJSON, toPlaintext, highlight
 registerDiagram
+
+// File extension
+diagramExtensions, isDiagramPath
 
 // Diagram classes (for custom registries)
 Diagram, DiagramParser, DiagramRenderer
